@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="@drawable/search_field_bg"
+    android:layout_marginTop="@dimen/_3sdp"
+    android:layout_marginStart="@dimen/_5sdp"
+    android:layout_marginEnd="@dimen/_5sdp"
+    android:layout_height="wrap_content">
+
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profile_image"
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="@dimen/_50sdp"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:src="@drawable/user"
+        app:civ_border_color="@color/green"
+        app:civ_border_width="1dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/advisor_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_7sdp"
+        android:text="Nikhil Kumar"
+        android:maxLines="1"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@+id/profile_image"
+        app:layout_constraintTop_toTopOf="@+id/profile_image" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout7"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:orientation="vertical"
+        android:layout_marginBottom="@dimen/_5sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/textView5"
+        app:layout_constraintStart_toEndOf="@+id/profile_image"
+        app:layout_constraintTop_toBottomOf="@+id/advisor_name">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_7sdp"
+            android:text="Exp-10 years"
+            android:textColor="@color/gray"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/textView"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_7sdp"
+            android:text="Hindi,English"
+            android:textColor="@color/gray"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/textView"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_7sdp"
+            android:text="Portfolio management,Personal finance"
+            android:textColor="@color/gray"
+            android:maxLines="2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/textView"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:background="@drawable/search_field_bg"
+        android:padding="@dimen/_6sdp"
+        android:text="Connect"
+        android:textAlignment="center"
+        android:textColor="@color/green"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/advisor_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="4.5"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/_5sdp"
+        app:layout_constraintEnd_toEndOf="@+id/profile_image"
+        app:layout_constraintStart_toStartOf="@+id/profile_image"
+        app:layout_constraintTop_toBottomOf="@+id/profile_image" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
