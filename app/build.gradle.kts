@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,9 +64,15 @@ dependencies {
     ///auth
     implementation("androidx.credentials:credentials:1.2.0-alpha01")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.0-alpha01")
-    implementation ("com.google.android.gms:play-services-safetynet:18.0.1")
+    implementation ("com.google.android.gms:play-services-safetynet:18.1.0")
+
 
     // Import the BoM for the Firebase platform
     implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+
+    implementation ("com.google.firebase:firebase-auth:22.3.1")
+
+    //lottie animation
+    implementation ("com.airbnb.android:lottie:6.1.0")
 
 }

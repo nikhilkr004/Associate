@@ -8,14 +8,11 @@ data class UserData(
     val name: String,
     val email: String,
     val phone: String,
+    val city: String,
     val profilePhotoUrl: String? = null,
     val dateOfBirth: Date? = null,
     val location: String? = null,
     val preferredLanguage: String = "en",
+    val jointAt: String
 
-
-
-    // Preferences
-    val preferredAdvisorCategories: List<String> = emptyList(), // e.g., ["Tax", "Retirement"]
-    val budgetPreference: Double? = null // Max fee per session
 )

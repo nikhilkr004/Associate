@@ -177,7 +177,7 @@ companion object{
 //                binding.progressBar.visibility = View.GONE
                 if (task.isSuccessful) {
                     // Verification successful
-                    startActivity(Intent(this, MainActivity::class.java))
+                    startActivity(Intent(this, PersonalScreenActivity::class.java))
                     finish()
                 } else {
                     // Verification failed
