@@ -19,6 +19,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import com.example.associate.Activitys.PhoneNumberActivity
+import com.example.associate.DataClass.DialogUtils
 import com.example.associate.MainActivity
 import com.example.associate.R
 import com.example.associate.databinding.ActivityOtpScreenBinding
@@ -29,20 +30,22 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import java.util.concurrent.TimeUnit
 
-    class OtpScreenActivity : AppCompatActivity() {
+class OtpScreenActivity : AppCompatActivity() {
 
     private val binding by lazy {
         ActivityOtpScreenBinding.inflate(layoutInflater)
     }
-companion object{
-    private lateinit var auth: FirebaseAuth
-    private lateinit var OTP: String
-    private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
-    private lateinit var phoneNumber: String
 
-}
+    companion object {
+        private lateinit var auth: FirebaseAuth
+        private lateinit var OTP: String
+        private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
+        private lateinit var phoneNumber: String
+
+    }
 
 
     private val otpFields = mutableListOf<EditText>()
@@ -63,7 +66,7 @@ companion object{
         // Get verification ID and phone number from intent
         OTP = intent.getStringExtra("verificationId") ?: ""
         phoneNumber = intent.getStringExtra("phoneNumber") ?: ""
-        resendToken= intent.getParcelableExtra("resendToken")!!
+        resendToken = intent.getParcelableExtra("resendToken")!!
         // Display phone number
         binding.enteredMobileNumber.text = "Verify ${phoneNumber}"
 
@@ -80,7 +83,8 @@ companion object{
         setupOtpFields()
 
         binding.resendOtpBtn.setOnClickListener {
-         resendVarificationCode()
+            DialogUtils.showLoadingDialog(this, "resending otp")
+            resendVarificationCode()
         }
 
         binding.verifyOtpBtn.setOnClickListener {
@@ -101,8 +105,10 @@ companion object{
 
             PhoneAuthProvider.verifyPhoneNumber(options)
         } catch (e: IllegalArgumentException) {
+            DialogUtils.hideLoadingDialog()
             // Handle the error gracefully
-            Toast.makeText(this, "Error starting verification: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error starting verification: ${e.message}", Toast.LENGTH_SHORT)
+                .show()
 
         }
     }
@@ -118,22 +124,43 @@ companion object{
             Log.w(TAG, "Verification failed", e)
             runOnUiThread {
 
+
+                DialogUtils.showStatusDialog(
+                    this@OtpScreenActivity,
+                    false,
+                    title = "Failure",
+                    message = "Verification failed"
+                )
+
+
                 val errorMessage = when {
                     e is FirebaseAuthInvalidCredentialsException -> "Invalid phone number format"
                     e.message?.contains("RECAPTCHA") == true -> {
                         // This should now be avoided with in-app verification
                         "Verification failed. Please try again"
                     }
+
                     else -> "Error: ${e.localizedMessage}"
                 }
                 Toast.makeText(this@OtpScreenActivity, errorMessage, Toast.LENGTH_LONG).show()
             }
         }
 
-        override fun onCodeSent(verificationId: String, token: PhoneAuthProvider.ForceResendingToken) {
+        override fun onCodeSent(
+            verificationId: String,
+            token: PhoneAuthProvider.ForceResendingToken
+        ) {
             // OTP sent successfully - proceed to verification screevar
-           OTP =verificationId
-            resendToken=token
+            OTP = verificationId
+            resendToken = token
+
+            DialogUtils.showStatusDialog(
+                this@OtpScreenActivity,
+                true,
+                title = "SUCCESS",
+                message = "Otp has been successfully send"
+            )
+
         }
     }
 
@@ -149,8 +176,10 @@ companion object{
                 otpFields[i].setOnEditorActionListener { _, actionId, _ ->
                     if (actionId == EditorInfo.IME_ACTION_DONE) {
                         verifyOtp()
+                        DialogUtils.showLoadingDialog(this, "verifying OTP ")
                         true
                     } else {
+                        DialogUtils.hideLoadingDialog()
                         false
                     }
                 }
@@ -158,7 +187,7 @@ companion object{
         }
     }
 
-    
+
     private fun verifyOtp() {
         val otp = otpFields.joinToString("") { it.text.toString() }
 
@@ -167,6 +196,13 @@ companion object{
             val credential = PhoneAuthProvider.getCredential(OTP, otp)
             signInWithPhoneAuthCredential(credential)
         } else {
+
+            DialogUtils.showStatusDialog(
+                this@OtpScreenActivity,
+                false,
+                title = "Failure",
+                message = "Enter Valid OTP"
+            )
             Toast.makeText(this, "Please enter complete OTP", Toast.LENGTH_SHORT).show()
         }
     }
@@ -174,18 +210,46 @@ companion object{
     private fun signInWithPhoneAuthCredential(credential: PhoneAuthCredential) {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
-//                binding.progressBar.visibility = View.GONE
+
+                DialogUtils.hideLoadingDialog()
                 if (task.isSuccessful) {
-                    // Verification successful
-                    startActivity(Intent(this, PersonalScreenActivity::class.java))
-                    finish()
+                    // Check if user exists in Firestore
+                    checkUserExists { exists ->
+                        if (exists) {
+                            // User exists - go to MainActivity
+                            DialogUtils.showStatusDialog(
+                                this@OtpScreenActivity,
+                                true,
+                                "Success",
+                                "Login successful"
+                            ) {
+                                navigateToMainActivity()
+                            }
+                        } else {
+                            // New user - go to PersonalScreenActivity
+                            DialogUtils.showStatusDialog(
+                                this@OtpScreenActivity,
+                                true,
+                                "Welcome",
+                                "Please complete your profile"
+                            ) {
+                                navigateToPersonalScreen()
+                            }
+                        }
+                    }
                 } else {
                     // Verification failed
-                    Toast.makeText(this, "Invalid OTP", Toast.LENGTH_SHORT).show()
+                    DialogUtils.showStatusDialog(
+                        this@OtpScreenActivity,
+                        false,
+                        "Error",
+                        "Invalid OTP"
+                    )
                     // Clear all fields on failure
                     otpFields.forEach { it.text.clear() }
                     otpFields[0].requestFocus()
                 }
+
             }
     }
 
@@ -206,6 +270,7 @@ companion object{
                 // Move focus to previous field on backspace
                 otpFields[currentIndex - 1].requestFocus()
             }
+
         }
     }
 
@@ -220,6 +285,39 @@ companion object{
             }
             return false
         }
+    }
+
+    private fun checkUserExists(callback: (Boolean) -> Unit) {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            FirebaseFirestore.getInstance().collection("users")
+                .document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    callback(document.exists())
+                }
+                .addOnFailureListener {
+                    callback(false)
+                }
+        } else {
+            callback(false)
+        }
+    }
+
+
+    private fun navigateToMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
+    }
+
+    private fun navigateToPersonalScreen() {
+        startActivity(Intent(this, UserAdvisorOnboardingActivity::class.java).apply {
+            putExtra("user_number", phoneNumber)
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+        })
+        finish()
     }
 }
 

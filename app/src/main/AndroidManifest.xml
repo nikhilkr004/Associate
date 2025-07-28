@@ -6,12 +6,11 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    
-    <uses-permission android:name="android.permission.READ_SMS"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <application
         android:allowBackup="true"
@@ -23,19 +22,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Associate"
         tools:targetApi="31">
-
+        <activity
+            android:name=".Activitys.AdvisorAdcivitys.AdvisorHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activitys.UserAdvisorOnboardingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activitys.AdvisorDetailsActivity"
+            android:exported="false"/>
         <activity
             android:name=".Activitys.PersonalScreenActivity"
-            android:exported="false">
-
-        </activity>
+            android:exported="false" />
         <activity
             android:name=".Activitys.OtpScreenActivity"
             android:exported="false" />
         <activity
             android:name=".Activitys.PhoneNumberActivity"
             android:exported="false" />
-
         <activity
             android:name=".Activitys.SplashScreenActivity"
             android:exported="true">
@@ -45,6 +49,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".MainActivity"

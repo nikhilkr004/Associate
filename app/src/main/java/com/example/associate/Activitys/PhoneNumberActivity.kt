@@ -40,23 +40,12 @@ class PhoneNumberActivity : AppCompatActivity() {
                 binding.progressBar.isVisible = true
                 binding.sendOtp.isEnabled = false
                 ///loading screen
-                DialogUtils.showStatusDialog(
-                    this@PhoneNumberActivity,
-                    true,
-                    title = "Sending Otp...",
-                    message = "verifying user number"
-
-                )
+                DialogUtils.showLoadingDialog(this,"loading...")
 
                 sendVerificationCode(phone)
 
             } else {
-                DialogUtils.showStatusDialog(
-                    context = this@PhoneNumberActivity,
-                    isSuccess = false,
-                    title = "Error!",
-                    message =  "An unexpected error occurred"
-                )
+                DialogUtils.hideLoadingDialog()
                 Toast.makeText(this, "Enter valid 10-digit number", Toast.LENGTH_SHORT).show()
             }
         }
@@ -80,6 +69,10 @@ class PhoneNumberActivity : AppCompatActivity() {
 
         override fun onVerificationFailed(e: FirebaseException) {
             Log.e(TAG, "Verification Failed: ${e.message}")
+
+            DialogUtils.showStatusDialog(this@PhoneNumberActivity,false,title="Failure", message = "Some went wrong")
+            // after error hide loading screen
+            DialogUtils.hideLoadingDialog()
             binding.progressBar.isVisible = false
             binding.sendOtp.isEnabled = true
 
@@ -100,6 +93,8 @@ class PhoneNumberActivity : AppCompatActivity() {
             storedVerificationId = verificationId
             resendToken = token
 
+            DialogUtils.showStatusDialog(this@PhoneNumberActivity,true,title="SUCCESS", message = "Otp has been successfully send")
+            DialogUtils.hideLoadingDialog()
             val intent = Intent(this@PhoneNumberActivity, OtpScreenActivity::class.java).apply {
                 putExtra("verificationId", verificationId)
                 putExtra("resendToken", token)

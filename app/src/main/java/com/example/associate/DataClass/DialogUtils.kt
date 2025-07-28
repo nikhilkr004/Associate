@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.view.ViewGroup
 import android.view.Window
 import android.widget.Button
 import android.widget.TextView
@@ -49,4 +50,36 @@ object DialogUtils {
         dialog.show()
         return dialog
     }
+
+
+
+
+    private var loadingDialog: Dialog? = null
+
+    fun showLoadingDialog(context: Context, message: String = "") {
+        if (loadingDialog?.isShowing == true) return
+
+        loadingDialog = Dialog(context)
+        loadingDialog?.apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            setContentView(R.layout.progress_bar_dialog)
+            setCancelable(false)
+
+            window?.apply {
+                setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            }
+
+            findViewById<TextView>(R.id.loadingText)?.text = message
+
+            show()
+        }
+    }
+
+
+    fun hideLoadingDialog() {
+        loadingDialog?.dismiss()
+        loadingDialog = null
+    }
+
 }
