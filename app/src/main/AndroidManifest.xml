@@ -22,15 +22,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Associate"
         tools:targetApi="31">
-        <activity
-            android:name=".Activitys.AdvisorAdcivitys.AdvisorHomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activitys.UserAdvisorOnboardingActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Activitys.AdvisorDetailsActivity"
-            android:exported="false"/>
+
         <activity
             android:name=".Activitys.PersonalScreenActivity"
             android:exported="false" />

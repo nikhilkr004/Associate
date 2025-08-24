@@ -232,9 +232,7 @@ class OtpScreenActivity : AppCompatActivity() {
                                 true,
                                 "Welcome",
                                 "Please complete your profile"
-                            ) {
-                                navigateToPersonalScreen()
-                            }
+                            )
                         }
                     }
                 } else {
@@ -312,12 +310,6 @@ class OtpScreenActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun navigateToPersonalScreen() {
-        startActivity(Intent(this, UserAdvisorOnboardingActivity::class.java).apply {
-            putExtra("user_number", phoneNumber)
-            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-        })
-        finish()
-    }
+
 }
 
