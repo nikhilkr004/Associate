@@ -51,6 +51,8 @@ dependencies {
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
     implementation(libs.firebase.firestore)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -75,4 +77,11 @@ dependencies {
     //lottie animation
     implementation ("com.airbnb.android:lottie:6.1.0")
 
+    implementation("com.google.code.gson:gson:2.10.1")
+
+
+    implementation("com.google.firebase:firebase-messaging:23.4.1")
+
+    ///Glide  for image loading
+    implementation("com.github.bumptech.glide:glide:5.0.4")
 }

@@ -36,7 +36,7 @@
         app:layout_constraintTop_toTopOf="@+id/profile_image" />
 
     <LinearLayout
-        android:id="@+id/linearLayout7"
+        android:id="@+id/linearLayoust7"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="start"
@@ -49,6 +49,7 @@
         app:layout_constraintTop_toBottomOf="@+id/advisor_name">
 
         <TextView
+            android:id="@+id/advisor_exp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_7sdp"
@@ -59,6 +60,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textView" />
 
         <TextView
+            android:id="@+id/advisor_lang"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_7sdp"
@@ -70,6 +72,7 @@
 
 
         <TextView
+            android:id="@+id/advisor_spec"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_7sdp"
@@ -104,6 +107,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="4.5"
+        android:textColor="@color/green"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginTop="@dimen/_5sdp"

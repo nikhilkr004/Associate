@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -86,6 +87,7 @@
         android:drawablePadding="@dimen/_5sdp"
         android:hint="Start exploring with the expert"
         android:padding="@dimen/_10sdp"
+        android:clickable="false"
         android:textColor="@color/green"
         app:layout_constraintEnd_toEndOf="@+id/linearLayout"
         app:layout_constraintStart_toStartOf="@+id/linearLayout"
@@ -150,7 +152,7 @@
             android:layout_marginTop="@dimen/_5sdp"
             android:layout_marginEnd="@dimen/_10sdp"
             android:fontFamily="@font/orienta"
-            android:text="Top Advisore"
+            android:text="Advisore"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="@+id/linearLayout6"
@@ -161,11 +163,11 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/top_advisore_recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginStart="@dimen/_5sdp"
             android:layout_marginTop="@dimen/_5sdp"
             android:layout_marginEnd="@dimen/_5sdp"
-           tools:listitem="@layout/advisor_item" />
+          />
     </LinearLayout>
 
 

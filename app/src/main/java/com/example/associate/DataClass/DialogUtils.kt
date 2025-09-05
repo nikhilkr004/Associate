@@ -52,8 +52,6 @@ object DialogUtils {
     }
 
 
-
-
     private var loadingDialog: Dialog? = null
 
     fun showLoadingDialog(context: Context, message: String = "") {

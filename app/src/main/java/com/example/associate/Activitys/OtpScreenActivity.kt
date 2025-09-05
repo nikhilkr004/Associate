@@ -38,7 +38,7 @@ class OtpScreenActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityOtpScreenBinding.inflate(layoutInflater)
     }
-
+//this is companion class this class called first
     companion object {
         private lateinit var auth: FirebaseAuth
         private lateinit var OTP: String
@@ -47,7 +47,7 @@ class OtpScreenActivity : AppCompatActivity() {
 
     }
 
-
+// otp field
     private val otpFields = mutableListOf<EditText>()
 
     override fun onCreate(savedInstanceState: Bundle?) {

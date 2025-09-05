@@ -13,6 +13,6 @@ data class UserData(
     val dateOfBirth: Date? = null,
     val location: String? = null,
     val preferredLanguage: String = "en",
-    val jointAt: String
-
+    val jointAt: String,
+    val fcmToken: String
 )
