@@ -7,7 +7,7 @@ class AdvisorDataClass {
 
     // Advisor.kt
     data class Advisor(
-        val id: String = "",
+        var id: String = "",
         val name: String = "",
         val email: String = "",
         val city: String = "",

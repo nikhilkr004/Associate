@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.associate.Activitys.AdvisorProfileActivity
 import com.example.associate.Adapters.AdvisorAdapter
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.DataClass.DialogUtils
@@ -47,10 +48,11 @@ class HomeFragment : Fragment() {
     private fun setupRecyclerView() {
         adapter = AdvisorAdapter(advisorsList) { advisor ->
             // Handle item click - navigate to advisor details
-//            val intent = Intent(this, AdvisorDetailsActivity::class.java).apply {
-//                putExtra("ADVISOR_ID", advisor.id)
-//            }
-//            startActivity(intent)
+            val intent = Intent(requireContext(), AdvisorProfileActivity::class.java).apply {
+                putExtra("ADVISOR_ID", advisor.id)
+
+            }
+            startActivity(intent)
         }
 
         binding.topAdvisoreRecyclerview.layoutManager = LinearLayoutManager(requireContext())
@@ -82,7 +84,7 @@ class HomeFragment : Fragment() {
                         ?.copy(id = document.id)
                     advisor?.let {
                         advisorsList.add(it)
-                        Log.d("DEBUG",advisorsList.size.toString())
+                        Log.d("DEBUG", advisorsList.size.toString())
                     }
                 }
 
