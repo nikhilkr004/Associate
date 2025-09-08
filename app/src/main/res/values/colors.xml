@@ -6,4 +6,8 @@
     <color name="gray">#768780</color>
     <color name="red">#FF1100</color>
     <color name="purple_500">#673AB7</color>
+
+    <color name="primary">#128C7E</color> <!-- WhatsApp green -->
+
+    <color name="light_gray">#F2F2F2</color>
 </resources>

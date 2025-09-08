@@ -37,7 +37,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
         }
 
         /// setup back button
-        binding.backBtn.setOnClickListener {
+        binding.imgBack.setOnClickListener {
             finish()
         }
 
@@ -70,9 +70,11 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
     private fun populateAdvisorData() {
         // Set basic information
-        binding.userName.text = advisor.name
+        binding.tvName.text = advisor.name
+        binding.tvTitle.text = advisor.name
+        binding.aboutNameTxt.text="About ${advisor.name}"
 //        binding.userRole.text = advisor.specializations!!
-        binding.experience.text = "${advisor.experience} years"
+        binding.tvExperience.text = "0 - ${advisor.experience} Years Experience"
 
         Glide.with(this).load(advisor.profileimage).placeholder(R.drawable.user)
             .into(binding.profileImage)
@@ -80,7 +82,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
         // Set languages
         // Set languages
         val languagesText = advisor.languages.joinToString(", ")
-        binding.advisorLang.text = languagesText
+        binding.tvLanguages.text = languagesText
         // Setup specializations
         setupSpecializations(advisor.specializations)
 
