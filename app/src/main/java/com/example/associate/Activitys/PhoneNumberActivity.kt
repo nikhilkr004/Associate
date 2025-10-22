@@ -68,7 +68,7 @@ class PhoneNumberActivity : AppCompatActivity() {
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
-            Log.e(TAG, "Verification Failed: ${e.message}")
+            Log.d(TAG, "Verification Failed: ${e.message}")
 
             DialogUtils.showStatusDialog(this@PhoneNumberActivity,false,title="Failure", message = "Some went wrong")
             // after error hide loading screen
