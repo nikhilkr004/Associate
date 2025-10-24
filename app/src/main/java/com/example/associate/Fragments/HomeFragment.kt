@@ -24,7 +24,7 @@ class HomeFragment : Fragment() {
     private lateinit var binding: FragmentHomeBinding
     private lateinit var adapter: AdvisorAdapter
     private val db = FirebaseFirestore.getInstance()
-    private val advisorsList = mutableListOf<AdvisorDataClass.Advisor>()
+    private val advisorsList = mutableListOf<AdvisorDataClass>()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,9 +39,9 @@ class HomeFragment : Fragment() {
         // Inflate the layout for this fragment
         binding = FragmentHomeBinding.inflate(inflater, container, false)
 
-
-        setupRecyclerView()
         fetchAdvisors()
+        setupRecyclerView()
+
         return binding.root
     }
 
@@ -80,7 +80,7 @@ class HomeFragment : Fragment() {
 
                 advisorsList.clear()
                 snapshot?.documents?.forEach { document ->
-                    val advisor = document.toObject(AdvisorDataClass.Advisor::class.java)
+                    val advisor = document.toObject(AdvisorDataClass::class.java)
                         ?.copy(id = document.id)
                     advisor?.let {
                         advisorsList.add(it)

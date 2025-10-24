@@ -265,6 +265,7 @@
 
             <!-- Video Call Button -->
             <LinearLayout
+                android:id="@+id/videocall_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

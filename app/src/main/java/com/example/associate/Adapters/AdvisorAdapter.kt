@@ -9,12 +9,12 @@ import com.example.associate.R
 import com.example.associate.databinding.AdvisorDialogBinding
 
 class AdvisorAdapter(
-    private val advisors: List<AdvisorDataClass.Advisor>,
-    private val onItemClick: (AdvisorDataClass.Advisor) -> Unit
+    private val advisors: List<AdvisorDataClass>,
+    private val onItemClick: (AdvisorDataClass) -> Unit
 ) : RecyclerView.Adapter<AdvisorAdapter.AdvisorViewHolder>() {
 
     inner class AdvisorViewHolder(private val binding: AdvisorDialogBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(advisor: AdvisorDataClass.Advisor) {
+        fun bind(advisor: AdvisorDataClass) {
             val context=binding.root.context
             binding.advisorName.text = advisor.name
 //            binding.userCity.text = advisor.city

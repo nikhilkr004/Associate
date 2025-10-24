@@ -86,14 +86,5 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:5.0.4")
 
 
-    // Agora Video Call
-    implementation ("io.agora.rtc:full-sdk:4.2.0")
-
-    // Coroutines
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-
-    // WorkManager for background tasks
-    implementation ("androidx.work:work-runtime-ktx:2.9.0")
 
 }

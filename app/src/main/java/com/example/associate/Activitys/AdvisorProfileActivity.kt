@@ -1,5 +1,6 @@
 package com.example.associate.Activitys
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -10,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.DataClass.DialogUtils
 import com.example.associate.R
+
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -19,7 +21,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
     }
     private val db = FirebaseFirestore.getInstance()
     private lateinit var advisorId: String
-    private lateinit var advisor: AdvisorDataClass.Advisor
+    private lateinit var advisor: AdvisorDataClass
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -35,6 +37,8 @@ class AdvisorProfileActivity : AppCompatActivity() {
             finish()
             return
         }
+
+
 
         /// setup back button
         binding.imgBack.setOnClickListener {
@@ -52,7 +56,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    advisor = document.toObject(AdvisorDataClass.Advisor::class.java)!!
+                    advisor = document.toObject(AdvisorDataClass::class.java)!!
                     advisor.id = document.id
                     populateAdvisorData()
                 } else {

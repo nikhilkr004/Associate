@@ -41,7 +41,7 @@ class PersonalScreenActivity : AppCompatActivity() {
             insets
         }
 
-        userPhoneNumber = intent.getStringExtra("user_number") ?: ""
+        userPhoneNumber = intent.getStringExtra("user_number") ?: "7292921732"
         binding.enterBtn.setOnClickListener {
             if (validateForm()) {
                 saveUserData()
