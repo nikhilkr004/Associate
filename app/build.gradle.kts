@@ -85,6 +85,7 @@ dependencies {
     ///Glide  for image loading
     implementation("com.github.bumptech.glide:glide:5.0.4")
 
-
+// Razorpay
+    implementation ("com.razorpay:checkout:1.6.41")
 
 }

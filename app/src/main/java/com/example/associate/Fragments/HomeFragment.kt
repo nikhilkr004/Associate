@@ -13,6 +13,7 @@ import com.example.associate.Activitys.AdvisorProfileActivity
 import com.example.associate.Adapters.AdvisorAdapter
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.DataClass.DialogUtils
+import com.example.associate.Payment.LoadMoneyActivity
 import com.example.associate.R
 import com.example.associate.databinding.FragmentHomeBinding
 import com.google.firebase.firestore.FirebaseFirestore
@@ -41,8 +42,14 @@ class HomeFragment : Fragment() {
 
         fetchAdvisors()
         setupRecyclerView()
-
+        binding_init()
         return binding.root
+    }
+
+    private fun binding_init() {
+        binding.loadMoneyLayout.setOnClickListener {
+            startActivity(Intent(requireContext(), LoadMoneyActivity::class.java))
+        }
     }
 
     private fun setupRecyclerView() {
