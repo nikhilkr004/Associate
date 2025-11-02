@@ -8,6 +8,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.associate.Fragments.HomeFragment
 import com.example.associate.Fragments.ProfileFragment
+import com.example.associate.Fragments.TransactionFragment
 import com.example.associate.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -43,6 +44,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.navigation_profile -> {
                     loadFragment(ProfileFragment.newInstance())
+                    true
+                }
+                R.id.transactionFragment -> {
+                    loadFragment(TransactionFragment.newInstance())
                     true
                 }
                 else -> false

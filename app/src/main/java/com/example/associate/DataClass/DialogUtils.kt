@@ -80,4 +80,37 @@ object DialogUtils {
         loadingDialog = null
     }
 
+
+
+
+
+    fun getBookingPurposes(): List<String> = listOf(
+        "Select Purpose",
+        "Career Guidance",
+        "Interview Preparation",
+        "Subject Help",
+        "Project Guidance",
+        "Resume Review",
+        "Study Plan",
+        "Other"
+    )
+
+    fun getPreferredLanguages(): List<String> = listOf(
+        "Select Language",
+        "Hindi",
+        "English",
+        "Hindi & English",
+        "Regional Language"
+    )
+
+    fun getUrgencyLevels(): List<String> = listOf("Medium", "Low", "High")
+
+    fun isValidPurpose(purpose: String): Boolean {
+        return purpose != "Select Purpose" && getBookingPurposes().drop(1).contains(purpose)
+    }
+
+    fun isValidLanguage(language: String): Boolean {
+        return language != "Select Language" && getPreferredLanguages().drop(1).contains(language)
+    }
+
 }

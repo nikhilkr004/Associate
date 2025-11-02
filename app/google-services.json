@@ -1,13 +1,14 @@
 {
   "project_info": {
-    "project_number": "85674583740",
-    "project_id": "associate-48551",
-    "storage_bucket": "associate-48551.firebasestorage.app"
+    "project_number": "47406421196",
+    "firebase_url": "https://new-e70d7-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "new-e70d7",
+    "storage_bucket": "new-e70d7.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:85674583740:android:f050df2ff9d9c13b00d2b9",
+        "mobilesdk_app_id": "1:47406421196:android:db3e28196d52a0bde01e69",
         "android_client_info": {
           "package_name": "com.example.associate"
         }
@@ -15,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAy2siOPkiT8Z40yfdxn7xiYoL0VjHDgG8"
+          "current_key": "AIzaSyAzY_tFk32M0ObO-lZZlrE4idkgL52VtWM"
         }
       ],
       "services": {
@@ -26,7 +27,7 @@
     },
     {
       "client_info": {
-        "mobilesdk_app_id": "1:85674583740:android:eadb7046879aa0fa00d2b9",
+        "mobilesdk_app_id": "1:47406421196:android:794977ec6c38ba34e01e69",
         "android_client_info": {
           "package_name": "com.example.associateconnect"
         }
@@ -34,7 +35,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAy2siOPkiT8Z40yfdxn7xiYoL0VjHDgG8"
+          "current_key": "AIzaSyAzY_tFk32M0ObO-lZZlrE4idkgL52VtWM"
         }
       ],
       "services": {

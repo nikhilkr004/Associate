@@ -3,25 +3,25 @@ package com.example.associate.Activitys
 import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
 import com.example.associate.DataClass.AdvisorDataClass
-import com.example.associate.DataClass.DialogUtils
+import com.example.associate.Dialogs.InstantBookingDialog
 import com.example.associate.R
-
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 
 class AdvisorProfileActivity : AppCompatActivity() {
+
     private val binding by lazy {
         ActivityAdvisorProfileBinding.inflate(layoutInflater)
     }
-    private val db = FirebaseFirestore.getInstance()
-    private lateinit var advisorId: String
     private lateinit var advisor: AdvisorDataClass
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -31,78 +31,44 @@ class AdvisorProfileActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        // Get advisor ID from intent
-        advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
-        if (advisorId.isEmpty()) {
-            finish()
+
+        getIntentData()
+        setupClickListeners()
+    }
+
+
+
+    private fun getIntentData() {
+        advisor = intent.getParcelableExtra("ADVISOR_DATA") ?: run {
+            showErrorAndFinish("Advisor data not found")
             return
         }
-
-
-
-        /// setup back button
-        binding.imgBack.setOnClickListener {
-            finish()
-        }
-
-        fetchAdvisorDetails()
+        displayAdvisorData()
     }
 
-
-    private fun fetchAdvisorDetails() {
-        DialogUtils.showLoadingDialog(this, "Fetching Advisor Details")
-
-        db.collection("advisors").document(advisorId)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    advisor = document.toObject(AdvisorDataClass::class.java)!!
-                    advisor.id = document.id
-                    populateAdvisorData()
-                } else {
-                    // Handle case where advisor doesn't exist
-                    finish()
-                }
-                DialogUtils.hideLoadingDialog()
-            }
-            .addOnFailureListener { exception ->
-                // Handle error
-                DialogUtils.hideLoadingDialog()
-                finish()
-            }
+    private fun setupClickListeners() {
+        binding.imgBack.setOnClickListener { finish() }
+        binding.bookAdvisorBtn.setOnClickListener { showBookingDialog() }
     }
 
-    private fun populateAdvisorData() {
-        // Set basic information
+    private fun displayAdvisorData() {
         binding.tvName.text = advisor.name
-        binding.tvTitle.text = advisor.name
-        binding.aboutNameTxt.text="About ${advisor.name}"
-//        binding.userRole.text = advisor.specializations!!
-        binding.tvExperience.text = "0 - ${advisor.experience} Years Experience"
+        binding.aboutTxt.text = advisor.bio
+        binding.tvLanguages.text = advisor.getLanguagesString()
+        binding.tvCompany.text = advisor.officeLocation
+        binding.tvExperience.text = advisor.getExperienceString()
 
-        Glide.with(this).load(advisor.profileimage).placeholder(R.drawable.user)
-            .into(binding.profileImage)
-
-        // Set languages
-        // Set languages
-        val languagesText = advisor.languages.joinToString(", ")
-        binding.tvLanguages.text = languagesText
-        // Setup specializations
         setupSpecializations(advisor.specializations)
-
-
+        setupProfileImage()
+        setupAdvisorStatus()
     }
-
 
     private fun setupSpecializations(specializations: List<String>) {
         if (specializations.isEmpty()) {
-//       binding.specializationsSection.visibility = View.GONE
+
             return
         }
 
-//        binding.specializationsSection.visibility = View.VISIBLE
-
-        // You can use a recyclerview or simply add chips
         val container = binding.specializationsContainer
         container.removeAllViews()
         specializations.forEach { specialization ->
@@ -114,5 +80,27 @@ class AdvisorProfileActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupProfileImage() {
+        Glide.with(this)
+            .load(advisor.profileimage)
+            .placeholder(R.drawable.user)
+            .into(binding.profileImage)
+    }
 
+    private fun setupAdvisorStatus() {
+        binding.advisorStatus.text = if (advisor.isactive == "true") "Online" else "Offline"
+    }
+
+    private fun showBookingDialog() {
+        val dialog = InstantBookingDialog(advisor) {
+            // Booking success callback
+            Toast.makeText(this, "Session booked successfully!", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show(supportFragmentManager, "InstantBookingDialog")
+    }
+
+    private fun showErrorAndFinish(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        finish()
+    }
 }

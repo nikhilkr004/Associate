@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
+    id ("kotlin-parcelize")
 }
 
 android {
@@ -87,5 +88,7 @@ dependencies {
 
 // Razorpay
     implementation ("com.razorpay:checkout:1.6.41")
+
+    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
 }

@@ -44,3 +44,13 @@ data class RazorpayOrderResponse(
     val receipt: String = "",
     val status: String = ""
 )
+
+data class Transaction(
+    val id: String,
+    val type: String,
+    val amount: String,
+    val date: String,
+    val transactionId: String,
+    val status: String,
+    val paymentData: PaymentDataClass? = null // Optional: agar complete data chahiye
+)

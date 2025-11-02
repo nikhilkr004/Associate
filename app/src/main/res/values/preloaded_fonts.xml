@@ -2,6 +2,7 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
 
+        <item>@font/archivo_black</item>
         <item>@font/archivo_thin</item>
         <item>@font/orienta</item>
         <item>@font/app_logo_font</item>
