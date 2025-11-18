@@ -323,7 +323,7 @@ class OtpScreenActivity : AppCompatActivity() {
     private fun navigateToProfileSetup() {
         // TODO: Replace with your actual profile setup activity
         val intent = Intent(this, PersonalScreenActivity::class.java)
-        intent.putExtra("phoneNumber", phoneNumber)
+        intent.putExtra("user_number", phoneNumber)
         startActivity(intent)
         finish()
     }
@@ -390,7 +390,7 @@ class OtpScreenActivity : AppCompatActivity() {
 
 //    override fun onBackPressed() {
 //        // Show confirmation dialog before going back
-//        DialogUtils.showConfirmationDialog(
+//        DialogUtils.sh(
 //            this,
 //            title = "Cancel Verification?",
 //            message = "Are you sure you want to cancel OTP verification?",

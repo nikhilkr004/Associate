@@ -12,12 +12,10 @@ import com.example.associate.DataClass.DialogUtils
 import com.example.associate.DataClass.PaymentDataClass
 import com.example.associate.DataClass.Transaction
 import com.example.associate.DataClass.WalletDataClass
-import com.example.associate.R
 import com.example.associate.databinding.FragmentTransactionBinding
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.abs

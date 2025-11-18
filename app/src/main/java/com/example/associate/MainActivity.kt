@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import com.example.associate.Fragments.CallHistoryFragment
 import com.example.associate.Fragments.HomeFragment
 import com.example.associate.Fragments.ProfileFragment
 import com.example.associate.Fragments.TransactionFragment
@@ -42,12 +43,17 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(HomeFragment.newInstance())
                     true
                 }
+
+                R.id.transactionFragment -> {
+                    loadFragment(TransactionFragment.newInstance())
+                    true
+                }
                 R.id.navigation_profile -> {
                     loadFragment(ProfileFragment.newInstance())
                     true
                 }
-                R.id.transactionFragment -> {
-                    loadFragment(TransactionFragment.newInstance())
+                R.id.callHistoryFragment -> {
+                    loadFragment(CallHistoryFragment.newInstance())
                     true
                 }
                 else -> false

@@ -346,31 +346,7 @@
 
         </LinearLayout>
 
-        <!-- Qualification Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="vertical"
-            android:padding="@dimen/_16sdp">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Qualification"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/qualification"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:text="Bachelor of Commerce\nMaster of Commerce\nChartered Accountancy"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-        </LinearLayout>
 
 
 
@@ -384,6 +360,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginBottom="@dimen/_30sdp"
             android:padding="@dimen/_10sdp"
+            android:layout_marginTop="@dimen/_20sdp"
             android:textAlignment="center"
             android:background="@drawable/primary_button_bg"
             android:textSize="20sp"

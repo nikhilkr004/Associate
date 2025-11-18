@@ -24,4 +24,9 @@
         android:name="com.example.associate.Fragments.TransactionFragment"
         android:label="fragment_transaction"
         tools:layout="@layout/fragment_transaction" />
+    <fragment
+        android:id="@+id/callHistoryFragment"
+        android:name="com.example.associate.Fragments.CallHistoryFragment"
+        android:label="fragment_call_history"
+        tools:layout="@layout/fragment_call_history" />
 </navigation>

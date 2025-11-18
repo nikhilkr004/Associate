@@ -10,13 +10,21 @@
         android:icon="@drawable/search"
         android:title="Advisors" />
 
-    <item
-        android:id="@+id/navigation_profile"
-        android:icon="@drawable/user"
-        android:title="Profile" />
 
     <item
         android:id="@+id/transactionFragment"
         android:icon="@drawable/transaction"
         android:title="Transaction" />
+
+
+    <item
+        android:id="@+id/callHistoryFragment"
+        android:icon="@drawable/session_history"
+        android:title="Call History" />
+
+    <item
+        android:id="@+id/navigation_profile"
+        android:icon="@drawable/user"
+        android:title="Profile" />
+
 </menu>

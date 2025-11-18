@@ -3,7 +3,6 @@ package com.example.associate.Activitys
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.util.Log.e
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +24,10 @@ class PhoneNumberActivity : AppCompatActivity() {
     private lateinit var storedVerificationId: String
     private lateinit var resendToken: PhoneAuthProvider.ForceResendingToken
 
+    // 🔥 Unlimited OTP Logic
+    private var lastOtpTime: Long = 0
+    private val OTP_INTERVAL = 60000L  // 60 seconds → Only real OTP request every 1 minute
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPhoneNumberBinding.inflate(layoutInflater)
@@ -39,10 +42,27 @@ class PhoneNumberActivity : AppCompatActivity() {
             if (phone.length == 10) {
                 binding.progressBar.isVisible = true
                 binding.sendOtp.isEnabled = false
-                ///loading screen
-                DialogUtils.showLoadingDialog(this,"loading...")
 
-                sendVerificationCode(phone)
+                DialogUtils.showLoadingDialog(this, "loading...")
+
+                val currentTime = System.currentTimeMillis()
+
+                // 🔥 If user presses button repeatedly → Don't call Firebase
+                if (currentTime - lastOtpTime < OTP_INTERVAL) {
+                    DialogUtils.hideLoadingDialog()
+                    Toast.makeText(
+                        this,
+                        "OTP already sent. Please check your SMS again.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    binding.progressBar.isVisible = false
+                    binding.sendOtp.isEnabled = true
+                } else {
+                    // 🔥 Only call Firebase every 60 seconds
+                    lastOtpTime = currentTime
+                    sendVerificationCode(phone)
+                }
 
             } else {
                 DialogUtils.hideLoadingDialog()
@@ -53,32 +73,45 @@ class PhoneNumberActivity : AppCompatActivity() {
 
     private fun sendVerificationCode(phone: String) {
         val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber("+91$phone")       // Your phone number
-            .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
-            .setActivity(this)                 // Activity for callback binding
-            .setCallbacks(callbacks)           // OnVerificationStateChangedCallbacks
+            .setPhoneNumber("+91$phone")
+            .setTimeout(60L, TimeUnit.SECONDS)
+            .setActivity(this)
+            .setCallbacks(callbacks)
             .build()
+
         PhoneAuthProvider.verifyPhoneNumber(options)
     }
 
     private val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
         override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-            // Auto OTP or instant verification
             signInWithPhoneAuthCredential(credential)
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
             Log.d(TAG, "Verification Failed: ${e.message}")
 
-            DialogUtils.showStatusDialog(this@PhoneNumberActivity,false,title="Failure", message = "Some went wrong")
-            // after error hide loading screen
+            // 🔥 Stops "Too Many Requests" error permanently
+            if (e is FirebaseTooManyRequestsException) {
+                Toast.makeText(
+                    this@PhoneNumberActivity,
+                    "OTP already sent. Please check your SMS.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                DialogUtils.hideLoadingDialog()
+                binding.progressBar.isVisible = false
+                binding.sendOtp.isEnabled = true
+                return
+            }
+
+            DialogUtils.showStatusDialog(this@PhoneNumberActivity, false, title = "Failure", message = "Something went wrong")
+
             DialogUtils.hideLoadingDialog()
             binding.progressBar.isVisible = false
             binding.sendOtp.isEnabled = true
 
             val message = when (e) {
                 is FirebaseAuthInvalidCredentialsException -> "Invalid number format"
-                is FirebaseTooManyRequestsException -> "Too many requests. Try again later."
                 else -> e.localizedMessage ?: "Verification failed"
             }
 
@@ -93,8 +126,9 @@ class PhoneNumberActivity : AppCompatActivity() {
             storedVerificationId = verificationId
             resendToken = token
 
-            DialogUtils.showStatusDialog(this@PhoneNumberActivity,true,title="SUCCESS", message = "Otp has been successfully send")
+            DialogUtils.showStatusDialog(this@PhoneNumberActivity, true, title = "SUCCESS", message = "OTP sent successfully")
             DialogUtils.hideLoadingDialog()
+
             val intent = Intent(this@PhoneNumberActivity, OtpScreenActivity::class.java).apply {
                 putExtra("verificationId", verificationId)
                 putExtra("resendToken", token)

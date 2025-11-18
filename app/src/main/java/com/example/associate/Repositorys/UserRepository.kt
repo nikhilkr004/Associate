@@ -1,5 +1,6 @@
 package com.example.associate.Repositorys
 
+import android.util.Log
 import com.example.associate.DataClass.UserData
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -21,13 +22,52 @@ class UserRepository {
     private val db = FirebaseFirestore.getInstance()
     private val usersCollection = db.collection("users")
 
-    // Add user to Firestore
-    suspend fun addUser(user: UserData): AddUserResult {
+
+
+    suspend fun getUserById(userId: String): Result<UserData> {
         return try {
-            val document = usersCollection.add(user).await()
-            AddUserResult.Success(document.id)
+            Log.d("UserRepository", "Fetching user for ID: $userId")
+            val document = usersCollection.document(userId).get().await()
+
+            if (document.exists()) {
+                val user = document.toObject(UserData::class.java)
+                if (user != null) {
+                    Log.d("UserRepository", "User found: ${user.name}")
+                    Result.Success(user)
+                } else {
+                    Log.e("UserRepository", "User data is null for ID: $userId")
+                    Result.Failure(Exception("User data is null"))
+                }
+            } else {
+                Log.e("UserRepository", "User document does not exist for ID: $userId")
+                Result.Failure(Exception("User not found in database"))
+            }
         } catch (e: Exception) {
-            AddUserResult.Failure(e)
+            Log.e("UserRepository", "Error fetching user: ${e.message}", e)
+            Result.Failure(e)
+        }
+    }
+    suspend fun updateUserProfileImage(userId: String, imageUrl: String): Result<Any> {
+        return try {
+            usersCollection.document(userId)
+                .update("profilePhotoUrl", imageUrl)
+                .await()
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+
+    suspend fun createOrUpdateUser(user: UserData): Result<Boolean> {
+        return try {
+            // Use userId as document ID for easy retrieval
+            usersCollection.document(user.userId)
+                .set(user)
+                .await()
+            Result.Success(true)
+        } catch (e: Exception) {
+            Result.Failure(e)
         }
     }
 

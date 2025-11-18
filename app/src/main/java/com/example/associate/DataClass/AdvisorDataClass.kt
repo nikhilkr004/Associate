@@ -3,6 +3,10 @@ package com.example.associate.DataClass
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
+
+import com.google.firebase.Timestamp
+import java.util.Date
+
 @Parcelize
 data class AdvisorDataClass(
     var id: String = "",
@@ -17,129 +21,68 @@ data class AdvisorDataClass(
     val status: String = "",
     val timestamp: Long = 0,
     val profileimage: String = "",
-    val isactive: String = "",
+//    val isactive: String = "",
+
+    // 🔥 NEW FIELDS FOR COMPLETE FUNCTIONALITY:
 
     // Professional Details
-    val designation: String = "",
-    val department: String = "",
-    val employeeId: String = "",
-    val bio: String = "",
-    val officeLocation: String = "",
-    val phoneNumber: String = "",
+    val designation: String = "", // "Senior Advisor", "Career Counselor" etc.
+    val department: String = "", // "Computer Science", "Finance" etc.
+    val employeeId: String = "", // Official ID
+    val bio: String = "", // Professional introduction
+    val officeLocation: String = "", // Physical office address
+    val phoneNumber: String = "", // Contact number
 
     // Availability & Scheduling
-    val workingDays: List<String> = emptyList(),
-    val workingHoursStart: String = "",
-    val workingHoursEnd: String = "",
-    val appointmentDuration: Int = 30,
-    val maxDailyAppointments: Int = 10,
+    val workingDays: List<String> = emptyList(), // ["Monday", "Tuesday", ...]
+    val workingHoursStart: String = "", // "09:00"
+    val workingHoursEnd: String = "", // "17:00"
+    val appointmentDuration: Int = 30, // Default 30 minutes
+    val maxDailyAppointments: Int = 10, // Limit appointments per day
 
     // Contact Preferences
-    val preferredContactMethod: String = "",
-    val responseTime: String = "",
+    val preferredContactMethod: String = "", // "email", "phone", "in_person"
+    val responseTime: String = "", // "24 hours", "48 hours"
 
     // Educational Background
-    val highestQualification: String = "",
-    val qualificationField: String = "",
-    val university: String = "",
+    val highestQualification: String = "", // "Masters", "PhD" etc.
+    val qualificationField: String = "", // Field of study
+    val university: String = "", // University name
 
     // System & Permissions
-    val userRole: String = "advisor",
-    val accessLevel: String = "basic",
+    val userRole: String = "advisor", // Default role
+    val accessLevel: String = "basic", // "basic", "senior", "admin"
     val canGenerateReports: Boolean = false,
     val canManageResources: Boolean = false,
 
     // Additional Professional Info
     val yearsInOrganization: Int = 0,
     val totalStudentsAdvised: Int = 0,
-    val rating: Double = 0.0,
-    val reviewCount: Int = 0,
+    val rating: Double = 0.0, // Average rating from students
+    val reviewCount: Int = 0, // Number of reviews
 
     // Social & Additional Links
     val linkedinProfile: String = "",
     val website: String = "",
 
     // Document References
-    val documentUrls: Map<String, String> = emptyMap(),
+    val documentUrls: Map<String, String> = emptyMap(), // {"id_card": "url", "certificate": "url"}
 
     // Timestamps
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val lastLogin: Long = 0
 ) : Parcelable {
-
-    // Empty constructor for Firestore
-    constructor() : this(
-        id = "",
-        name = "",
-        email = "",
-        city = "",
-        gender = "",
-        experience = 0,
-        languages = emptyList(),
-        specializations = emptyList(),
-        certifications = emptyList(),
-        status = "",
-        timestamp = 0,
-        profileimage = "",
-        isactive = "",
-        designation = "",
-        department = "",
-        employeeId = "",
-        bio = "",
-        officeLocation = "",
-        phoneNumber = "",
-        workingDays = emptyList(),
-        workingHoursStart = "",
-        workingHoursEnd = "",
-        appointmentDuration = 30,
-        maxDailyAppointments = 10,
-        preferredContactMethod = "",
-        responseTime = "",
-        highestQualification = "",
-        qualificationField = "",
-        university = "",
-        userRole = "advisor",
-        accessLevel = "basic",
-        canGenerateReports = false,
-        canManageResources = false,
-        yearsInOrganization = 0,
-        totalStudentsAdvised = 0,
-        rating = 0.0,
-        reviewCount = 0,
-        linkedinProfile = "",
-        website = "",
-        documentUrls = emptyMap(),
-        createdAt = System.currentTimeMillis(),
-        updatedAt = System.currentTimeMillis(),
-        lastLogin = 0
-    )
-
     // Helper method to check if advisor is active
-    fun isActive(): Boolean = status == "active" && isactive == "true"
+//    fun isActive(): Boolean = status == "active" && isactive == "true"
 
-    // Check if available for scheduling
-    fun isAvailableForAppointments(): Boolean {
-        return isActive() && maxDailyAppointments > 0
-    }
+//    // Check if available for scheduling
+//    fun isAvailableForAppointments(): Boolean {
+//        return isActive() && maxDailyAppointments > 0
+//    }
 
     // Get full professional title
     fun getProfessionalTitle(): String {
         return "$designation - $department"
-    }
-
-    // Get experience as string
-    fun getExperienceString(): String {
-        return "$experience years experience"
-    }
-
-    // Get languages as comma separated string
-    fun getLanguagesString(): String {
-        return languages.joinToString(", ")
-    }
-
-    // Get specializations as comma separated string
-    fun getSpecializationsString(): String {
-        return specializations.joinToString(", ")
     }
 }

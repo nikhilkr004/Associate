@@ -86,12 +86,12 @@ object DialogUtils {
 
     fun getBookingPurposes(): List<String> = listOf(
         "Select Purpose",
-        "Career Guidance",
-        "Interview Preparation",
-        "Subject Help",
-        "Project Guidance",
-        "Resume Review",
-        "Study Plan",
+        "Tax Planning",
+        "Retirement",
+        "Investments",
+        "Insurance",
+        "Debt Management",
+        "Crypto",
         "Other"
     )
 

@@ -13,7 +13,6 @@ import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.Dialogs.InstantBookingDialog
 import com.example.associate.R
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
-import com.google.firebase.auth.FirebaseAuth
 
 class AdvisorProfileActivity : AppCompatActivity() {
 
@@ -54,13 +53,12 @@ class AdvisorProfileActivity : AppCompatActivity() {
     private fun displayAdvisorData() {
         binding.tvName.text = advisor.name
         binding.aboutTxt.text = advisor.bio
-        binding.tvLanguages.text = advisor.getLanguagesString()
+        binding.tvLanguages.text = advisor.languages.toString()
         binding.tvCompany.text = advisor.officeLocation
-        binding.tvExperience.text = advisor.getExperienceString()
-
+        binding.tvExperience.text = advisor.experience.toString()
         setupSpecializations(advisor.specializations)
         setupProfileImage()
-        setupAdvisorStatus()
+//        setupAdvisorStatus()
     }
 
     private fun setupSpecializations(specializations: List<String>) {
@@ -87,9 +85,9 @@ class AdvisorProfileActivity : AppCompatActivity() {
             .into(binding.profileImage)
     }
 
-    private fun setupAdvisorStatus() {
-        binding.advisorStatus.text = if (advisor.isactive == "true") "Online" else "Offline"
-    }
+//    private fun setupAdvisorStatus() {
+//        binding.advisorStatus.text = if (advisor.isactive == "true") "Online" else "Offline"
+//    }
 
     private fun showBookingDialog() {
         val dialog = InstantBookingDialog(advisor) {
