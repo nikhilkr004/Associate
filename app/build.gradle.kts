@@ -69,7 +69,8 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation("com.google.firebase:firebase-messaging")
-
+    // FCM Dependencies
+    implementation ("com.google.firebase:firebase-messaging:23.2.")
     // Credentials
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
@@ -109,4 +110,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // AndroidX Core (NOTIFICATION KE LIYE IMPORTANT)
+    implementation ("androidx.core:core-ktx:1.12.0")
+
+    // AndroidX WorkManager (Background tasks ke liye)
+    implementation ("androidx.work:work-runtime-ktx:2.8.1")
 }

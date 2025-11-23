@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.associate.DataClass.SessionBookingDataClass
 import com.example.associate.DataClass.WalletDataClass
+import com.example.associate.Notification.NotificationManager
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,6 +14,7 @@ class SessionBookingManager(private val context: Context) {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val notificationManager = NotificationManager() // ✅ ADD THIS
 
     fun createInstantBooking(
         advisorId: String,
@@ -63,7 +65,6 @@ class SessionBookingManager(private val context: Context) {
     ) {
         val bookingId = generateReadableId()
 
-        // 🔥 FIX: Use Timestamp.now() directly
         val bookingData = SessionBookingDataClass(
             bookingId = bookingId,
             studentId = studentId,
@@ -74,7 +75,7 @@ class SessionBookingManager(private val context: Context) {
             preferredLanguage = preferredLanguage,
             additionalNotes = additionalNotes,
             urgencyLevel = urgencyLevel,
-            bookingTimestamp = Timestamp.now(), // ✅ Timestamp use karein
+            bookingTimestamp = Timestamp.now(),
             advisorResponseDeadline = System.currentTimeMillis() + (5 * 60 * 1000),
             sessionAmount = 100.0,
             paymentStatus = "pending",
@@ -86,6 +87,10 @@ class SessionBookingManager(private val context: Context) {
             .set(bookingData)
             .addOnSuccessListener {
                 Log.d("DEBUG", "Booking created successfully: $bookingId")
+
+                // ✅ SEND NOTIFICATION TO ADVISOR
+                sendBookingNotificationToAdvisor(advisorId, studentName, bookingId, advisorName)
+
                 onSuccess("Booking request sent! Advisor has 5 minutes to call you.")
                 startResponseTimer(bookingId)
             }
@@ -95,6 +100,22 @@ class SessionBookingManager(private val context: Context) {
             }
     }
 
+    // ✅ NEW: Send notification to advisor
+    private fun sendBookingNotificationToAdvisor(
+        advisorId: String,
+        studentName: String,
+        bookingId: String,
+        advisorName: String
+    ) {
+        notificationManager.sendBookingNotificationToAdvisor(
+            advisorId = advisorId,
+            studentName = studentName,
+            bookingId = bookingId,
+            advisorName = advisorName
+        )
+    }
+
+    // ... (Rest of your existing methods remain same)
     private fun checkActiveBooking(studentId: String, onResult: (Boolean) -> Unit) {
         Log.d("DEBUG", "Checking active bookings for student: $studentId")
 
@@ -205,7 +226,6 @@ class SessionBookingManager(private val context: Context) {
         return "BK$date$random"
     }
 
-    // 🔥 ADDITIONAL: Get booking by ID
     fun getBookingById(bookingId: String, onResult: (SessionBookingDataClass?) -> Unit) {
         db.collection("instant_bookings")
             .document(bookingId)
