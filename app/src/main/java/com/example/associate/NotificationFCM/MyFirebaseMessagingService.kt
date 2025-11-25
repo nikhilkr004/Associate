@@ -66,6 +66,12 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         if (message.data.isNotEmpty()) {
             Log.d(TAG, "Message data: ${message.data}")
             
+            // Check for incoming call
+            if (message.data["type"] == "call" || message.data.containsKey("callId")) {
+                showIncomingCallNotification(message.data)
+                return
+            }
+            
             // If only data payload (no notification), show notification manually
             if (message.notification == null) {
                 val title = message.data["title"] ?: "New Notification"
@@ -74,6 +80,69 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 showNotification(title, body, message.data)
             }
         }
+    }
+
+    private fun showIncomingCallNotification(data: Map<String, String>) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val callId = data["callId"] ?: ""
+        val channelName = data["channelName"] ?: ""
+        val callerName = data["title"] ?: "Incoming Call"
+        
+        val intent = Intent(this, com.example.associate.Activitys.IncomingCallActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("CALL_ID", callId)
+            putExtra("CHANNEL_NAME", channelName)
+            putExtra("title", callerName)
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            callId.hashCode(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.notification)
+            .setContentTitle(callerName)
+            .setContentText("Incoming Video Call")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setAutoCancel(true)
+            .setFullScreenIntent(pendingIntent, true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(true) // Keep notification until answered or timed out
+            
+        // Add Accept/Decline actions to notification as well (optional but good)
+        val acceptIntent = Intent(this, com.example.associate.Activitys.VideoCallActivity::class.java).apply {
+            putExtra("CALL_ID", callId)
+            putExtra("CHANNEL_NAME", channelName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        val acceptPendingIntent = PendingIntent.getActivity(
+            this, 
+            callId.hashCode() + 1, 
+            acceptIntent, 
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val declineIntent = Intent(this, com.example.associate.Activitys.IncomingCallActivity::class.java).apply {
+            action = "ACTION_DECLINE"
+            putExtra("CALL_ID", callId)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val declinePendingIntent = PendingIntent.getActivity(
+            this,
+            callId.hashCode() + 2,
+            declineIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        notificationBuilder.addAction(android.R.drawable.ic_menu_call, "Accept", acceptPendingIntent)
+        notificationBuilder.addAction(android.R.drawable.ic_menu_close_clear_cancel, "Decline", declinePendingIntent)
+            
+        notificationManager.notify(callId.hashCode(), notificationBuilder.build())
+        Log.d(TAG, "Incoming call notification displayed")
     }
 
     /**

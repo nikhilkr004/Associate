@@ -116,13 +116,22 @@
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <!-- Incoming Call Activity -->
+        <activity
+            android:name=".Activitys.IncomingCallActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+
         <!-- Video Call Service -->
         <service
             android:name=".Repositorys.VideoCallService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="mediaProjection"
-          /> <!-- Add this for Android 10+ -->
+            android:foregroundServiceType="mediaProjection" />
 
         <!-- Firebase Cloud Messaging Service -->
         <service
