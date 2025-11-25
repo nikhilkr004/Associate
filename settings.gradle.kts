@@ -10,7 +10,7 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
         maven (url = "https://jitpack.io")
-        maven ("https://storage.zego.im/maven") // <- Add this line.
+        
     }
 }
 dependencyResolutionManagement {
@@ -19,7 +19,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven (url = "https://jitpack.io")
-        maven ("https://storage.zego.im/maven") // <- Add this line.
+
     }
 }
 
