@@ -124,6 +124,15 @@
             android:foregroundServiceType="mediaProjection"
           /> <!-- Add this for Android 10+ -->
 
+        <!-- Firebase Cloud Messaging Service -->
+        <service
+            android:name=".NotificationFCM.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <!-- Preloaded Fonts -->
         <meta-data
             android:name="preloaded_fonts"

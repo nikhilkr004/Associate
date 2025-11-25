@@ -55,7 +55,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
         binding.aboutTxt.text = advisor.bio
         binding.tvLanguages.text = advisor.languages.toString()
         binding.tvCompany.text = advisor.officeLocation
-        binding.tvExperience.text = advisor.experience.toString()
+        binding.tvExperience.text = advisor.experience.toString()+" years"
         setupSpecializations(advisor.specializations)
         setupProfileImage()
 //        setupAdvisorStatus()

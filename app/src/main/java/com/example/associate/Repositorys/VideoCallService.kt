@@ -194,7 +194,7 @@ class VideoCallService : Service() {
             val paymentRecord = hashMapOf(
                 "userId" to userId,
                 "amount" to amount,
-                "timestamp" to Timestamp.now(),
+                "updatedAt" to Timestamp.now(),
                 "type" to "video_call",
                 "callId" to currentCallId,
                 "description" to "Video call payment - ₹$amount"

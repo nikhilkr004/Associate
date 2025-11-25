@@ -5,12 +5,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
 
 class NotificationManager {
-
     private val db = FirebaseFirestore.getInstance()
-
-    companion object {
-        private const val TAG = "NotificationManager"
-    }
+    private val TAG = "NotificationManager"
 
     fun sendBookingNotificationToAdvisor(
         advisorId: String,
@@ -22,8 +18,6 @@ class NotificationManager {
         db.collection("advisors").document(advisorId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val advisorFCMToken = document.getString("fcmToken")
-
                     // Firestore mein notification record create karen
                     createNotificationRecord(advisorId, studentName, bookingId, advisorName)
 
@@ -65,4 +59,4 @@ class NotificationManager {
                 Log.e(TAG, "Failed to create notification record: ${e.message}")
             }
     }
-}
+}   
