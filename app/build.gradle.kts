@@ -94,11 +94,8 @@ dependencies {
     // Razorpay
     implementation("com.razorpay:checkout:1.6.41")
 
-    // ⭐ Agora – Full Video Call SDK
-    implementation("io.agora.rtc:full-sdk:4.6.0")
-
-    // Agora Token Authentication
-    implementation("io.agora:authentication:1.6.0")
+    // ⭐ ZegoCloud – Video Call SDK
+    implementation("im.zego:express-video:+")
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")

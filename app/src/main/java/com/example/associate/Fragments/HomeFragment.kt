@@ -23,6 +23,9 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import android.os.CountDownTimer
+import com.example.associate.DataClass.SessionBookingDataClass
+import java.util.concurrent.TimeUnit
 
 class HomeFragment : Fragment() {
 
@@ -32,6 +35,8 @@ class HomeFragment : Fragment() {
     private val auth = FirebaseAuth.getInstance()
     private val advisorsList = mutableListOf<AdvisorDataClass>()
     private var callListener: ListenerRegistration? = null
+    private var activeBookingListener: ListenerRegistration? = null
+    private var responseTimer: CountDownTimer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +59,9 @@ class HomeFragment : Fragment() {
         fetchAdvisorsData()
         // Incoming calls listen karein
         listenForIncomingCalls()
+        
+        // Listen for active bookings
+        listenForActiveBooking()
     }
 
     private fun fetchBalance() {
@@ -271,6 +279,107 @@ class HomeFragment : Fragment() {
             .addOnFailureListener { e ->
                 Log.e("UserHome", "Failed to update call status: ${e.message}")
             }
+    }
+
+    private fun listenForActiveBooking() {
+        val currentUser = auth.currentUser ?: return
+
+        activeBookingListener = db.collection("instant_bookings")
+            .whereEqualTo("studentId", currentUser.uid)
+            .whereEqualTo("bookingStatus", "pending")
+            .addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    Log.e("HomeFragment", "Error listening for active booking: ${error.message}")
+                    return@addSnapshotListener
+                }
+
+                if (snapshots != null && !snapshots.isEmpty) {
+                    // Active booking found
+                    val document = snapshots.documents[0]
+                    val booking = document.toObject(SessionBookingDataClass::class.java)
+                    
+                    if (booking != null && booking.isActive()) {
+                        showActiveBookingCard(booking)
+                    } else {
+                        hideActiveBookingCard()
+                    }
+                } else {
+                    // No active booking
+                    hideActiveBookingCard()
+                }
+            }
+    }
+
+    private fun showActiveBookingCard(booking: SessionBookingDataClass) {
+        binding.currentBookingCard.visibility = View.VISIBLE
+        binding.bookingAdvisorName.text = booking.advisorName
+
+        // Setup Cancel Button
+        binding.btnCancelBooking.setOnClickListener {
+            cancelBooking(booking.bookingId)
+        }
+
+        // Start Timer
+        startResponseTimer(booking.advisorResponseDeadline)
+    }
+
+    private fun hideActiveBookingCard() {
+        binding.currentBookingCard.visibility = View.GONE
+        responseTimer?.cancel()
+    }
+
+    private fun startResponseTimer(deadline: Long) {
+        responseTimer?.cancel()
+
+        val currentTime = System.currentTimeMillis()
+        val timeRemaining = deadline - currentTime
+
+        if (timeRemaining > 0) {
+            responseTimer = object : CountDownTimer(timeRemaining, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    val minutes = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)
+                    val seconds = TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) % 60
+                    binding.bookingTimer.text = String.format("%02d:%02d", minutes, seconds)
+                }
+
+                override fun onFinish() {
+                    binding.bookingTimer.text = "00:00"
+                    // Optionally expire booking locally or wait for backend/listener
+                }
+            }.start()
+        } else {
+            binding.bookingTimer.text = "00:00"
+        }
+    }
+
+    private fun cancelBooking(bookingId: String) {
+        binding.btnCancelBooking.isEnabled = false
+        binding.btnCancelBooking.text = "Cancelling..."
+
+        val updates = hashMapOf<String, Any>(
+            "bookingStatus" to "cancelled",
+            "updatedAt" to System.currentTimeMillis()
+        )
+
+        db.collection("instant_bookings")
+            .document(bookingId)
+            .update(updates)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Booking cancelled", Toast.LENGTH_SHORT).show()
+                // Listener will handle UI update (hide card)
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed to cancel: ${e.message}", Toast.LENGTH_SHORT).show()
+                binding.btnCancelBooking.isEnabled = true
+                binding.btnCancelBooking.text = "Cancel Request"
+            }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        callListener?.remove()
+        activeBookingListener?.remove()
+        responseTimer?.cancel()
     }
 
 

@@ -1,10 +1,10 @@
 package com.example.associate
 
 object AppConstants {
-    // Agora Configuration
-    const val AGORA_APP_ID = "0fdb614f8d0f4ed8a8281cef6a3c0fdb" // Replace with your Agora App ID
-    const val DEFAULT_CHANNEL_NAME = "ASSOCIATE"
-    const val AGORA_TOKEN = "" // Leave empty for testing, use token for production
+    // ZegoCloud Configuration
+    const val ZEGO_APP_ID: Long = 1090399585L // Replace with your App ID
+    const val ZEGO_APP_SIGN = "332c1e72681654c47dd6836e7e834f3346d25c25e93afcdb757b84ddbcacc388" // Replace with your App Sign
+    const val DEFAULT_CHANNEL_NAME = "test_channel" // Default channel name
 
     // Payment Configuration
     const val PAYMENT_INTERVAL_MS = 10000L // 10 seconds

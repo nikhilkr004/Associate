@@ -1,171 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature
-        android:name="android.hardware.telephony"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
+            <uses-feature
+                android:name="android.hardware.telephony"
+                android:required="false" />
+            <uses-feature
+                android:name="android.hardware.camera"
+                android:required="false" />
 
-    <!-- Add this permission -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <!-- For incoming call notifications -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+            <!-- Add this permission -->
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="android.permission.READ_SMS" />
+            <uses-permission android:name="android.permission.SEND_SMS" />
+            <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+            <uses-permission android:name="android.permission.CAMERA" />
+            <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+            <uses-permission android:name="android.permission.BLUETOOTH" />
+            <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+            <!-- For incoming call notifications -->
+            <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+            <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+            <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+            <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
 
-    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+            <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+            <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
 
-    <!-- Remove duplicate FOREGROUND_SERVICE permission -->
-    <!-- Storage Permission -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
+            <!-- Remove duplicate FOREGROUND_SERVICE permission -->
+            <!-- Storage Permission -->
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+                tools:ignore="ScopedStorage" />
 
-    <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.Associate"
-        tools:targetApi="31">
+            <application
+                android:allowBackup="true"
+                android:dataExtractionRules="@xml/data_extraction_rules"
+                android:fullBackupContent="@xml/backup_rules"
+                android:icon="@mipmap/ic_launcher"
+                android:label="@string/app_name"
+                android:roundIcon="@mipmap/ic_launcher_round"
+                android:supportsRtl="true"
+                android:theme="@style/Theme.Associate"
+                tools:targetApi="31">
 
-        <!-- Main Activity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:screenOrientation="portrait">
+                <!-- Main Activity -->
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:screenOrientation="portrait">
 
-        </activity>
+                </activity>
 
-        <!-- Splash Screen Activity -->
-        <activity
-            android:name=".Activitys.SplashScreenActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+                <!-- Splash Screen Activity -->
+                <activity
+                    android:name=".Activitys.SplashScreenActivity"
+                    android:exported="true"
+                    android:screenOrientation="portrait"
+                    android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
 
-        <!-- Video Call Activity -->
-        <activity
-            android:name=".Activitys.VideoCallActivity"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.NoActionBar"
-            android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:hardwareAccelerated="true" />
+                <!-- Video Call Activity -->
+                <activity
+                    android:name=".Activitys.VideoCallActivity"
+                    android:screenOrientation="portrait"
+                    android:theme="@style/Theme.AppCompat.NoActionBar"
+                    android:exported="false"
+                    android:configChanges="orientation|screenSize|keyboardHidden"
+                    android:hardwareAccelerated="true" />
 
-        <!-- Payment Activity -->
-        <activity
-            android:name=".Payment.LoadMoneyActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+                <!-- Payment Activity -->
+                <activity
+                    android:name=".Payment.LoadMoneyActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="false" />
 
-        <!-- Advisor Profile Activity -->
-        <activity
-            android:name=".Activitys.AdvisorProfileActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+                <!-- Advisor Profile Activity -->
+                <activity
+                    android:name=".Activitys.AdvisorProfileActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="false" />
 
-        <!-- Advisor List Activity -->
-        <activity
-            android:name=".Activitys.AdvisorListActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+                <!-- Advisor List Activity -->
+                <activity
+                    android:name=".Activitys.AdvisorListActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="false" />
 
-        <!-- Personal Screen Activity -->
-        <activity
-            android:name=".Activitys.PersonalScreenActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+                <!-- Personal Screen Activity -->
+                <activity
+                    android:name=".Activitys.PersonalScreenActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="false" />
 
-        <!-- OTP Screen Activity -->
-        <activity
-            android:name=".Activitys.OtpScreenActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+                <!-- OTP Screen Activity -->
+                <activity
+                    android:name=".Activitys.OtpScreenActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="false" />
 
-        <!-- Phone Number Activity -->
-        <activity
-            android:name=".Activitys.PhoneNumberActivity"
-            android:screenOrientation="portrait"
-            android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+                <!-- Phone Number Activity -->
+                <activity
+                    android:name=".Activitys.PhoneNumberActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="true"
+                    android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
-        <!-- Incoming Call Activity -->
-        <activity
-            android:name=".Activitys.IncomingCallActivity"
-            android:screenOrientation="portrait"
-            android:exported="false"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+                <!-- Incoming Call Activity -->
+                <activity
+                    android:name=".Activitys.IncomingCallActivity"
+                    android:screenOrientation="portrait"
+                    android:exported="false"
+                    android:showWhenLocked="true"
+                    android:turnScreenOn="true"
+                    android:launchMode="singleTop"
+                    android:theme="@style/Theme.AppCompat.NoActionBar" />
 
-        <!-- Video Call Service -->
-        <service
-            android:name=".Repositorys.VideoCallService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
+                <!-- Video Call Service -->
+                <service
+                    android:name=".Repositorys.VideoCallService"
+                    android:enabled="true"
+                    android:exported="false"
+                    android:foregroundServiceType="mediaProjection" />
 
-        <!-- Firebase Cloud Messaging Service -->
-        <service
-            android:name=".NotificationFCM.MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+                <!-- Firebase Cloud Messaging Service -->
+                <service
+                    android:name=".NotificationFCM.MyFirebaseMessagingService"
+                    android:exported="false">
+                    <intent-filter>
+                        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+                    </intent-filter>
+                </service>
 
-        <!-- Preloaded Fonts -->
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
+                <!-- Preloaded Fonts -->
+                <meta-data
+                    android:name="preloaded_fonts"
+                    android:resource="@array/preloaded_fonts" />
 
-        <!-- Firebase Config -->
-        <meta-data
-            android:name="firebase_auth_force_recaptcha_flow"
-            android:value="false" />
+                <!-- Firebase Config -->
+                <meta-data
+                    android:name="firebase_auth_force_recaptcha_flow"
+                    android:value="false" />
 
-        <!-- Notification Channels -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="user_calls_channel" />
+                <!-- Notification Channels -->
+                <meta-data
+                    android:name="com.google.firebase.messaging.default_notification_channel_id"
+                    android:value="user_calls_channel" />
 
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/notification" />
+                <meta-data
+                    android:name="com.google.firebase.messaging.default_notification_icon"
+                    android:resource="@drawable/notification" />
 
-        <!-- Agora SDK Config -->
-        <meta-data
-            android:name="io.agora.rtc.sdk.full"
-            android:value="true" />
 
-    </application>
 
-</manifest>
+            </application>
+
+        </manifest>

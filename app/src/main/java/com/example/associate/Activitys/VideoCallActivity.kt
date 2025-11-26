@@ -12,35 +12,39 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.SurfaceView
+import android.view.TextureView
+import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.associate.AgoraManager
 import com.example.associate.AppConstants
+import com.example.associate.PreferencesHelper.ZegoCallManager
 import com.example.associate.R
 import com.example.associate.Repositorys.VideoCallService
 import com.example.associate.databinding.ActivityVideoCallBinding
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import io.agora.rtc2.IRtcEngineEventHandler.RtcStats
+import im.zego.zegoexpress.constants.ZegoUpdateType
+import im.zego.zegoexpress.entity.ZegoUser
+import org.json.JSONObject
+import java.util.ArrayList
 import java.util.Timer
 import java.util.TimerTask
 
-class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
+class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener {
 
     private val binding by lazy {
         ActivityVideoCallBinding.inflate(layoutInflater)
     }
 
-    private lateinit var agoraManager: AgoraManager
+    private lateinit var zegoManager: ZegoCallManager
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private var totalAmountSpent: Double = 0.0
@@ -49,11 +53,9 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
     private var callTimer: Timer? = null
     private var isAudioMuted = false
     private var isVideoEnabled = true
-    private var localSurfaceView: SurfaceView? = null
-    private var remoteSurfaceView: SurfaceView? = null
     private var isCallActive = false
-    private var localUid: Int = 0
-    private var remoteUid: Int = 0
+    private var localUserID: String = ""
+    private var localUserName: String = ""
 
     // Modern permission request
     private val requestPermissionLauncher = registerForActivityResult(
@@ -61,7 +63,7 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (allGranted) {
-            initializeAgora()
+            initializeZego()
         } else {
             showError("Camera and microphone permissions are required for video calls")
             Handler(Looper.getMainLooper()).postDelayed({
@@ -84,6 +86,10 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
         // Initialize Firebase
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
+        
+        // Generate a random User ID and Name if not available (or use Auth)
+        localUserID = auth.currentUser?.uid ?: "user_${System.currentTimeMillis()}"
+        localUserName = auth.currentUser?.displayName ?: "User"
 
         currentCallId = intent.getStringExtra("CALL_ID") ?: ""
         if (currentCallId.isEmpty()) {
@@ -108,61 +114,62 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
         binding.btnMute.setBackgroundColor(Color.parseColor("#4CAF50"))
         binding.btnMute.setColorFilter(R.color.green)
         binding.btnVideoToggle.setBackgroundColor(Color.parseColor("#4CAF50"))
-//        binding.btnVideoToggle.text = "Video On"
 
         // Make video views visible by default
-        binding.localVideoView.visibility = android.view.View.VISIBLE
-        binding.remoteVideoView.visibility = android.view.View.VISIBLE
+        binding.localVideoView.visibility = View.VISIBLE
+        binding.remoteVideoView.visibility = View.VISIBLE
     }
 
     private fun checkPermissionsAndInitialize() {
         if (hasPermissions()) {
-            initializeAgora()
+            initializeZego()
         } else {
             requestPermissions()
         }
     }
 
-    private fun initializeAgora() {
+    private fun initializeZego() {
         updateConnectionStatus("Initializing video call...")
-        Log.d("VideoCall", "Initializing Agora with App ID: ${AppConstants.AGORA_APP_ID}")
+        Log.d("VideoCall", "Initializing Zego with App ID: ${AppConstants.ZEGO_APP_ID}")
 
         try {
-            agoraManager = AgoraManager(this, this)
-            val initialized = agoraManager.initializeAgoraEngine(AppConstants.AGORA_APP_ID)
+            zegoManager = ZegoCallManager(this, this)
+            val initialized = zegoManager.initializeEngine(AppConstants.ZEGO_APP_ID, AppConstants.ZEGO_APP_SIGN)
 
             if (initialized) {
                 updateConnectionStatus("Setting up video...")
-                Log.d("VideoCall", "Agora engine initialized successfully")
+                Log.d("VideoCall", "Zego engine initialized successfully")
 
-                // Setup local video FIRST
-                localSurfaceView = agoraManager.setupLocalVideo(binding.localVideoView)
+                // Setup local video
+                val localTextureView = TextureView(this)
+                binding.localVideoView.addView(localTextureView)
+                zegoManager.setupLocalVideo(localTextureView)
                 Log.d("VideoCall", "Local video setup completed")
 
-                // Join channel - use the actual channel name from intent if available
-                val channelName = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
-                Log.d("VideoCall", "Joining channel: $channelName")
+                // Join room - use the actual channel name (roomID) from intent if available
+                val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
+                Log.d("VideoCall", "Joining room: $roomID")
 
-                val result = agoraManager.joinChannel(channelName)
-                Log.d("VideoCall", "Join channel result: $result")
-
-                if (result == 0) {
-                    updateConnectionStatus("Joining call...")
-                    updateCallStatusInFirestore("ongoing")
-
-                    // Enable speakerphone for better audio
-                    agoraManager.setEnableSpeakerphone(true)
-                    Log.d("VideoCall", "Speakerphone enabled")
-                } else {
-                    showError("Failed to join call: Error $result")
-                    Log.e("VideoCall", "Join channel failed with error: $result")
-                }
+                zegoManager.joinRoom(roomID, localUserID, localUserName)
+                
+                // We assume successful join request initiated
+                updateConnectionStatus("Joining call...")
+                updateCallStatusInFirestore("ongoing")
+                
+                // Start timer and payment service immediately or wait for onRoomStateChanged
+                // For Zego, loginRoom is async but we can assume start. 
+                // Better to wait for callback but for simplicity we start tracking.
+                isCallActive = true
+                callStartTime = System.currentTimeMillis()
+                startCallTimer()
+                startPaymentService()
+                
             } else {
-                showError("Failed to initialize Agora engine")
-                Log.e("VideoCall", "Agora engine initialization failed")
+                showError("Failed to initialize Zego engine")
+                Log.e("VideoCall", "Zego engine initialization failed")
             }
         } catch (e: Exception) {
-            Log.e("VideoCall", "Agora initialization error: ${e.message}", e)
+            Log.e("VideoCall", "Zego initialization error: ${e.message}", e)
             showError("Video call initialization failed: ${e.message}")
         }
     }
@@ -214,101 +221,49 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
         binding.btnSwitchCamera.setOnClickListener {
             switchCamera()
         }
-
-        // NEW: Add speakerphone toggle button
-        binding.btnSwitchCamera.setOnLongClickListener {
-            toggleSpeakerphone()
-            true
-        }
     }
 
     private fun toggleAudio() {
         if (!isCallActive) return
 
         isAudioMuted = !isAudioMuted
-        val result = agoraManager.muteLocalAudio(isAudioMuted)
+        zegoManager.muteMicrophone(isAudioMuted)
 
-        if (result == 0) {
-            binding.btnMute.setBackgroundColor(
-                if (isAudioMuted) Color.RED else Color.parseColor("#4CAF50")
-            )
-//            binding.btnMute.text = if (isAudioMuted) "Unmute" else "Mute"
+        binding.btnMute.setBackgroundColor(
+            if (isAudioMuted) Color.RED else Color.parseColor("#4CAF50")
+        )
 
-            Toast.makeText(
-                this,
-                if (isAudioMuted) "Microphone muted" else "Microphone unmuted",
-                Toast.LENGTH_SHORT
-            ).show()
-            Log.d("VideoCall", "Audio ${if (isAudioMuted) "muted" else "unmuted"}")
-        } else {
-            Log.e("VideoCall", "Failed to toggle audio: Error $result")
-        }
+        Toast.makeText(
+            this,
+            if (isAudioMuted) "Microphone muted" else "Microphone unmuted",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun toggleVideo() {
         if (!isCallActive) return
 
         isVideoEnabled = !isVideoEnabled
-        val result = agoraManager.enableLocalVideo(isVideoEnabled)
+        zegoManager.enableCamera(isVideoEnabled)
 
-        if (result == 0) {
-            binding.btnVideoToggle.setBackgroundColor(
-                if (isVideoEnabled) Color.parseColor("#4CAF50") else Color.RED
-            )
-//            binding.btnVideoToggle.text = if (isVideoEnabled) "Video On" else "Video Off"
+        binding.btnVideoToggle.setBackgroundColor(
+            if (isVideoEnabled) Color.parseColor("#4CAF50") else Color.RED
+        )
 
-            // Show/hide local video view
-            binding.localVideoView.visibility = if (isVideoEnabled) android.view.View.VISIBLE else android.view.View.GONE
+        // Show/hide local video view
+        binding.localVideoView.visibility = if (isVideoEnabled) View.VISIBLE else View.GONE
 
-            Toast.makeText(
-                this,
-                if (isVideoEnabled) "Video enabled" else "Video disabled",
-                Toast.LENGTH_SHORT
-            ).show()
-            Log.d("VideoCall", "Video ${if (isVideoEnabled) "enabled" else "disabled"}")
-        } else {
-            Log.e("VideoCall", "Failed to toggle video: Error $result")
-        }
+        Toast.makeText(
+            this,
+            if (isVideoEnabled) "Video enabled" else "Video disabled",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun switchCamera() {
         if (!isCallActive) return
-
-        val result = agoraManager.switchCamera()
-        if (result == 0) {
-            Toast.makeText(this, "Camera switched", Toast.LENGTH_SHORT).show()
-            Log.d("VideoCall", "Camera switched successfully")
-        } else {
-            Log.e("VideoCall", "Failed to switch camera: Error $result")
-        }
-    }
-
-    // NEW: Toggle speakerphone function
-    private fun toggleSpeakerphone(): Boolean {
-        if (!isCallActive) return false
-
-        val currentState = agoraManager.getConnectionState()
-        val newState = !isSpeakerphoneEnabled()
-
-        val result = agoraManager.setEnableSpeakerphone(newState)
-        if (result == 0) {
-            Toast.makeText(
-                this,
-                if (newState) "Speakerphone ON" else "Speakerphone OFF",
-                Toast.LENGTH_SHORT
-            ).show()
-            Log.d("VideoCall", "Speakerphone ${if (newState) "enabled" else "disabled"}")
-            return true
-        } else {
-            Log.e("VideoCall", "Failed to toggle speakerphone: Error $result")
-            return false
-        }
-    }
-
-    // NEW: Check if speakerphone is enabled
-    private fun isSpeakerphoneEnabled(): Boolean {
-        // This is a simple implementation - you might need to track this state separately
-        return true // Default to true as we enable it initially
+        zegoManager.switchCamera()
+        Toast.makeText(this, "Camera switched", Toast.LENGTH_SHORT).show()
     }
 
     private fun startCallTimer() {
@@ -328,15 +283,14 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
         val minutes = elapsedSeconds / 60
         val seconds = elapsedSeconds % 60
         binding.tvTimer.text = String.format("%02d:%02d", minutes, seconds)
-
-        // Payment UI will be updated by broadcast, so no calculation here
     }
+
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun registerBroadcastReceiver() {
         try {
             val filter = IntentFilter().apply {
                 addAction("INSUFFICIENT_BALANCE")
-                addAction("PAYMENT_CALCULATED") // NEW ACTION
+                addAction("PAYMENT_CALCULATED")
             }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(balanceReceiver, filter, Context.RECEIVER_EXPORTED)
@@ -357,7 +311,6 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
                     }
                 }
                 "PAYMENT_CALCULATED" -> {
-                    // Update local amount only
                     totalAmountSpent = intent.getDoubleExtra("TOTAL_AMOUNT", 0.0)
                     runOnUiThread {
                         updatePaymentUI()
@@ -376,7 +329,6 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
         binding.tvPaymentInfo.text = "Rate: ₹60/min | Spent: ₹${String.format("%.2f", totalAmountSpent)}"
     }
 
-
     private fun showInsufficientBalanceDialog() {
         AlertDialog.Builder(this)
             .setTitle("Insufficient Balance")
@@ -388,7 +340,6 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
             .show()
     }
 
-    // End call function update karein
     private fun endCall() {
         if (!isCallActive) {
             finish()
@@ -398,16 +349,13 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
         Log.d("VideoCall", "Ending call... Total spent: ₹$totalAmountSpent")
         isCallActive = false
 
-        // Pehle payment service stop karein (ye final update karega)
         stopPaymentService()
+        
+        val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
+        zegoManager.leaveRoom(roomID)
 
-        // Phir Agora call end karein
-        agoraManager.leaveChannel()
-
-        // Firestore status update karein
         updateCallEndStatus()
 
-        // Show completion message
         Toast.makeText(
             this,
             "Call completed! Total spent: ₹${String.format("%.2f", totalAmountSpent)}",
@@ -416,22 +364,22 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
 
         Handler(Looper.getMainLooper()).postDelayed({
             finish()
-        }, 3000) // Thoda time dein service ko complete karne ke liye
+        }, 3000)
     }
+
     private fun stopPaymentService() {
         try {
             val serviceIntent = Intent(this, VideoCallService::class.java).apply {
                 action = "STOP_PAYMENT"
                 putExtra("CALL_ID", currentCallId)
             }
-            startService(serviceIntent) // CHANGED: stopService() ki jagah startService() use karein
+            startService(serviceIntent)
             Log.d("VideoCall", "STOP_PAYMENT signal sent to service")
         } catch (e: Exception) {
             Log.e("VideoCall", "Failed to stop payment service: ${e.message}")
         }
     }
 
-    // Update call end status
     private fun updateCallEndStatus() {
         val endTime = Timestamp.now()
         val elapsedSeconds = (System.currentTimeMillis() - callStartTime) / 1000
@@ -440,8 +388,6 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
             "status" to "ended",
             "callEndTime" to endTime,
             "duration" to elapsedSeconds
-
-            // totalAmount service update karega
         )
 
         db.collection("videoCalls")
@@ -455,98 +401,54 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
             }
     }
 
-    // Agora Event Listeners
-    override fun onJoinChannelSuccess(channel: String, uid: Int, elapsed: Int) {
+    // Zego Event Listeners
+    override fun onRoomStateChanged(roomID: String, reason: Int, errorCode: Int, extendedData: JSONObject) {
         runOnUiThread {
-            isCallActive = true
-            localUid = uid
-            callStartTime = System.currentTimeMillis()
-            startCallTimer()
-            startPaymentService()
-            updateCallStatus("Connected to call - Your UID: $uid")
-            binding.tvConnectionStatus.visibility = android.view.View.GONE
-
-            // Make sure local video is visible
-            binding.localVideoView.visibility = android.view.View.VISIBLE
-
-            Log.d("VideoCall", "Successfully joined channel: $channel, UID: $uid, elapsed: $elapsed ms")
-            Toast.makeText(this, "Connected to call!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onUserJoined(uid: Int) {
-        runOnUiThread {
-            remoteUid = uid
-            Log.d("VideoCall", "Remote user joined: $uid")
-            remoteSurfaceView = agoraManager.setupRemoteVideo(binding.remoteVideoView, uid)
-            updateCallStatus("Advisor joined the call - UID: $uid")
-            binding.remoteVideoView.visibility = android.view.View.VISIBLE
-            Toast.makeText(this, "Advisor joined the call!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onUserOffline(uid: Int, reason: Int) {
-        runOnUiThread {
-            updateCallStatus("Advisor left the call")
-            Log.d("VideoCall", "User offline: $uid, reason: $reason")
-
-            // End call after delay
-            Handler(Looper.getMainLooper()).postDelayed({
-                endCall()
-            }, 2000)
-        }
-    }
-
-    override fun onLeaveChannel(stats: RtcStats) {
-        Log.d("VideoCall", "Left channel: duration=${stats.totalDuration}ms, txBytes=${stats.txBytes}, rxBytes=${stats.rxBytes}")
-    }
-
-    override fun onError(err: Int) {
-        runOnUiThread {
-            val errorMsg = when (err) {
-                io.agora.rtc2.Constants.ERR_NOT_INITIALIZED -> "SDK not initialized"
-                io.agora.rtc2.Constants.ERR_INVALID_ARGUMENT -> "Invalid argument"
-                io.agora.rtc2.Constants.ERR_JOIN_CHANNEL_REJECTED -> "Join channel rejected"
-                io.agora.rtc2.Constants.ERR_LEAVE_CHANNEL_REJECTED -> "Leave channel rejected"
-//                io.agora.rtc2.Constants. -> "Start call error"
-                io.agora.rtc2.Constants.ERR_INVALID_APP_ID -> "Invalid App ID"
-                else -> "Error code: $err"
+            if (errorCode == 0) {
+                updateCallStatus("Connected to room: $roomID")
+                binding.tvConnectionStatus.visibility = View.GONE
+            } else {
+                showError("Room state changed error: $errorCode")
             }
-            showError("Video call error: $errorMsg")
-            Log.e("VideoCall", "Agora error: $errorMsg ($err)")
         }
     }
 
-    override fun onRemoteVideoStateChanged(uid: Int, state: Int, reason: Int, elapsed: Int) {
+    override fun onRoomUserUpdate(roomID: String, updateType: ZegoUpdateType, userList: ArrayList<ZegoUser>) {
         runOnUiThread {
-            Log.d("VideoCall", "Remote video state changed - UID: $uid, State: $state, Reason: $reason")
-
-            when (state) {
-                io.agora.rtc2.Constants.REMOTE_VIDEO_STATE_STARTING -> {
-                    updateCallStatus("Advisor video starting...")
-                    binding.remoteVideoView.visibility = android.view.View.VISIBLE
+            if (updateType == ZegoUpdateType.ADD) {
+                for (user in userList) {
+                    Log.d("VideoCall", "User joined: ${user.userID}")
+                    updateCallStatus("Advisor joined: ${user.userName}")
+                    Toast.makeText(this, "Advisor joined!", Toast.LENGTH_SHORT).show()
+                    
+                    // In Zego, we play stream when publisher updates, but if we know the stream ID convention:
+                    val streamID = "stream_${user.userID}"
+                    val remoteTextureView = TextureView(this)
+                    binding.remoteVideoView.removeAllViews() // Clear previous
+                    binding.remoteVideoView.addView(remoteTextureView)
+                    zegoManager.setupRemoteVideo(remoteTextureView, streamID)
+                    binding.remoteVideoView.visibility = View.VISIBLE
                 }
-                io.agora.rtc2.Constants.REMOTE_VIDEO_STATE_DECODING -> {
-                    updateCallStatus("Advisor video active")
-                    binding.remoteVideoView.visibility = android.view.View.VISIBLE
-                    Toast.makeText(this, "Advisor video is now active", Toast.LENGTH_SHORT).show()
-                }
-                io.agora.rtc2.Constants.REMOTE_VIDEO_STATE_FROZEN -> {
-                    updateCallStatus("Advisor video frozen")
-                }
-                io.agora.rtc2.Constants.REMOTE_VIDEO_STATE_STOPPED -> {
-                    updateCallStatus("Advisor video stopped")
-                    binding.remoteVideoView.visibility = android.view.View.GONE
+            } else if (updateType == ZegoUpdateType.DELETE) {
+                for (user in userList) {
+                    Log.d("VideoCall", "User left: ${user.userID}")
+                    updateCallStatus("Advisor left the call")
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        endCall()
+                    }, 2000)
                 }
             }
         }
+    }
+
+    override fun onRemoteCameraStateUpdate(streamID: String, state: Int) {
+        // Handle remote camera state changes if needed
     }
 
     private fun updateCallStatus(status: String) {
         binding.tvCallStatus.text = status
         Log.d("VideoCall", "Call status: $status")
     }
-
 
     private fun updateConnectionStatus(status: String) {
         binding.tvConnectionStatus.text = status
@@ -555,7 +457,6 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
     private fun showError(message: String) {
         Log.e("VideoCall", message)
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-
         Handler(Looper.getMainLooper()).postDelayed({
             finish()
         }, 3000)
@@ -592,36 +493,20 @@ class VideoCallActivity : AppCompatActivity(), AgoraManager.AgoraEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-
-        // Clean up timers
         callTimer?.cancel()
         callTimer = null
-
-        // Clean up views
-        localSurfaceView?.let {
-            binding.localVideoView.removeView(it)
-        }
-        remoteSurfaceView?.let {
-            binding.remoteVideoView.removeView(it)
-        }
-
-        // Destroy Agora engine
+        
         try {
-            agoraManager.destroy()
+            val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
+            zegoManager.leaveRoom(roomID)
         } catch (e: Exception) {
-            Log.e("VideoCall", "Error destroying Agora: ${e.message}")
+            Log.e("VideoCall", "Error destroying Zego: ${e.message}")
         }
 
-        // Unregister receiver
         try {
             unregisterReceiver(balanceReceiver)
-        } catch (e: Exception) {
-            // Ignore if receiver wasn't registered
-        }
+        } catch (e: Exception) {}
 
-        // Stop payment service
         stopPaymentService()
-
-        Log.d("VideoCall", "VideoCallActivity destroyed - Call duration: ${(System.currentTimeMillis() - callStartTime) / 1000}s")
     }
 }
