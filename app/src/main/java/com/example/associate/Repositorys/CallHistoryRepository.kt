@@ -20,7 +20,7 @@ class CallHistoryRepository {
         return try {
             db.collection("videoCalls")
                 .whereEqualTo("userId", userId)
-//                .orderBy("callStartTime", Query.Direction.DESCENDING)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .await()
                 .documents

@@ -43,6 +43,20 @@ class MainActivity : AppCompatActivity() {
                 .replace(R.id.fragment_container, HomeFragment.newInstance())
                 .commit()
         }
+
+        checkOverlayPermission()
+    }
+
+    private fun checkOverlayPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (!android.provider.Settings.canDrawOverlays(this)) {
+                val intent = android.content.Intent(
+                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    android.net.Uri.parse("package:$packageName")
+                )
+                startActivityForResult(intent, 1234)
+            }
+        }
     }
 
     private fun setupBottomNavigation() {

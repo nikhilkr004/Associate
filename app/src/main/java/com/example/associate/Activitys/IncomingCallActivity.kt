@@ -3,19 +3,16 @@ package com.example.associate.Activitys
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.media.Ringtone
-import android.media.RingtoneManager
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.example.associate.R
 import com.example.associate.databinding.ActivityIncomingCallBinding
-import com.example.associate.Activitys.VideoCallActivity
 
 class IncomingCallActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityIncomingCallBinding
-    private var ringtone: Ringtone? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,23 +21,26 @@ class IncomingCallActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
-            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+        }
+        
+        // For older versions or additional safety
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+            WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+        )
+
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             keyguardManager?.requestDismissKeyguard(this, null)
-        } else {
-            @Suppress("DEPRECATION")
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-            )
         }
 
         binding = ActivityIncomingCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         if (intent?.action == "ACTION_DECLINE") {
-            stopRingtone()
+            stopService()
             finish()
             return
         }
@@ -49,18 +49,30 @@ class IncomingCallActivity : AppCompatActivity() {
         val callId = intent.getStringExtra("CALL_ID") ?: ""
         val channelName = intent.getStringExtra("CHANNEL_NAME") ?: ""
         val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
+        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
         
         binding.tvCallerName.text = callerName
 
-        playRingtone()
+        // Load Avatar
+        if (advisorAvatar.isNotEmpty()) {
+            try {
+                com.bumptech.glide.Glide.with(this)
+                    .load(advisorAvatar)
+                    .placeholder(R.drawable.user)
+                    .circleCrop()
+                    .into(binding.ivCallerImage)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         binding.btnAccept.setOnClickListener {
-            stopRingtone()
+            stopService()
             acceptCall(callId, channelName)
         }
 
         binding.btnDecline.setOnClickListener {
-            stopRingtone()
+            stopService()
             finish()
         }
     }
@@ -68,30 +80,20 @@ class IncomingCallActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.action == "ACTION_DECLINE") {
-            stopRingtone()
+            stopService()
             finish()
         }
     }
 
-    private fun playRingtone() {
-        try {
-            val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-            ringtone = RingtoneManager.getRingtone(applicationContext, notification)
-            ringtone?.play()
-        } catch (e: Exception) {
-            e.printStackTrace()
+    private fun stopService() {
+        val intent = Intent(this, com.example.associate.NotificationFCM.CallNotificationService::class.java).apply {
+            action = com.example.associate.NotificationFCM.CallNotificationService.ACTION_STOP_SERVICE
         }
-    }
-
-    private fun stopRingtone() {
-        try {
-            ringtone?.stop()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        startService(intent)
     }
 
     private fun acceptCall(callId: String, channelName: String) {
+        stopService()
         val intent = Intent(this, VideoCallActivity::class.java).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
@@ -102,7 +104,6 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        stopRingtone()
         super.onDestroy()
     }
 }

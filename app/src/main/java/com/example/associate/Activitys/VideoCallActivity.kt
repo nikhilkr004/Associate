@@ -102,6 +102,18 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         checkPermissionsAndInitialize()
         setupCallControls()
         registerBroadcastReceiver()
+        stopCallNotificationService()
+    }
+
+    private fun stopCallNotificationService() {
+        try {
+            val intent = Intent(this, com.example.associate.NotificationFCM.CallNotificationService::class.java).apply {
+                action = com.example.associate.NotificationFCM.CallNotificationService.ACTION_STOP_SERVICE
+            }
+            startService(intent)
+        } catch (e: Exception) {
+            Log.e("VideoCall", "Failed to stop notification service: ${e.message}")
+        }
     }
 
     private fun initializeUI() {
