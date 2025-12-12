@@ -83,6 +83,17 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             insets
         }
 
+        // Allow VideoCallActivity to show over lock screen
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
+        window.addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
+
         // Initialize Firebase
         db = FirebaseFirestore.getInstance()
         auth = FirebaseAuth.getInstance()
@@ -99,6 +110,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
 
         initializeUI()
+        android.widget.Toast.makeText(this, "Starting Video Call...", android.widget.Toast.LENGTH_SHORT).show()
         checkPermissionsAndInitialize()
         setupCallControls()
         registerBroadcastReceiver()
@@ -180,7 +192,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 showError("Failed to initialize Zego engine")
                 Log.e("VideoCall", "Zego engine initialization failed")
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e("VideoCall", "Zego initialization error: ${e.message}", e)
             showError("Video call initialization failed: ${e.message}")
         }

@@ -23,13 +23,12 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_margin="16dp"
-        android:background="@color/gray" />
+        android:background="@drawable/eleveted_bg" />
 
     <!-- Header Information -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
         android:background="#80000000"
         android:orientation="vertical"
         android:padding="16dp">

@@ -58,7 +58,7 @@ class HomeFragment : Fragment() {
         fetchBalance()
         fetchAdvisorsData()
         // Incoming calls listen karein
-        listenForIncomingCalls()
+//        listenForIncomingCalls()
         
         // Listen for active bookings
         listenForActiveBooking()

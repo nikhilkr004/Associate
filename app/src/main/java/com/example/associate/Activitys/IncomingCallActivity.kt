@@ -79,9 +79,29 @@ class IncomingCallActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent) // Update the activity's intent
+        
         if (intent.action == "ACTION_DECLINE") {
             stopService()
             finish()
+            return
+        }
+        
+        // Update UI for new call
+        val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
+        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
+        binding.tvCallerName.text = callerName
+        
+        if (advisorAvatar.isNotEmpty()) {
+            try {
+                com.bumptech.glide.Glide.with(this)
+                    .load(advisorAvatar)
+                    .placeholder(R.drawable.user)
+                    .circleCrop()
+                    .into(binding.ivCallerImage)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -93,6 +113,7 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     private fun acceptCall(callId: String, channelName: String) {
+        android.widget.Toast.makeText(this, "Accepting call...", android.widget.Toast.LENGTH_SHORT).show()
         stopService()
         val intent = Intent(this, VideoCallActivity::class.java).apply {
             putExtra("CALL_ID", callId)

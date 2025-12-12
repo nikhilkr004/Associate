@@ -99,6 +99,29 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     private fun showIncomingCallNotification(data: Map<String, String>) {
         val callId = data["callId"] ?: ""
         val channelName = data["channelName"] ?: ""
+        val callerName = data["advisorName"] ?: data["title"] ?: "Incoming Call"
+        val callerAvatar = data["advisorAvatar"] ?: ""
+        
+        Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName")
+        
+        val serviceIntent = Intent(this, CallNotificationService::class.java).apply {
+            putExtra("CALL_ID", callId)
+            putExtra("CHANNEL_NAME", channelName)
+            putExtra("advisorName", callerName)
+            putExtra("advisorAvatar", callerAvatar)
+        }
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+    }
+
+    /**
+     * Display notification to user
+     */
+    private fun showNotification(title: String, body: String, data: Map<String, String>) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
         // Create intent to open app when notification is clicked
@@ -119,7 +142,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         
         // Build notification
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.notification) // Make sure this drawable exists
+            .setSmallIcon(R.drawable.notification)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

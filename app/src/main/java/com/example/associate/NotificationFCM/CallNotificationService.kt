@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import com.example.associate.Activitys.IncomingCallActivity
 import com.example.associate.Activitys.VideoCallActivity
 import com.example.associate.R
+import kotlinx.coroutines.launch
 
 class CallNotificationService : Service() {
 
@@ -64,24 +65,7 @@ class CallNotificationService : Service() {
         // Custom Layout
         val customView = RemoteViews(packageName, R.layout.notification_call)
         customView.setTextViewText(R.id.tv_caller_name, callerName)
-        
-        // Load Avatar
-        if (advisorAvatar.isNotEmpty()) {
-            try {
-                val futureTarget = com.bumptech.glide.Glide.with(this)
-                    .asBitmap()
-                    .load(advisorAvatar)
-                    .submit(100, 100) // Load small size for notification
-                
-                val bitmap = futureTarget.get()
-                customView.setImageViewBitmap(R.id.iv_caller_avatar, bitmap)
-                
-                // Important: Clear target to avoid memory leaks, though tricky in Service
-                // For simplicity in this context, we rely on Glide's caching
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        customView.setImageViewResource(R.id.iv_caller_avatar, R.drawable.user) // Default placeholder
 
         // Accept Intent
         val acceptIntent = Intent(this, VideoCallActivity::class.java).apply {
@@ -136,23 +120,48 @@ class CallNotificationService : Service() {
             }
         }
 
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.notification)
-            .setPriority(NotificationCompat.PRIORITY_MAX) // MAX for heads-up
+            .setPriority(NotificationCompat.PRIORITY_MIN) // MIN priority to hide icon/heads-up
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setCustomContentView(customView)
             .setCustomBigContentView(customView)
-            .setFullScreenIntent(fullScreenPendingIntent, true)
+            // Removed setFullScreenIntent to hide heads-up banner
             .setOngoing(true)
             .setAutoCancel(false)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setVibrate(longArrayOf(0, 1000, 500, 1000)) // Vibrate pattern
-            .build()
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET) // Hide from lock screen (since Activity shows there)
+
+        val notification = notificationBuilder.build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(123, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
         } else {
             startForeground(123, notification)
+        }
+
+        // Load Avatar Asynchronously
+        if (advisorAvatar.isNotEmpty()) {
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                try {
+                    val bitmap = com.bumptech.glide.Glide.with(applicationContext)
+                        .asBitmap()
+                        .load(advisorAvatar)
+                        .submit(100, 100)
+                        .get()
+                    
+                    // Update Notification
+                    customView.setImageViewBitmap(R.id.iv_caller_avatar, bitmap)
+                    val updatedNotification = notificationBuilder
+                        .setCustomContentView(customView)
+                        .setCustomBigContentView(customView)
+                        .build()
+                        
+                    val notificationManager = getSystemService(NotificationManager::class.java)
+                    notificationManager.notify(123, updatedNotification)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 
@@ -165,6 +174,14 @@ class CallNotificationService : Service() {
                     ringtone?.isLooping = true
                 }
                 ringtone?.play()
+                
+                // Vibrate manually since notification is low priority
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 1000, 1000), 0))
+                } else {
+                    vibrator.vibrate(longArrayOf(0, 1000, 1000), 0)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -173,6 +190,15 @@ class CallNotificationService : Service() {
 
     override fun onDestroy() {
         ringtone?.stop()
+        try {
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator
+            if (vibrator.hasVibrator()) {
+                vibrator.cancel()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
@@ -184,12 +210,12 @@ class CallNotificationService : Service() {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Incoming Calls",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_LOW // Low importance to prevent heads-up
             ).apply {
                 description = "Channel for incoming video calls"
-                setSound(null, null) // Sound handled by RingtoneManager
-                enableVibration(true)
-                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+                setSound(null, null)
+                enableVibration(false) // Vibration handled manually
+                lockscreenVisibility = android.app.Notification.VISIBILITY_SECRET
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
