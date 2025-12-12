@@ -49,8 +49,32 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onMessageReceived(message)
         
         Log.d(TAG, "Message received from: ${message.from}")
+        Log.d(TAG, "Message data: ${message.data}")
         
-        // Check if message contains notification payload
+        // Get notification type from data payload
+        val notificationType = message.data["notificationType"] ?: message.data["type"] ?: ""
+        
+        Log.d(TAG, "Notification Type: $notificationType")
+        
+        // Handle based on notification type
+        when (notificationType) {
+            "video_call", "call_offer" -> {
+                // Incoming video call - show full screen call notification
+                Log.d(TAG, "Handling incoming video call")
+                showIncomingCallNotification(message.data)
+                return
+            }
+            "booking_request", "instant_booking" -> {
+                // Booking notification - show standard notification
+                Log.d(TAG, "Handling booking notification")
+                val title = message.notification?.title ?: message.data["title"] ?: "New Booking"
+                val body = message.notification?.body ?: message.data["body"] ?: "You have a new booking"
+                showNotification(title, body, message.data)
+                return
+            }
+        }
+        
+        // Fallback: Check if message contains notification payload
         message.notification?.let { notification ->
             Log.d(TAG, "Notification Title: ${notification.title}")
             Log.d(TAG, "Notification Body: ${notification.body}")
@@ -60,25 +84,15 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 body = notification.body ?: "You have a new update",
                 data = message.data
             )
+            return
         }
         
-        // Check if message contains data payload
+        // If only data payload (no notification), show notification manually
         if (message.data.isNotEmpty()) {
-            Log.d(TAG, "Message data: ${message.data}")
+            val title = message.data["title"] ?: "New Notification"
+            val body = message.data["message"] ?: message.data["body"] ?: "You have a new update"
             
-            // Check for incoming call
-            if (message.data["type"] == "call" || message.data.containsKey("callId")) {
-                showIncomingCallNotification(message.data)
-                return
-            }
-            
-            // If only data payload (no notification), show notification manually
-            if (message.notification == null) {
-                val title = message.data["title"] ?: "New Notification"
-                val body = message.data["message"] ?: message.data["body"] ?: "You have a new update"
-                
-                showNotification(title, body, message.data)
-            }
+            showNotification(title, body, message.data)
         }
     }
 
@@ -86,7 +100,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val callId = data["callId"] ?: ""
         val channelName = data["channelName"] ?: ""
-        val callerName = data["title"] ?: "Incoming Call"
+        // Support both old and new field names
+        val callerName = data["advisorName"] ?: data["title"] ?: "Incoming Call"
+        
+        Log.d(TAG, "Showing incoming call notification - CallID: $callId, Caller: $callerName")
         
         val intent = Intent(this, com.example.associate.Activitys.IncomingCallActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -105,7 +122,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.notification)
             .setContentTitle(callerName)
-            .setContentText("Incoming Video Call")
+            .setContentText("Incoming Video Call 🎥")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setAutoCancel(true)
@@ -192,7 +209,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      */
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            
+            // Channel 1: User Calls Channel (for general notifications)
+            val userCallsChannel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
@@ -201,11 +221,28 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 enableLights(true)
                 enableVibration(true)
             }
-            
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-            
+            notificationManager.createNotificationChannel(userCallsChannel)
             Log.d(TAG, "Notification channel created: $CHANNEL_ID")
+            
+            // Channel 2: Call Channel (for incoming video calls)
+            val callChannel = NotificationChannel(
+                "call_channel",
+                "Incoming Calls",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notifications for incoming video calls"
+                enableLights(true)
+                enableVibration(true)
+                setSound(
+                    android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_RINGTONE),
+                    android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+            }
+            notificationManager.createNotificationChannel(callChannel)
+            Log.d(TAG, "Call notification channel created: call_channel")
         }
     }
 

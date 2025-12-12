@@ -219,7 +219,7 @@ class HomeFragment : Fragment() {
         val currentUserId = auth.currentUser?.uid ?: return
 
         callListener = db.collection("videoCalls")
-            .whereEqualTo("userId", currentUserId)
+            .whereEqualTo("receiverId", currentUserId)
             .whereEqualTo("status", "initiated")
             .addSnapshotListener { snapshots, error ->
                 if (error != null) {
