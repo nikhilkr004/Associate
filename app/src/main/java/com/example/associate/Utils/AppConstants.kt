@@ -1,4 +1,4 @@
-package com.example.associate
+package com.example.associate.Utils
 
 object AppConstants {
     // ZegoCloud Configuration

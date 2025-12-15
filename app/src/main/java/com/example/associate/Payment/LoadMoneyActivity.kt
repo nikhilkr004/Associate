@@ -266,7 +266,8 @@ class LoadMoneyActivity : AppCompatActivity(), PaymentResultListener {
             status = PaymentDataClass.STATUS_PENDING,
             description = "Wallet Top-up",
             deviceInfo = getDeviceInfo(),
-            appVersion = getAppVersion()
+            appVersion = getAppVersion(),
+            type = "topup"
         )
 
         db.collection("payments")

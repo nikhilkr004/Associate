@@ -150,15 +150,17 @@ class TransactionFragment : Fragment() {
             id = documentId,
             type = getTransactionType(payment),
             amount = getFormattedAmount(payment),
-            date = formatDate(payment.createdAt),
+            date = formatDate(payment.createdAt), // Ensure createdAt is used
             transactionId = payment.razorpayPaymentId.ifEmpty { payment.paymentId },
-            status = getFormattedStatus(payment.status),
+            status = getFormattedStatus(payment),
             paymentData = payment
         )
     }
 
     private fun getTransactionType(payment: PaymentDataClass): String {
         return when {
+            payment.type == "video_call" -> "Video Call Payment"
+            payment.type == "topup" -> "Wallet Top-up"
             payment.amount > 0 -> "Wallet Top-up"
             payment.amount < 0 -> "Payment"
             else -> "Transaction"
@@ -175,6 +177,7 @@ class TransactionFragment : Fragment() {
         return if (payment.amount >= 0) {
             "+ $symbol${String.format("%.2f", payment.amount)}"
         } else {
+            // Ensure negative sign is present for negative amounts
             "- $symbol${String.format("%.2f", abs(payment.amount))}"
         }
     }
@@ -189,12 +192,17 @@ class TransactionFragment : Fragment() {
         }
     }
 
-    private fun getFormattedStatus(status: String): String {
-        return when (status) {
+    private fun getFormattedStatus(payment: PaymentDataClass): String {
+        // Custom status for video call payments
+        if (payment.type == "video_call" || payment.amount < 0) {
+            return "Debited"
+        }
+
+        return when (payment.status) {
             PaymentDataClass.STATUS_SUCCESS -> "Completed"
             PaymentDataClass.STATUS_PENDING -> "Pending"
             PaymentDataClass.STATUS_FAILED -> "Failed"
-            else -> status.replaceFirstChar { it.uppercase() }
+            else -> payment.status.replaceFirstChar { it.uppercase() }
         }
     }
 

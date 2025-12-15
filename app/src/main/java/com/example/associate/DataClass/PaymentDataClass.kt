@@ -1,6 +1,5 @@
 package com.example.associate.DataClass
 
-
 import com.google.firebase.Timestamp
 
 data class PaymentDataClass(
@@ -19,7 +18,8 @@ data class PaymentDataClass(
     // Additional fields for security and tracking
     val deviceInfo: String = "",
     val ipAddress: String = "",
-    val appVersion: String = ""
+    val appVersion: String = "",
+    val type: String = "" // "topup", "video_call", etc.
 ) {
     companion object {
         const val STATUS_PENDING = "pending"

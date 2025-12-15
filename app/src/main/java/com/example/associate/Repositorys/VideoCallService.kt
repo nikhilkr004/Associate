@@ -10,7 +10,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.example.associate.AppConstants
+import com.example.associate.Utils.AppConstants
 import com.example.associate.DataClass.WalletDataClass
 import com.example.associate.R
 import com.google.firebase.Timestamp
@@ -193,7 +193,8 @@ class VideoCallService : Service() {
         try {
             val paymentRecord = hashMapOf(
                 "userId" to userId,
-                "amount" to amount,
+                "amount" to -amount, // Negative for deduction
+                "createdAt" to Timestamp.now(),
                 "updatedAt" to Timestamp.now(),
                 "type" to "video_call",
                 "callId" to currentCallId,

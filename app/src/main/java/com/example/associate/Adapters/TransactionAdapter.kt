@@ -36,17 +36,19 @@ class TransactionAdapter(private val transactions: List<Transaction>) :
         holder.statusText.text = transaction.status
 
         // Amount color based on type
-        if (transaction.amount.startsWith("+")) {
-            holder.amountText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.green))
-        } else {
+        if (transaction.amount.startsWith("-") || transaction.type == "Video Call Payment") {
             holder.amountText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.holo_red_dark))
+        } else {
+            holder.amountText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.green))
         }
 
         // Status color
         when (transaction.status) {
             "Completed" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.green))
             "Pending" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.orange))
+            "Debited" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.holo_red_dark))
             "Failed" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.holo_red_dark))
+            else -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.black))
         }
     }
 

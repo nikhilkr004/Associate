@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:background="@drawable/gradient_bg"
+    android:orientation="vertical"
     tools:context=".Fragments.ProfileFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -18,11 +18,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_15sdp"
-            android:text="My Profile"
-            android:textColor="@color/black"
-            android:textStyle="bold"
             android:fontFamily="@font/orienta"
+            android:text="Profile"
+            android:textColor="@color/black"
             android:textSize="@dimen/_18sdp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -32,12 +32,12 @@
             android:layout_width="@dimen/_70sdp"
             android:layout_height="@dimen/_70sdp"
             android:layout_marginStart="@dimen/_10sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginBottom="@dimen/_20sdp"
             android:src="@drawable/user"
             android:tint="@color/white"
-            android:layout_marginTop="@dimen/_10sdp"
             app:civ_border_color="@color/gray"
             app:civ_border_width="@dimen/_1sdp"
-            android:layout_marginBottom="@dimen/_20sdp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView3"
@@ -89,8 +89,8 @@
 
         <ImageButton
             android:id="@+id/changePhotoImage"
-            android:layout_width="37dp"
-            android:layout_height="34dp"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
             android:background="@android:color/transparent"
             android:src="@drawable/edit_image"
             app:layout_constraintBottom_toBottomOf="@+id/profile_image"
@@ -116,8 +116,8 @@
             android:layout_marginTop="@dimen/_5sdp"
             android:layout_marginBottom="@dimen/_5sdp"
             android:background="@drawable/double_bg"
-            android:src="@drawable/ic_dark_mode"
             android:padding="@dimen/_8sdp"
+            android:src="@drawable/ic_dark_mode"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -174,9 +174,9 @@
             android:layout_marginTop="@dimen/_5sdp"
             android:layout_marginBottom="@dimen/_5sdp"
             android:background="@drawable/double_bg"
+            android:padding="@dimen/_8sdp"
             android:src="@drawable/user"
             android:tint="@color/primary"
-            android:padding="@dimen/_8sdp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -269,7 +269,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
 
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -277,6 +276,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_10sdp">
+
         <ImageButton
             android:id="@+id/logout"
             android:layout_width="@dimen/_37sdp"
