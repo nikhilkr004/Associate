@@ -9,7 +9,7 @@
                 android:centerY="30%"
                 android:endColor="@android:color/transparent"
                 android:gradientRadius="200dp"
-                android:startColor="#A8A8A8"
+                android:startColor="@color/gradient_start"
                 android:type="radial" />
         </shape>
     </item>
@@ -22,7 +22,7 @@
                 android:gradientRadius="300dp"
                 android:centerX="30%"
                 android:centerY="70%"
-                android:startColor="#8A8A8A"
+                android:startColor="@color/gradient_end"
                 android:type="radial" />
         </shape>
     </item>

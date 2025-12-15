@@ -11,9 +11,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/double_bg"
-        >
-
+        android:background="@drawable/double_bg">
 
         <TextView
             android:id="@+id/textView3"
@@ -39,7 +37,6 @@
             android:layout_marginTop="@dimen/_10sdp"
             app:civ_border_color="@color/gray"
             app:civ_border_width="@dimen/_1sdp"
-
             android:layout_marginBottom="@dimen/_20sdp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -103,6 +100,63 @@
             app:layout_constraintTop_toTopOf="@+id/profile_image"
             app:layout_constraintVertical_bias="0.723" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/themeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_15sdp">
+
+        <ImageButton
+            android:id="@+id/themeIcon"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/ic_dark_mode"
+            android:padding="@dimen/_8sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/themeTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:fontFamily="@font/archivo_black"
+            android:text="Dark Mode"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/themeSwitch"
+            app:layout_constraintStart_toEndOf="@+id/themeIcon"
+            app:layout_constraintTop_toTopOf="@+id/themeIcon" />
+
+        <TextView
+            android:id="@+id/themeSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Toggle app theme"
+            app:layout_constraintEnd_toEndOf="@+id/themeTitle"
+            app:layout_constraintStart_toStartOf="@+id/themeTitle"
+            app:layout_constraintTop_toBottomOf="@+id/themeTitle" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/themeSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
+            android:thumbTint="@color/green"
+            android:thumbTintMode="src_in"
+            android:trackTint="@color/gray"
+            android:trackTintMode="multiply"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -111,7 +165,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_15sdp">
-
 
         <ImageButton
             android:id="@+id/editBtn"
@@ -149,10 +202,7 @@
             app:layout_constraintStart_toStartOf="@+id/textView810"
             app:layout_constraintTop_toBottomOf="@+id/textView810" />
 
-
         <ImageButton
-
-
             android:id="@+id/sdfg"
             android:layout_width="@dimen/_37sdp"
             android:layout_height="@dimen/_37sdp"
@@ -166,13 +216,11 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/leaveLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_10sdp">
-
 
         <ImageButton
             android:id="@+id/leave"
@@ -208,10 +256,7 @@
             app:layout_constraintStart_toStartOf="@+id/textViewwew9"
             app:layout_constraintTop_toBottomOf="@+id/textViewwew9" />
 
-
         <ImageButton
-
-
             android:id="@+id/imageBuhtton"
             android:layout_width="@dimen/_37sdp"
             android:layout_height="@dimen/_37sdp"
@@ -223,17 +268,15 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/logoutLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_10sdp">
-
-
         <ImageButton
             android:id="@+id/logout"
             android:layout_width="@dimen/_37sdp"
@@ -268,10 +311,7 @@
             app:layout_constraintStart_toStartOf="@+id/textViewwew8"
             app:layout_constraintTop_toBottomOf="@+id/textViewwew8" />
 
-
         <ImageButton
-
-
             android:id="@+id/imageButton"
             android:layout_width="@dimen/_37sdp"
             android:layout_height="@dimen/_37sdp"
@@ -282,8 +322,6 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 </LinearLayout>

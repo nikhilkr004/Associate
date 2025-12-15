@@ -12,4 +12,8 @@
     <color name="primary">#128C7E</color> <!-- WhatsApp green -->
 
     <color name="light_gray">#F2F2F2</color>
+    <color name="bg_color">#ececec</color>
+    <color name="text_color">#FF000000</color>
+    <color name="gradient_start">#A8A8A8</color>
+    <color name="gradient_end">#8A8A8A</color>
 </resources>

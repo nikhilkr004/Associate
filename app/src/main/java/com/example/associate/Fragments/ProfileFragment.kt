@@ -1,4 +1,3 @@
-// ProfileFragment.kt
 package com.example.associate.Fragments
 
 import android.app.Activity
@@ -38,14 +37,10 @@ class ProfileFragment : Fragment() {
     private val currentUserId = auth.currentUser?.uid ?: ""
     private var currentProfileImageUrl: String = ""
 
-    // Compression settings
-
      companion object {
-
         fun newInstance() = ProfileFragment()
         const val TAG = "ProfileFragment"
-
-         private const val PICK_IMAGE_REQUEST = 100
+        private const val PICK_IMAGE_REQUEST = 100
 
         const val MAX_IMAGE_WIDTH = 1024
         const val MAX_IMAGE_HEIGHT = 1024
@@ -57,15 +52,12 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentProfileBinding.inflate(layoutInflater, container, false)
+        binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        Log.d(TAG, "onViewCreated: Current User ID = $currentUserId")
-
         loadUserData()
         setupClickListeners()
     }
@@ -76,6 +68,29 @@ class ProfileFragment : Fragment() {
         }
         binding.changePhotoImage.setOnClickListener {
             openImagePicker()
+        }
+        binding.editBtn.setOnClickListener {
+            // Handle edit profile click
+        }
+        
+        setupThemeSwitch()
+    }
+
+    private fun setupThemeSwitch() {
+        try {
+            val currentMode = com.example.associate.Utils.ThemeManager.getThemeMode(requireContext())
+            binding.themeSwitch.isChecked = currentMode == androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+
+            binding.themeSwitch.setOnCheckedChangeListener { _, isChecked ->
+                val newMode = if (isChecked) {
+                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                } else {
+                    androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                }
+                com.example.associate.Utils.ThemeManager.setTheme(requireContext(), newMode)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Theme switch setup failed: ${e.message}")
         }
     }
 
@@ -125,7 +140,6 @@ class ProfileFragment : Fragment() {
 
     private fun displayUserData(user: UserData) {
         with(binding) {
-            // Text Data
             name.text = user.name
             email.text = user.email
             phoneNumber.text = user.phone
@@ -263,7 +277,7 @@ class ProfileFragment : Fragment() {
     private fun smartQualityCompression(bitmap: Bitmap): ByteArray {
         val outputStream = ByteArrayOutputStream()
         var quality = INITIAL_QUALITY
-
+        
         // First compression attempt
         bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
         var compressedData = outputStream.toByteArray()
@@ -314,8 +328,6 @@ class ProfileFragment : Fragment() {
             0
         }
     } / 1024 // Convert to KB
-
-
 
     // 🔥 UPLOAD COMPRESSED IMAGE DATA
     private fun uploadCompressedImage(compressedImageData: ByteArray) {
@@ -430,6 +442,4 @@ class ProfileFragment : Fragment() {
             Log.e(TAG, "Error deleting old image: ${e.message}")
         }
     }
-
-
 }
