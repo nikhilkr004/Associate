@@ -6,6 +6,7 @@ data class VideoCall(
     val id: String = "",
     val bookingRequestId: String = "",
     val userId: String = "",
+    val callerId: String = "", // Added to match Firestore
     val advisorId: String = "",
     val receiverId: String = "",
     val channelName: String = "ASSOCIATE",

@@ -72,7 +72,8 @@ class InstantBookingDialog(
                 if (charCount > 2000) {
                     binding.wordCountTxt.setTextColor(android.graphics.Color.RED)
                 } else {
-                    binding.wordCountTxt.setTextColor(android.graphics.Color.BLACK)
+                    val defaultColor = androidx.core.content.ContextCompat.getColor(requireContext(), com.example.associate.R.color.text_color)
+                    binding.wordCountTxt.setTextColor(defaultColor)
                 }
             }
         })

@@ -162,62 +162,60 @@ class LoadMoneyActivity : AppCompatActivity(), PaymentResultListener {
     }
 
     private fun setupAmountListeners() {
-        binding.amountEditText.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                updateAmountFromEditText()
+        binding.amountEditText.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            @SuppressLint("SetTextI18n")
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val amountText = s.toString()
+                if (amountText.isNotEmpty()) {
+                    try {
+                        val enteredAmount = amountText.toDouble()
+                        currentAmount = enteredAmount
+                        updatePayButton()
+                    } catch (e: NumberFormatException) {
+                        currentAmount = 0.0
+                        updatePayButton()
+                    }
+                } else {
+                    currentAmount = 0.0
+                    updatePayButton()
+                }
             }
-        }
+        })
     }
 
     private fun setAmount(amount: Double) {
-        if (validateAmount(amount)) {
-            currentAmount = amount
-            binding.amountEditText.setText(amount.toInt().toString())
-            updatePayButton()
-        }
+        currentAmount = amount
+        binding.amountEditText.setText(amount.toInt().toString())
+        updatePayButton()
     }
 
     private fun updateAmountFromEditText() {
+        // Redundant with TextWatcher, but keeping for focus change if needed.
+        // Simplified to just ensure currentAmount is synced.
         try {
             val amountText = binding.amountEditText.text.toString()
             if (amountText.isNotEmpty()) {
-                val enteredAmount = amountText.toDouble()
-                if (validateAmount(enteredAmount)) {
-                    currentAmount = enteredAmount
-                } else {
-                    // Reset to default if invalid
-                    currentAmount = 400.0
-                    binding.amountEditText.setText("400")
-                }
-            } else {
-                currentAmount = 400.0
-                binding.amountEditText.setText("400")
+                currentAmount = amountText.toDouble()
             }
-            updatePayButton()
         } catch (e: NumberFormatException) {
-            showToast("Please enter a valid amount")
-            currentAmount = 400.0
-            binding.amountEditText.setText("400")
-            updatePayButton()
+            currentAmount = 0.0
         }
+        updatePayButton()
     }
 
     private fun validateAmount(amount: Double): Boolean {
-        return when {
-            amount < MIN_RECHARGE_AMOUNT -> {
-                showToast("Minimum recharge amount is ₹$MIN_RECHARGE_AMOUNT")
-                false
-            }
-            amount > MAX_RECHARGE_AMOUNT -> {
-                showToast("Maximum recharge amount is ₹$MAX_RECHARGE_AMOUNT")
-                false
-            }
-            else -> true
-        }
+        // This function returns false if invalid, and also shows toast.
+        // We will misuse it slightly or just rewrite the check in validateAndStartPayment
+        // to be explicit about the message.
+        return amount in MIN_RECHARGE_AMOUNT..MAX_RECHARGE_AMOUNT
     }
 
     private fun validateAndStartPayment() {
         if (!validateAmount(currentAmount)) {
+            showToast("Minimum topup amount is ₹$MIN_RECHARGE_AMOUNT and Maximum is ₹$MAX_RECHARGE_AMOUNT")
             return
         }
         startPaymentProcess()
@@ -225,10 +223,13 @@ class LoadMoneyActivity : AppCompatActivity(), PaymentResultListener {
 
     @SuppressLint("SetTextI18n")
     private fun updatePayButton() {
-        binding.payButton.text = "Pay ₹${currentAmount.toInt()} Now"
-
-        // Enable/disable button based on validation
-        binding.payButton.isEnabled = validateAmount(currentAmount)
+        if (currentAmount > 0) {
+            binding.payButton.text = "Pay ₹${currentAmount.toInt()} Now"
+        } else {
+            binding.payButton.text = "Pay"
+        }
+        // Always enable to allow user to click and see the validation Toast
+        binding.payButton.isEnabled = true
     }
 
     private fun startPaymentProcess() {

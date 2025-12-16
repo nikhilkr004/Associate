@@ -21,6 +21,7 @@ class CallHistoryRepository {
                 .documents
 
             documents.mapNotNull { document ->
+                android.util.Log.d("CallHistoryRepo", "Raw Document Data for ${document.id}: ${document.data}")
                 document.toObject(VideoCall::class.java)?.copy(id = document.id)
             }.sortedByDescending { it.callStartTime } // Sort in memory
         } catch (e: Exception) {
@@ -30,21 +31,32 @@ class CallHistoryRepository {
 
     suspend fun getUserDetails(userId: String): UserData? {
         return try {
-            android.util.Log.d("CallHistoryRepo", "Fetching user details for ID: $userId")
-            val document = db.collection("users")
+            android.util.Log.d("CallHistoryRepo", "Fetching ADVISOR details for ID: $userId")
+            val document = db.collection("advisors")
                 .document(userId)
                 .get()
                 .await()
             
             if (document.exists()) {
-                android.util.Log.d("CallHistoryRepo", "User found: ${document.id}")
-                document.toObject(UserData::class.java)
+                android.util.Log.d("CallHistoryRepo", "Advisor found: ${document.id}")
+                // Map AdvisorDataClass to UserData to maintain Adapter compatibility
+                val advisor = document.toObject(com.example.associate.DataClass.AdvisorDataClass::class.java)
+                advisor?.let {
+                    android.util.Log.d("CallHistoryRepo", "   -> Advisor Data: name='${it.name}', image='${it.profileimage}'")
+                    UserData(
+                        userId = it.id,
+                        name = it.name,
+                        email = it.email,
+                        phone = it.phoneNumber, // Map phoneNumber to phone
+                        profilePhotoUrl = it.profileimage // Map profileimage to profilePhotoUrl
+                    )
+                }
             } else {
-                android.util.Log.e("CallHistoryRepo", "User document not found for ID: $userId")
+                android.util.Log.e("CallHistoryRepo", "Advisor document not found for ID: $userId")
                 null
             }
         } catch (e: Exception) {
-            android.util.Log.e("CallHistoryRepo", "Error fetching user details: ${e.message}")
+            android.util.Log.e("CallHistoryRepo", "Error fetching advisor details: ${e.message}")
             null
         }
     }
@@ -56,11 +68,24 @@ class CallHistoryRepository {
         val result = mutableListOf<Pair<VideoCall, UserData?>>()
 
         for (call in videoCalls) {
-            android.util.Log.d("CallHistoryRepo", "Processing call: ${call.id}, userId: ${call.userId}")
-            val user = if (call.userId.isNotEmpty()) {
-                getUserDetails(call.userId)
+            android.util.Log.d("CallHistoryRepo", "Processing call: ${call.id}")
+            android.util.Log.d("CallHistoryRepo", "   -> call.callerId: '${call.callerId}'")
+            android.util.Log.d("CallHistoryRepo", "   -> call.receiverId: '${call.receiverId}'")
+            
+            // We want to show the OTHER person. 
+            // If I am the receiver (User), I want to see the Caller (Advisor).
+            val targetId = if (call.callerId.isNotEmpty()) call.callerId else call.advisorId
+            
+            val user = if (targetId.isNotEmpty()) {
+                val fetchedUser = getUserDetails(targetId)
+                if (fetchedUser != null) {
+                    android.util.Log.d("CallHistoryRepo", "   -> Advisor found: ${fetchedUser.name}")
+                } else {
+                    android.util.Log.e("CallHistoryRepo", "   -> Advisor fetch returned NULL for ID: $targetId")
+                }
+                fetchedUser
             } else {
-                android.util.Log.w("CallHistoryRepo", "Call ${call.id} has empty userId")
+                android.util.Log.w("CallHistoryRepo", "   -> Skipping fetch: callerId/advisorId is EMPTY")
                 null
             }
             result.add(Pair(call, user))
