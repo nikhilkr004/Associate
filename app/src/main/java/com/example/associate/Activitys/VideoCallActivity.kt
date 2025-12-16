@@ -26,6 +26,10 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.associate.Utils.AppConstants
 import com.example.associate.PreferencesHelper.ZegoCallManager
 import com.example.associate.R
+import com.example.associate.DataClass.Rating
+import com.example.associate.Dialogs.RatingDialog
+import com.example.associate.MainActivity
+import com.example.associate.Repositorys.RatingRepository
 import com.example.associate.Repositorys.VideoCallService
 import com.example.associate.databinding.ActivityVideoCallBinding
 import com.google.firebase.Timestamp
@@ -56,6 +60,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var isCallActive = false
     private var localUserID: String = ""
     private var localUserName: String = ""
+    private var remoteAdvisorId: String = ""
 
     // Modern permission request
     private val requestPermissionLauncher = registerForActivityResult(
@@ -129,15 +134,13 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     }
 
     private fun initializeUI() {
-        binding.tvCallStatus.text = "Connecting..."
+        val advisorName = intent.getStringExtra("ADVISOR_NAME") ?: "Advisor"
+        binding.tvCallStatus.text = advisorName
         binding.tvTimer.text = "00:00"
         binding.tvPaymentInfo.text = "Rate: ₹60 per minute (₹10/10sec)"
         binding.tvConnectionStatus.text = "Initializing..."
 
-        // Set initial button states
-        binding.btnMute.setBackgroundColor(Color.parseColor("#4CAF50"))
-        binding.btnMute.setColorFilter(R.color.green)
-        binding.btnVideoToggle.setBackgroundColor(Color.parseColor("#4CAF50"))
+
 
         // Make video views visible by default
         binding.localVideoView.visibility = View.VISIBLE
@@ -253,8 +256,9 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         isAudioMuted = !isAudioMuted
         zegoManager.muteMicrophone(isAudioMuted)
 
-        binding.btnMute.setBackgroundColor(
-            if (isAudioMuted) Color.RED else Color.parseColor("#4CAF50")
+        // Change icon instead of background color
+        binding.btnMute.setImageResource(
+            if (isAudioMuted) R.drawable.mutemicrophone else R.drawable.mic
         )
 
         Toast.makeText(
@@ -270,12 +274,13 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         isVideoEnabled = !isVideoEnabled
         zegoManager.enableCamera(isVideoEnabled)
 
-        binding.btnVideoToggle.setBackgroundColor(
-            if (isVideoEnabled) Color.parseColor("#4CAF50") else Color.RED
+        // Change icon
+        binding.btnVideoToggle.setImageResource(
+            if (isVideoEnabled) R.drawable.camera_turnon else R.drawable.camera_turnoff
         )
 
-        // Show/hide local video view
-        binding.localVideoView.visibility = if (isVideoEnabled) View.VISIBLE else View.GONE
+        // Keep local video view visible (background changes not requested)
+        // binding.localVideoView.visibility = if (isVideoEnabled) View.VISIBLE else View.GONE
 
         Toast.makeText(
             this,
@@ -293,7 +298,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private fun startCallTimer() {
         callTimer?.cancel()
         callTimer = Timer()
-        callTimer?.scheduleAtFixedRate(object : TimerTask() {
+        callTimer?.schedule(object : TimerTask() {
             override fun run() {
                 runOnUiThread {
                     updateCallTimer()
@@ -358,7 +363,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .setTitle("Insufficient Balance")
             .setMessage("Your wallet balance is low. The call will be ended.")
             .setPositiveButton("OK") { dialog, which ->
-                endCall()
+                showRatingDialog()
             }
             .setCancelable(false)
             .show()
@@ -366,6 +371,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     private fun endCall() {
         if (!isCallActive) {
+            // If call wasn't active, just finish
             finish()
             return
         }
@@ -385,10 +391,72 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             "Call completed! Total spent: ₹${String.format("%.2f", totalAmountSpent)}",
             Toast.LENGTH_LONG
         ).show()
+    }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            finish()
-        }, 3000)
+    private fun showRatingDialog() {
+        // First end the call logic
+        endCall()
+        
+        // Show rating dialog
+        val ratingDialog = RatingDialog { rating, review ->
+            saveRatingToBackend(rating, review)
+        }
+        ratingDialog.isCancelable = false // Force user to rate or dismiss via back press if handled, 
+                                          // but usually we want to ensure they see it. 
+                                          // If they cancel/back out, we should also finish content.
+        
+        // Handle cancel/dismiss to ensure activity finishes
+        ratingDialog.show(supportFragmentManager, "RatingDialog")
+        
+        // We delay finishing until dialog is interacted with
+    }
+
+    private fun saveRatingToBackend(ratingValue: Float, review: String) {
+        var advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+        val userId = auth.currentUser?.uid ?: ""
+        
+        // Fallback to captured ID if intent ID is missing
+        if (advisorId.isEmpty() && remoteAdvisorId.isNotEmpty()) {
+            advisorId = remoteAdvisorId
+            Log.d("VideoCall", "Using captured remote Advisor ID: $advisorId")
+        }
+        
+        Log.d("VideoCall", "Saving Rating - AdvisorID: '$advisorId', UserID: '$userId'")
+        
+        if (advisorId.isEmpty() || userId.isEmpty()) {
+            val missing = if (advisorId.isEmpty()) "Advisor ID" else "User ID"
+            Toast.makeText(this, "Error: Missing $missing. detailed log check Logcat", Toast.LENGTH_LONG).show()
+            Log.e("VideoCall", "Cannot save rating. Missing info. AdvisorID: $advisorId, UserID: $userId")
+            navigateToHome()
+            return
+        }
+        
+        val ratingData = Rating(
+            advisorId = advisorId,
+            userId = userId,
+            rating = ratingValue,
+            review = review,
+            callId = currentCallId,
+            timestamp = Timestamp.now()
+        )
+        
+        val repository = RatingRepository()
+        repository.saveRating(ratingData) { success, error ->
+            if (success) {
+                Toast.makeText(this, "Rating submitted!", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed to submit rating", Toast.LENGTH_SHORT).show()
+                Log.e("VideoCall", "Rating error: $error")
+            }
+            navigateToHome()
+        }
+    }
+
+    private fun navigateToHome() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun stopPaymentService() {
@@ -442,6 +510,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             if (updateType == ZegoUpdateType.ADD) {
                 for (user in userList) {
                     Log.d("VideoCall", "User joined: ${user.userID}")
+                    // Capture remote advisor ID
+                    remoteAdvisorId = user.userID
+                    Log.d("VideoCall", "Captured Remote Advisor ID: $remoteAdvisorId")
+                    
                     updateCallStatus("Advisor joined: ${user.userName}")
                     Toast.makeText(this, "Advisor joined!", Toast.LENGTH_SHORT).show()
                     
@@ -458,7 +530,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     Log.d("VideoCall", "User left: ${user.userID}")
                     updateCallStatus("Advisor left the call")
                     Handler(Looper.getMainLooper()).postDelayed({
-                        endCall()
+                        showRatingDialog()
                     }, 2000)
                 }
             }
@@ -470,7 +542,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     }
 
     private fun updateCallStatus(status: String) {
-        binding.tvCallStatus.text = status
+        // binding.tvCallStatus.text = status  <-- User wants Advisor Name to stay permanent
         Log.d("VideoCall", "Call status: $status")
     }
 
@@ -505,7 +577,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .setTitle("End Call")
             .setMessage("Are you sure you want to end the call?")
             .setPositiveButton("End Call") { dialog, which ->
-                endCall()
+                showRatingDialog()
             }
             .setNegativeButton("Cancel", null)
             .show()

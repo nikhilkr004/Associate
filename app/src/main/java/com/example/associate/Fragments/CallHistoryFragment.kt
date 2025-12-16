@@ -43,15 +43,15 @@ class CallHistoryFragment : Fragment() {
             binding.progressBar.visibility = View.VISIBLE
 
             try {
-                val videoCallsWithAdvisors = repository.getVideoCallsWithAdvisorDetails()
+                val videoCallsWithUsers = repository.getVideoCallsWithUserDetails()
 
-                if (videoCallsWithAdvisors.isEmpty()) {
+                if (videoCallsWithUsers.isEmpty()) {
                     binding.emptyState.visibility = View.VISIBLE
                     binding.recyclerViewVideoCalls.visibility = View.GONE
                 } else {
                     binding.emptyState.visibility = View.GONE
                     binding.recyclerViewVideoCalls.visibility = View.VISIBLE
-                    videoCallAdapter.updateList(videoCallsWithAdvisors)
+                    videoCallAdapter.updateList(videoCallsWithUsers)
                 }
             } catch (e: Exception) {
                 Toast.makeText(requireContext(), "Failed to load video calls", Toast.LENGTH_SHORT).show()

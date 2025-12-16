@@ -7,6 +7,7 @@ data class VideoCall(
     val bookingRequestId: String = "",
     val userId: String = "",
     val advisorId: String = "",
+    val receiverId: String = "",
     val channelName: String = "ASSOCIATE",
     val callStartTime: Timestamp? = null,
     val callEndTime: Timestamp? = null,

@@ -1,13 +1,9 @@
 package com.example.associate.Repositorys
 
-
-
-
-import com.example.associate.DataClass.AdvisorDataClass
+import com.example.associate.DataClass.UserData
 import com.example.associate.DataClass.VideoCall
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 class CallHistoryRepository {
@@ -18,43 +14,56 @@ class CallHistoryRepository {
         val userId = auth.currentUser?.uid ?: return emptyList()
 
         return try {
-            db.collection("videoCalls")
-                .whereEqualTo("userId", userId)
-                .orderBy("timestamp", Query.Direction.DESCENDING)
+            val documents = db.collection("videoCalls")
+                .whereEqualTo("receiverId", userId)
                 .get()
                 .await()
                 .documents
-                .mapNotNull { document ->
-                    document.toObject(VideoCall::class.java)?.copy(id = document.id)
-                }
+
+            documents.mapNotNull { document ->
+                document.toObject(VideoCall::class.java)?.copy(id = document.id)
+            }.sortedByDescending { it.callStartTime } // Sort in memory
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    suspend fun getAdvisorDetails(advisorId: String): AdvisorDataClass? {
+    suspend fun getUserDetails(userId: String): UserData? {
         return try {
-            db.collection("advisors")
-                .document(advisorId)
+            android.util.Log.d("CallHistoryRepo", "Fetching user details for ID: $userId")
+            val document = db.collection("users")
+                .document(userId)
                 .get()
                 .await()
-                .toObject(AdvisorDataClass::class.java)
+            
+            if (document.exists()) {
+                android.util.Log.d("CallHistoryRepo", "User found: ${document.id}")
+                document.toObject(UserData::class.java)
+            } else {
+                android.util.Log.e("CallHistoryRepo", "User document not found for ID: $userId")
+                null
+            }
         } catch (e: Exception) {
+            android.util.Log.e("CallHistoryRepo", "Error fetching user details: ${e.message}")
             null
         }
     }
 
-    suspend fun getVideoCallsWithAdvisorDetails(): List<Pair<VideoCall, AdvisorDataClass?>> {
+    suspend fun getVideoCallsWithUserDetails(): List<Pair<VideoCall, UserData?>> {
         val videoCalls = getUserVideoCalls()
-        val result = mutableListOf<Pair<VideoCall, AdvisorDataClass?>>()
+        android.util.Log.d("CallHistoryRepo", "Fetched ${videoCalls.size} video calls")
+        
+        val result = mutableListOf<Pair<VideoCall, UserData?>>()
 
         for (call in videoCalls) {
-            val advisor = if (call.advisorId.isNotEmpty()) {
-                getAdvisorDetails(call.advisorId)
+            android.util.Log.d("CallHistoryRepo", "Processing call: ${call.id}, userId: ${call.userId}")
+            val user = if (call.userId.isNotEmpty()) {
+                getUserDetails(call.userId)
             } else {
+                android.util.Log.w("CallHistoryRepo", "Call ${call.id} has empty userId")
                 null
             }
-            result.add(Pair(call, advisor))
+            result.add(Pair(call, user))
         }
 
         return result

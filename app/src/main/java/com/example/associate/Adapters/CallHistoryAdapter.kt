@@ -1,25 +1,22 @@
 package com.example.associate.Adapters
 
-
-
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-
-import com.example.associate.DataClass.AdvisorDataClass
+import com.example.associate.DataClass.UserData
 import com.example.associate.DataClass.VideoCall
 import com.example.associate.R
-import com.google.android.material.imageview.ShapeableImageView
 import de.hdodenhof.circleimageview.CircleImageView
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CallHistoryAdapter(
-    private var videoCallList: List<Pair<VideoCall, AdvisorDataClass?>> = emptyList()
+    private var videoCallList: List<Pair<VideoCall, UserData?>> = emptyList()
 ) : RecyclerView.Adapter<CallHistoryAdapter.VideoCallViewHolder>() {
 
     inner class VideoCallViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -31,18 +28,23 @@ class CallHistoryAdapter(
         private val callStatus: TextView = itemView.findViewById(R.id.callStatus)
         private val professionalTitle: TextView = itemView.findViewById(R.id.professionalTitle)
 
-        fun bind(videoCall: VideoCall, advisor: AdvisorDataClass?) {
-            // Advisor details
-            advisor?.let {
-                advisorName.text = it.name
-//                advisorSpecialization.text = it.specializations as CharSequence?
+        fun bind(videoCall: VideoCall, user: UserData?) {
+            // User details
+            if (user != null) {
+                advisorName.text = user.name.toString()
+                professionalTitle.text = user.phone.ifEmpty { user.email }
 
-                if (it.profileimage.isNotEmpty()) {
+                if (!user.profilePhotoUrl.isNullOrEmpty()) {
                     Glide.with(itemView.context)
-                        .load(it.profileimage)
+                        .load(user.profilePhotoUrl)
                         .placeholder(R.drawable.user)
                         .into(advisorImage)
                 }
+            } else {
+               Log.d("LOG","user is empty ")
+                advisorName.text = "Unknown User"
+                professionalTitle.text = "N/A"
+                advisorImage.setImageResource(R.drawable.user)
             }
 
             // Call date
@@ -51,7 +53,6 @@ class CallHistoryAdapter(
                 callDate.text = dateFormat.format(date)
             }
 
-            professionalTitle.text=advisor!!.getProfessionalTitle()
             // Call duration
             val duration = calculateCallDuration(videoCall)
             callDuration.text = duration
@@ -94,13 +95,13 @@ class CallHistoryAdapter(
     }
 
     override fun onBindViewHolder(holder: VideoCallViewHolder, position: Int) {
-        val (videoCall, advisor) = videoCallList[position]
-        holder.bind(videoCall, advisor)
+        val (videoCall, user) = videoCallList[position]
+        holder.bind(videoCall, user)
     }
 
     override fun getItemCount(): Int = videoCallList.size
 
-    fun updateList(newList: List<Pair<VideoCall, AdvisorDataClass?>>) {
+    fun updateList(newList: List<Pair<VideoCall, UserData?>>) {
         videoCallList = newList
         notifyDataSetChanged()
     }

@@ -53,15 +53,16 @@ class CallNotificationService : Service() {
         val channelName = intent?.getStringExtra("CHANNEL_NAME") ?: ""
         val callerName = intent?.getStringExtra("advisorName") ?: intent?.getStringExtra("title") ?: "Incoming Call"
         val advisorAvatar = intent?.getStringExtra("advisorAvatar") ?: ""
+        val advisorId = intent?.getStringExtra("ADVISOR_ID") ?: ""
         
         createNotificationChannel()
-        showNotification(callId, channelName, callerName, advisorAvatar)
+        showNotification(callId, channelName, callerName, advisorAvatar, advisorId)
         playRingtone()
 
         return START_NOT_STICKY
     }
 
-    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String) {
+    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String) {
         // Custom Layout
         val customView = RemoteViews(packageName, R.layout.notification_call)
         customView.setTextViewText(R.id.tv_caller_name, callerName)
@@ -70,7 +71,10 @@ class CallNotificationService : Service() {
         // Accept Intent
         val acceptIntent = Intent(this, VideoCallActivity::class.java).apply {
             putExtra("CALL_ID", callId)
+            putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
+            putExtra("ADVISOR_NAME", callerName) // Pass name directly if accepting from notif
+            putExtra("ADVISOR_ID", advisorId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         val acceptPendingIntent = PendingIntent.getActivity(
@@ -97,7 +101,10 @@ class CallNotificationService : Service() {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
             putExtra("title", callerName)
+            putExtra("title", callerName)
             putExtra("advisorAvatar", advisorAvatar)
+            putExtra("ADVISOR_NAME", callerName) // Normalize extra keys
+            putExtra("ADVISOR_ID", advisorId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(

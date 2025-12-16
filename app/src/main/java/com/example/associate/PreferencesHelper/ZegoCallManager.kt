@@ -18,6 +18,7 @@ import im.zego.zegoexpress.constants.ZegoPublisherState
 
 class ZegoCallManager(private val context: Context, private val listener: ZegoCallListener) {
     private var engine: ZegoExpressEngine? = null
+    private var isFrontCamera = true
 
     interface ZegoCallListener {
         fun onRoomStateChanged(roomID: String, reason: Int, errorCode: Int, extendedData: JSONObject)
@@ -72,7 +73,8 @@ class ZegoCallManager(private val context: Context, private val listener: ZegoCa
     }
 
     fun switchCamera() {
-        engine?.useFrontCamera(true) // Toggle logic needed if tracking state
+        isFrontCamera = !isFrontCamera
+        engine?.useFrontCamera(isFrontCamera)
     }
 
 

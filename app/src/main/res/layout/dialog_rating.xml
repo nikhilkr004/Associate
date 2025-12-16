@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/double_bg"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rate Your Advisor"
+        android:fontFamily="@font/orienta"
+        android:textSize="@dimen/_20sdp"
+        android:textStyle="bold"
+        android:textColor="@color/green"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:id="@+id/tvEmoji1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="😡"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:alpha="0.5"/>
+
+        <TextView
+            android:id="@+id/tvEmoji2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="☹️"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:alpha="0.5"/>
+
+        <TextView
+            android:id="@+id/tvEmoji3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="😐"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:alpha="0.5"/>
+
+        <TextView
+            android:id="@+id/tvEmoji4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🙂"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:alpha="0.5"/>
+
+        <TextView
+            android:id="@+id/tvEmoji5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="😍"
+            android:textSize="32sp"
+            android:gravity="center"
+            android:alpha="0.5"/>
+
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/etReview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Write a review (optional)..."
+        android:inputType="textMultiLine"
+        android:minLines="3"
+        android:maxLines="5"
+        android:gravity="top|start"
+        android:background="@drawable/edittext_bg"
+        android:padding="12dp"
+        android:textColor="@color/green"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btnSubmit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:backgroundTint="@color/green"
+        android:textColor="@color/white"
+        android:textAllCaps="false"/>
+
+</LinearLayout>

@@ -66,9 +66,11 @@ class IncomingCallActivity : AppCompatActivity() {
             }
         }
 
+        val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+
         binding.btnAccept.setOnClickListener {
             stopService()
-            acceptCall(callId, channelName)
+            acceptCall(callId, channelName, callerName, advisorId)
         }
 
         binding.btnDecline.setOnClickListener {
@@ -112,12 +114,14 @@ class IncomingCallActivity : AppCompatActivity() {
         startService(intent)
     }
 
-    private fun acceptCall(callId: String, channelName: String) {
+    private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String) {
         android.widget.Toast.makeText(this, "Accepting call...", android.widget.Toast.LENGTH_SHORT).show()
         stopService()
         val intent = Intent(this, VideoCallActivity::class.java).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
+            putExtra("ADVISOR_NAME", advisorName)
+            putExtra("ADVISOR_ID", advisorId)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(intent)

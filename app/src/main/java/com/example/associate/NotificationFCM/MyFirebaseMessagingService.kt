@@ -101,14 +101,20 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val channelName = data["channelName"] ?: ""
         val callerName = data["advisorName"] ?: data["title"] ?: "Incoming Call"
         val callerAvatar = data["advisorAvatar"] ?: ""
+        val callerAvatar = data["advisorAvatar"] ?: ""
         
-        Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName")
+        // Robust ID extraction
+        val advisorId = data["advisorId"] ?: data["senderId"] ?: data["advisorUid"] ?: data["uid"] ?: data["id"] ?: ""
+        
+        Log.d(TAG, "Notification Payload Data Keys: ${data.keys}")
+        Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName, AdvisorID: $advisorId")
         
         val serviceIntent = Intent(this, CallNotificationService::class.java).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
             putExtra("advisorName", callerName)
             putExtra("advisorAvatar", callerAvatar)
+            putExtra("ADVISOR_ID", advisorId)
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
