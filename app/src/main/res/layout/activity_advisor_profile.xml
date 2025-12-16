@@ -19,7 +19,7 @@
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/green"
+            android:background="@color/light_gray"
             app:contentInsetStart="0dp">
 
             <!-- Back Button -->
@@ -61,183 +61,215 @@
 
         </com.google.android.material.appbar.MaterialToolbar>
 
+        <!-- Profile main section  -->
+
+
+
+        <!-- Name Row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
 
-            android:background="@drawable/gradient_bg"
-            android:orientation="horizontal"
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_image"
+                android:layout_width="@dimen/_60sdp"
+                android:layout_height="@dimen/_60sdp"
+                android:layout_marginStart="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:src="@drawable/user"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-            android:weightSum="2">
-
-            <!-- Header Section -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sandesh Samudravijay Hirap"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_marginStart="@dimen/_10sdp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/sepcialization_txt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="@dimen/_5sdp"
-                android:background="@drawable/male_female_bg"
-                android:orientation="horizontal"
-                android:padding="@dimen/_5sdp"
-                android:weightSum="2">
+                android:layout_marginStart="@dimen/_10sdp"
+                android:text="Mutual Fund | Tex"
+             />
 
-                <!-- Left Section: Details -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+            <!-- Rating Row -->
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="horizontal">
+             <TextView
+                 android:id="@+id/rating_txt"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_marginEnd="@dimen/_5sdp"
+                 android:layout_marginStart="@dimen/_10sdp"
+                 android:text="5.0"
+                 />
 
-                    <!-- Name Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-
-
-                        <TextView
-                            android:id="@+id/tvName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Sandesh Samudravijay Hirap"
-                            android:textColor="@color/black"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <!-- Experience Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_4sdp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
-                            android:src="@drawable/portfolio"
-                            android:tint="@color/green"
-                            android:layout_marginEnd="@dimen/_8sdp" />
-
-                        <TextView
-                            android:id="@+id/tvExperience"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0 - 3 Years Experience"
-                            android:textColor="@color/black"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Languages Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_2sdp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
-                            android:src="@drawable/language"
-                            android:tint="@color/green"
-                            android:layout_marginEnd="@dimen/_8sdp" />
-
-                        <TextView
-                            android:id="@+id/tvLanguages"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Marathi, English, Hindi"
-                            android:textColor="@color/black"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- AUM Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_2sdp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
-                            android:src="@drawable/checkmark"
-                            android:tint="@color/green"
-                            android:layout_marginEnd="@dimen/_8sdp" />
-
-                        <TextView
-                            android:id="@+id/tvAUM"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Current AUM 0-50 cr"
-                            android:textColor="@color/black"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <!-- Company Row -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_2sdp"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <ImageView
-                            android:layout_width="@dimen/_20sdp"
-                            android:layout_height="@dimen/_20sdp"
-                            android:src="@drawable/building"
-                            android:tint="@color/green"
-                            android:layout_marginEnd="@dimen/_8sdp" />
-
-                        <TextView
-                            android:id="@+id/tvCompany"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Sandesh Hirap and Associates"
-                            android:textColor="@color/black"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/_1sdp"
-                        android:layout_marginTop="@dimen/_16sdp"
-                        android:alpha="0.3"
-                        android:background="@color/white" />
-
-                </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="@dimen/_220sdp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:id="@+id/profile_image"
-                    android:background="@drawable/male_female_bg"
-                    android:layout_width="@dimen/_100sdp"
-                    android:scaleType="centerCrop"
-                    android:layout_height="@dimen/_120sdp"
-                    android:src="@drawable/user" />
-
-            </LinearLayout>
+             <RatingBar
+                 android:id="@+id/rbReviewRating"
+                 style="?android:attr/ratingBarStyleSmall"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:numStars="5"
+                 android:stepSize="0.5"
+                 android:isIndicator="true"
+                 android:progressTint="#FFEB3B"
+                 android:secondaryProgressTint="#BAB14F"
+                 android:rating="5.0"/>
+         </LinearLayout>
 
         </LinearLayout>
-        </LinearLayout>
 
-        <!-- Communication Options -->
+
+
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_margin="@dimen/_10sdp"
+           android:background="@drawable/double_bg"
+           android:padding="@dimen/_5sdp"
+           android:orientation="vertical">
+           <!-- Experience Row -->
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/_4sdp"
+               android:gravity="center_vertical"
+               android:orientation="horizontal">
+
+               <ImageView
+                   android:layout_width="@dimen/_20sdp"
+                   android:layout_height="@dimen/_20sdp"
+                   android:layout_marginEnd="@dimen/_8sdp"
+                   android:src="@drawable/portfolio"
+                   android:tint="@color/green" />
+
+               <TextView
+                   android:id="@+id/tvExperience"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:text="0 - 3 Years Experience"
+                   android:textColor="@color/black"
+                   android:textSize="16sp" />
+           </LinearLayout>
+
+           <!-- Languages Row -->
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/_2sdp"
+               android:gravity="center_vertical"
+               android:orientation="horizontal">
+
+               <ImageView
+                   android:layout_width="@dimen/_20sdp"
+                   android:layout_height="@dimen/_20sdp"
+                   android:layout_marginEnd="@dimen/_8sdp"
+                   android:src="@drawable/language"
+                   android:tint="@color/green" />
+
+               <TextView
+                   android:id="@+id/tvLanguages"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:text="Marathi, English, Hindi"
+                   android:textColor="@color/black"
+                   android:textSize="16sp" />
+           </LinearLayout>
+
+           <!-- AUM Row -->
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/_2sdp"
+               android:gravity="center_vertical"
+               android:orientation="horizontal">
+
+               <ImageView
+                   android:layout_width="@dimen/_20sdp"
+                   android:layout_height="@dimen/_20sdp"
+                   android:layout_marginEnd="@dimen/_8sdp"
+                   android:src="@drawable/checkmark"
+                   android:tint="@color/green" />
+
+               <TextView
+                   android:id="@+id/tvAUM"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:text="Current AUM 0-50 cr"
+                   android:textColor="@color/black"
+                   android:textSize="16sp" />
+           </LinearLayout>
+
+           <!-- Company Row -->
+           <LinearLayout
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="@dimen/_2sdp"
+               android:gravity="center_vertical"
+               android:orientation="horizontal">
+
+               <ImageView
+                   android:layout_width="@dimen/_20sdp"
+                   android:layout_height="@dimen/_20sdp"
+                   android:layout_marginEnd="@dimen/_8sdp"
+                   android:src="@drawable/building"
+                   android:tint="@color/green" />
+
+               <TextView
+                   android:id="@+id/tvCompany"
+                   android:layout_width="wrap_content"
+                   android:layout_height="wrap_content"
+                   android:text="Sandesh Hirap and Associates"
+                   android:textColor="@color/black"
+                   android:textSize="16sp" />
+           </LinearLayout>
+
+       </LinearLayout>
+
+
+
+
+
+
+   <LinearLayout
+       android:id="@+id/Consultation_Lyt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+       android:orientation="vertical">
+
+
+       <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:text="Consultation Mode"
+           android:fontFamily="@font/archivo_black"
+           android:textColor="@color/green"
+           android:textSize="18sp"
+           android:layout_marginStart="@dimen/_10sdp"
+           android:textStyle="bold" />
+
+    <!-- Communication Options -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:layout_margin="@dimen/_10sdp"
+            android:background="@drawable/double_bg"
             android:orientation="horizontal"
-            android:padding="@dimen/_16sdp"
-            android:weightSum="2">
+            android:padding="@dimen/_10sdp"
+            android:weightSum="5">
+
+
+
 
             <!-- Chat Button -->
             <LinearLayout
@@ -248,10 +280,13 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="@dimen/_24sdp"
-                    android:layout_height="@dimen/_24sdp"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
                     android:src="@drawable/chat"
-                    android:tint="@color/primary" />
+                    android:padding="@dimen/_5sdp"
+                    android:tint="@color/primary"
+                    android:background="@drawable/double_bg"
+                   />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -262,10 +297,7 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-
-            <!-- Video Call Button -->
             <LinearLayout
-                android:id="@+id/videocall_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -273,100 +305,198 @@
                 android:orientation="vertical">
 
                 <ImageView
-                    android:layout_width="@dimen/_24sdp"
-                    android:layout_height="@dimen/_24sdp"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
                     android:src="@drawable/videocall"
-                    android:tint="@color/primary" />
+                    android:padding="@dimen/_5sdp"
+                    android:tint="@color/primary"
+                    android:background="@drawable/double_bg"
+                    />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_4sdp"
-                    android:text="Video Call"
+                    android:text="Video"
                     android:textColor="@color/primary"
                     android:textSize="14sp" />
             </LinearLayout>
 
-        </LinearLayout>
-
-
-
-
-        <!-- Services Section -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/white"
-            android:orientation="vertical"
-            android:padding="@dimen/_16sdp">
-
-            <TextView
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Services"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:src="@drawable/call"
+                    android:padding="@dimen/_8sdp"
+                    android:tint="@color/primary"
+                    android:background="@drawable/double_bg"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Audio"
+                    android:textColor="@color/primary"
+                    android:textSize="14sp" />
+            </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/specializationsContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/_40sdp"
-                android:layout_marginStart="@dimen/_5sdp"
-                android:layout_marginEnd="@dimen/_5sdp"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:src="@drawable/building"
+                    android:padding="@dimen/_5sdp"
+                    android:tint="@color/primary"
+                    android:background="@drawable/double_bg"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="Office Visit"
+                    android:textColor="@color/primary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:src="@drawable/inperson_icon"
+                    android:padding="@dimen/_5sdp"
+                    android:tint="@color/primary"
+                    android:background="@drawable/double_bg"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:text="In Person"
+                    android:textColor="@color/primary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+
+
+
+
         </LinearLayout>
 
+   </LinearLayout>
+
+
         <!-- About Section -->
+
+        <TextView
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="About"
+            android:fontFamily="@font/archivo_black"
+            android:textColor="@color/green"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/light_gray"
+            android:background="@drawable/double_bg"
+            android:layout_margin="@dimen/_10sdp"
             android:orientation="vertical"
-            android:padding="@dimen/_16sdp">
-
-            <TextView
-
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:textSize="18sp"
-                android:text="About"
-                android:textStyle="bold" />
+            android:padding="@dimen/_6sdp">
 
             <TextView
                 android:id="@+id/about_txt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_4sdp"
                 android:text="If you think compliance cost is more, Try non-compliance.\nWe provide wide range of services such as Audit,\nAccountancy, Consultancy related to Income Tax, Gst, Roc, etc."
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-
+                />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:text="Rating | Reviews"
+                    android:textColor="@color/green"
+                    android:textSize="18sp"
+                    android:fontFamily="@font/archivo_black"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:gravity="end"
+                    android:text="View all >>>"
+                    android:layout_marginEnd="@dimen/_10sdp"
+
+                 />
+
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/advisorRecyclerview"
+                android:layout_width="match_parent"
+                tools:listitem="@layout/item_advisor_review"
+                android:layout_height="wrap_content" />
 
 
 
+
+        </LinearLayout>
 
         <!-- Book Appointment Button -->
         <TextView
             android:id="@+id/book_advisor_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:layout_marginTop="@dimen/_20sdp"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:layout_marginBottom="@dimen/_30sdp"
+            android:background="@drawable/primary_button_bg"
+            android:padding="@dimen/_10sdp"
             android:text="Book Advisor"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="@dimen/_30sdp"
-            android:padding="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_20sdp"
-            android:textAlignment="center"
-            android:background="@drawable/primary_button_bg"
-            android:textSize="20sp"
-            android:layout_marginStart="@dimen/_10sdp"
-            android:layout_marginEnd="@dimen/_10sdp"
-            android:textColor="@color/white"
             app:layout_constraintStart_toStartOf="parent" />
 
     </LinearLayout>

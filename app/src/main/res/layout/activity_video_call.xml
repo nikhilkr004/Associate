@@ -13,7 +13,10 @@
         android:id="@+id/remoteVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black" />
+        android:background="@color/black" >
+
+
+    </FrameLayout>
 
     <!-- Local Video View (User's own video) -->
     <FrameLayout
@@ -30,6 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#80000000"
+        android:layout_above="@id/bottomControler"
         android:orientation="vertical"
         android:padding="16dp">
 
@@ -41,15 +45,6 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvTimer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="00:00"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/tvPaymentInfo"
@@ -64,13 +59,14 @@
 
     <!-- Call Controls Bottom Bar -->
     <LinearLayout
+        android:id="@+id/bottomControler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="#80000000"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingVertical="20dp">
+        android:paddingVertical="10dp">
 
         <!-- Mute Button -->
         <LinearLayout
@@ -89,20 +85,9 @@
                 android:background="@drawable/double_bg"
                 android:text="Mute"
                 android:padding="@dimen/_5sdp"
-                android:src="@drawable/mutemicrophone"
+                android:src="@drawable/mic"
                 android:textColor="@color/white"
                 android:textSize="10sp" />
-
-
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Mute"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
 
         </LinearLayout>
 
@@ -123,22 +108,52 @@
                 android:background="@drawable/double_bg"
                 android:text="Mute"
                 android:padding="@dimen/_5sdp"
-                android:src="@drawable/video_off"
+                android:src="@drawable/camera_turnon"
                 android:textColor="@color/white"
                 android:textSize="10sp" />
 
 
 
 
+        </LinearLayout>
+
+
+        <!-- End Call -->
+        <LinearLayout
+            android:layout_width="@dimen/_80sdp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:background="@drawable/double_bg"
+            android:layout_gravity="center_vertical"
+            android:orientation="horizontal">
+
             <TextView
+                android:id="@+id/tvTimer"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Video"
+                android:layout_height="match_parent"
+                android:text="00:00"
+                android:gravity="center"
+                android:paddingEnd="@dimen/_5sdp"
+                android:textAlignment="center"
+                android:textColor="@color/green"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnEndCall"
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:background="@drawable/double_bg"
+                android:padding="@dimen/_5sdp"
+                android:src="@drawable/telephone"
                 android:textColor="@color/white"
-                android:textSize="12sp" />
+                android:textSize="10sp" />
+
+
 
         </LinearLayout>
+
 
         <!-- Switch Camera -->
         <LinearLayout
@@ -164,17 +179,11 @@
 
 
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Camera"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
+
 
         </LinearLayout>
 
-        <!-- End Call -->
+        <!-- Chat Call -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -184,25 +193,17 @@
 
 
             <ImageView
-                android:id="@+id/btnEndCall"
+                android:id="@+id/btnChat"
                 android:layout_width="@dimen/_40sdp"
                 android:layout_height="@dimen/_40sdp"
                 android:background="@drawable/double_bg"
                 android:text="Mute"
                 android:padding="@dimen/_5sdp"
-                android:src="@drawable/telephone"
+                android:src="@drawable/chat"
                 android:textColor="@color/white"
                 android:textSize="10sp" />
 
 
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="End Call"
-                android:textColor="@color/white"
-                android:textSize="12sp" />
 
         </LinearLayout>
 

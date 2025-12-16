@@ -443,12 +443,21 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         val repository = RatingRepository()
         repository.saveRating(ratingData) { success, error ->
             if (success) {
-                Toast.makeText(this, "Rating submitted!", Toast.LENGTH_SHORT).show()
+                // Show Success Dialog using the user's Utils
+                com.example.associate.DataClass.DialogUtils.showStatusDialog(
+                    this,
+                    true,
+                    "Success",
+                    "Your Review Valuable for us!"
+                ) {
+                    // Navigate to Home when user clicks "Okay" (or whatever the button text is in the dialog)
+                    navigateToHome()
+                }
             } else {
                 Toast.makeText(this, "Failed to submit rating", Toast.LENGTH_SHORT).show()
                 Log.e("VideoCall", "Rating error: $error")
+                navigateToHome()
             }
-            navigateToHome()
         }
     }
 
@@ -456,6 +465,8 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
+        // Smooth animation (fade in/out) as requested
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         finish()
     }
 

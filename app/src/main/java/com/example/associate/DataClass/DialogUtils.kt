@@ -29,7 +29,7 @@ object DialogUtils {
         val animationView = dialog.findViewById<LottieAnimationView>(R.id.lottieAnimation)
         val tvTitle = dialog.findViewById<TextView>(R.id.tvDialogTitle)
         val tvMessage = dialog.findViewById<TextView>(R.id.tvDialogMessage)
-        val btnAction = dialog.findViewById<Button>(R.id.btnDialogAction)
+        val btnAction = dialog.findViewById<TextView>(R.id.btnDialogAction)
 
         if (isSuccess) {
             animationView.setAnimation(R.raw.success_animation)

@@ -101,7 +101,6 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val channelName = data["channelName"] ?: ""
         val callerName = data["advisorName"] ?: data["title"] ?: "Incoming Call"
         val callerAvatar = data["advisorAvatar"] ?: ""
-        val callerAvatar = data["advisorAvatar"] ?: ""
         
         // Robust ID extraction
         val advisorId = data["advisorId"] ?: data["senderId"] ?: data["advisorUid"] ?: data["uid"] ?: data["id"] ?: ""

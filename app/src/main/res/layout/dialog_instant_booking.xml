@@ -2,23 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@drawable/progressbar_bg"
+    android:padding="@dimen/_5sdp">
 
 
+    <View
+        android:id="@+id/divider"
+        android:layout_width="@dimen/_50sdp"
+        android:layout_height="5dp"
+        android:background="#D3D3D3"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_gravity="center_horizontal" />
 
 
-    <!-- Session Info -->
     <TextView
-        android:id="@+id/tvSessionInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Session Info"
-        android:textSize="14sp"
-        android:gravity="center"
-        android:background="#E8F5E8"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp" />
+        android:text="Book Appoinment"
+        android:textAlignment="center"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginBottom="@dimen/_15sdp"
+        android:fontFamily="@font/archivo_black"
+        android:textColor="@color/green"
+        android:textSize="@dimen/_18sdp"
+         />
+
 
     <!-- Purpose -->
     <TextView
@@ -32,6 +42,8 @@
         android:id="@+id/spinnerPurpose"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/double_bg"
+        android:padding="@dimen/_10sdp"
         android:layout_marginBottom="16dp" />
 
     <!-- Language -->
@@ -44,29 +56,20 @@
 
     <Spinner
         android:id="@+id/spinnerLanguage"
+        android:background="@drawable/double_bg"
+        android:padding="@dimen/_10sdp"
         android:layout_width="match_parent"
+
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp" />
 
-    <!-- Urgency -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Urgency Level"
-        android:textSize="14sp"
-        android:layout_marginBottom="8dp" />
 
-    <Spinner
-        android:id="@+id/spinnerUrgency"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp" />
 
     <!-- Notes -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Additional Notes (Optional)"
+        android:text="Agenda"
         android:textSize="14sp"
         android:layout_marginBottom="8dp" />
 
@@ -74,19 +77,38 @@
         android:id="@+id/etAdditionalNotes"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:hint="Any specific details..."
+        android:background="@drawable/double_bg"
+        android:padding="@dimen/_5sdp"
         android:gravity="top"
         android:inputType="textMultiLine"
-        android:layout_marginBottom="16dp" />
-
+         />
+    <TextView
+        android:id="@+id/word_count_txt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:text=""
+        android:layout_marginBottom="@dimen/_20sdp" />
     <!-- Book Button -->
-    <Button
+    <TextView
         android:id="@+id/btnBookInstant"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Request Instant Call"
-        android:textStyle="bold"
-        android:backgroundTint="@color/green" />
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:background="@drawable/primary_button_bg"
+        android:padding="@dimen/_10sdp"
+        android:text="Conform"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 
     <ProgressBar
         android:id="@+id/progressBar"

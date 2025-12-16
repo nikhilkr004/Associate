@@ -8,10 +8,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.associate.Adapters.AdvisorReviewAdapter
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.Dialogs.InstantBookingDialog
 import com.example.associate.R
+import com.example.associate.Repositorys.RatingRepository
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
 
 class AdvisorProfileActivity : AppCompatActivity() {
@@ -43,6 +47,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
             return
         }
         displayAdvisorData()
+        setupReviews()
     }
 
     private fun setupClickListeners() {
@@ -56,25 +61,45 @@ class AdvisorProfileActivity : AppCompatActivity() {
         binding.tvLanguages.text = advisor.languages.toString()
         binding.tvCompany.text = advisor.officeLocation
         binding.tvExperience.text = advisor.experience.toString()+" years"
-        setupSpecializations(advisor.specializations)
+        binding.tvExperience.text = advisor.experience.toString()+" years"
+        
+        // Use Pipe Separator for Specializations
+        binding.sepcializationTxt.text = advisor.specializations.joinToString(" | ")
+        
+        // Set Rating
+        binding.ratingTxt.text = advisor.rating.toString()
+        
         setupProfileImage()
 //        setupAdvisorStatus()
     }
 
-    private fun setupSpecializations(specializations: List<String>) {
-        if (specializations.isEmpty()) {
+    private fun setupReviews() {
+        val repository = RatingRepository()
+        
+        // Show loading state if needed, or just fetch
 
-            return
-        }
+        binding.advisorRecyclerview.layoutManager= LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL,false)
+        
+        repository.getReviewsForAdvisor(advisor.id) { reviews ->
+            if (reviews.isNotEmpty()) {
+                val adapter = AdvisorReviewAdapter(reviews)
+                binding.advisorRecyclerview.adapter = adapter
+                binding.advisorRecyclerview.visibility = android.view.View.VISIBLE
 
-        val container = binding.specializationsContainer
-        container.removeAllViews()
-        specializations.forEach { specialization ->
+                // Calculate Average Rating
+                val totalRating = reviews.map { it.rating }.sum()
+                val averageRating = totalRating / reviews.size
 
-            val chip =
-                layoutInflater.inflate(R.layout.chip_specialization, container, false) as TextView
-            chip.text = specialization
-            container.addView(chip)
+                // Update UI with calculated rating
+                val formattedRating = String.format("%.1f", averageRating)
+                binding.ratingTxt.text = formattedRating
+                binding.rbReviewRating.rating = averageRating
+
+            } else {
+                binding.advisorRecyclerview.visibility = android.view.View.GONE
+                binding.ratingTxt.text = "0.0"
+                binding.rbReviewRating.rating = 0f
+            }
         }
     }
 
@@ -85,9 +110,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
             .into(binding.profileImage)
     }
 
-//    private fun setupAdvisorStatus() {
-//        binding.advisorStatus.text = if (advisor.isactive == "true") "Online" else "Offline"
-//    }
+
 
     private fun showBookingDialog() {
         val dialog = InstantBookingDialog(advisor) {

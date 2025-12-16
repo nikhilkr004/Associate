@@ -41,14 +41,15 @@
             android:textColor="@color/gray"
             android:textSize="16sp"/>
 
-        <Button
+        <TextView
             android:id="@+id/btnDialogAction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:backgroundTint="@color/purple_500"
+            android:background="@drawable/primary_button_bg"
+            android:padding="@dimen/_8sdp"
             android:paddingHorizontal="24dp"
-            android:text="OK"
+            android:text=""
             android:textColor="@color/white"/>
 
     </LinearLayout>
