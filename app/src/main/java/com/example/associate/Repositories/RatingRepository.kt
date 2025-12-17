@@ -1,4 +1,4 @@
-package com.example.associate.Repositorys
+package com.example.associate.Repositories
 
 import android.util.Log
 import com.example.associate.DataClass.Rating

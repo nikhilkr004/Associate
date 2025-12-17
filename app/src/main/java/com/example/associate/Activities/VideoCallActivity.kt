@@ -1,4 +1,4 @@
-package com.example.associate.Activitys
+package com.example.associate.Activities
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -29,8 +29,8 @@ import com.example.associate.R
 import com.example.associate.DataClass.Rating
 import com.example.associate.Dialogs.RatingDialog
 import com.example.associate.MainActivity
-import com.example.associate.Repositorys.RatingRepository
-import com.example.associate.Repositorys.VideoCallService
+import com.example.associate.Repositories.RatingRepository
+import com.example.associate.Repositories.VideoCallService
 import com.example.associate.databinding.ActivityVideoCallBinding
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth

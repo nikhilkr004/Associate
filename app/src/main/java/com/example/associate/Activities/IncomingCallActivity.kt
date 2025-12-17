@@ -1,4 +1,4 @@
-package com.example.associate.Activitys
+package com.example.associate.Activities
 
 import android.app.KeyguardManager
 import android.content.Context

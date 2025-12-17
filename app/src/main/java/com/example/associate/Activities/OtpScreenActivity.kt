@@ -1,4 +1,4 @@
-package com.example.associate.Activitys
+package com.example.associate.Activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -321,7 +321,7 @@ class OtpScreenActivity : AppCompatActivity() {
     }
 
     private fun navigateToProfileSetup() {
-        // TODO: Replace with your actual profile setup activity
+        // Navigate to profile setup activity
         val intent = Intent(this, PersonalScreenActivity::class.java)
         intent.putExtra("user_number", phoneNumber)
         startActivity(intent)

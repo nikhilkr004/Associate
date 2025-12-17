@@ -1,4 +1,4 @@
-package com.example.associate.Repositorys
+package com.example.associate.Repositories
 
 import android.annotation.SuppressLint
 import android.app.Notification

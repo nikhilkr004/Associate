@@ -1,4 +1,4 @@
-package com.example.associate.Activitys
+package com.example.associate.Activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,7 +11,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.associate.DataClass.UserData
 import com.example.associate.MainActivity
 import com.example.associate.R
-import com.example.associate.Repositorys.UserRepository
+import com.example.associate.Repositories.UserRepository
 import com.example.associate.databinding.ActivityPersonalScreenBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging

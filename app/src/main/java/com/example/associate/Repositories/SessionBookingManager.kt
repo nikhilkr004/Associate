@@ -1,4 +1,4 @@
-package com.example.associate.Managers
+package com.example.associate.Repositories
 
 import android.content.Context
 import android.util.Log
