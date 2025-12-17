@@ -15,7 +15,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.example.associate.R
-import com.example.associate.Activitys.VideoCallActivity
+import com.example.associate.Activities.VideoCallActivity
 import android.content.Intent
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Log

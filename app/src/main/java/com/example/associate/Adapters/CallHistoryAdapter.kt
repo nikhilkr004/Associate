@@ -31,7 +31,6 @@ class CallHistoryAdapter(
         fun bind(videoCall: VideoCall, user: UserData?) {
             // User details
             if (user != null) {
-                Log.d("CallHistoryAdapter", "Binding user: ${user.name}, Image: ${user.profilePhotoUrl}")
                 advisorName.text = user.name.toString()
                 professionalTitle.text = user.phone.ifEmpty { user.email }
 

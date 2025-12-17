@@ -23,7 +23,7 @@ object DialogUtils {
         val dialog = Dialog(context)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
         dialog.setCancelable(false)
-        dialog.setContentView(R.layout.loding_dialog)
+        dialog.setContentView(R.layout.loading_dialog)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         val animationView = dialog.findViewById<LottieAnimationView>(R.id.lottieAnimation)

@@ -8,7 +8,8 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.DataClass.DialogUtils
-import com.example.associate.Managers.SessionBookingManager
+
+import com.example.associate.Repositories.SessionBookingManager
 import com.example.associate.databinding.DialogInstantBookingBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 

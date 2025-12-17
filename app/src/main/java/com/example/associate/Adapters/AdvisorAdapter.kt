@@ -9,9 +9,15 @@ import com.example.associate.R
 import com.example.associate.databinding.AdvisorDialogBinding
 
 class AdvisorAdapter(
-    private val advisors: List<AdvisorDataClass>,
+    private var advisors: MutableList<AdvisorDataClass>,
     private val onItemClick: (AdvisorDataClass) -> Unit
 ) : RecyclerView.Adapter<AdvisorAdapter.AdvisorViewHolder>() {
+
+    fun updateList(newAdvisors: List<AdvisorDataClass>) {
+        advisors.clear()
+        advisors.addAll(newAdvisors)
+        notifyDataSetChanged()
+    }
 
     inner class AdvisorViewHolder(private val binding: AdvisorDialogBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(advisor: AdvisorDataClass) {

@@ -1,4 +1,4 @@
-package com.example.associate.Activitys
+package com.example.associate.Activities
 
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +15,7 @@ import com.example.associate.Adapters.AdvisorReviewAdapter
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.Dialogs.InstantBookingDialog
 import com.example.associate.R
-import com.example.associate.Repositorys.RatingRepository
+import com.example.associate.Repositories.RatingRepository
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
 
 class AdvisorProfileActivity : AppCompatActivity() {

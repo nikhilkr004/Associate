@@ -61,7 +61,7 @@
 
         <!-- Splash Screen Activity -->
         <activity
-            android:name=".Activitys.SplashScreenActivity"
+            android:name=".Activities.SplashScreenActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
@@ -73,7 +73,7 @@
 
         <!-- Video Call Activity -->
         <activity
-            android:name=".Activitys.VideoCallActivity"
+            android:name=".Activities.VideoCallActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="false"
@@ -88,38 +88,38 @@
 
         <!-- Advisor Profile Activity -->
         <activity
-            android:name=".Activitys.AdvisorProfileActivity"
+            android:name=".Activities.AdvisorProfileActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
         <!-- Advisor List Activity -->
         <activity
-            android:name=".Activitys.AdvisorListActivity"
+            android:name=".Activities.AdvisorListActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
         <!-- Personal Screen Activity -->
         <activity
-            android:name=".Activitys.PersonalScreenActivity"
+            android:name=".Activities.PersonalScreenActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
         <!-- OTP Screen Activity -->
         <activity
-            android:name=".Activitys.OtpScreenActivity"
+            android:name=".Activities.OtpScreenActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 
         <!-- Phone Number Activity -->
         <activity
-            android:name=".Activitys.PhoneNumberActivity"
+            android:name=".Activities.PhoneNumberActivity"
             android:screenOrientation="portrait"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <!-- Incoming Call Activity -->
         <activity
-            android:name=".Activitys.IncomingCallActivity"
+            android:name=".Activities.IncomingCallActivity"
             android:screenOrientation="portrait"
             android:exported="false"
             android:showWhenLocked="true"
@@ -129,7 +129,7 @@
 
         <!-- Video Call Service -->
         <service
-            android:name=".Repositorys.VideoCallService"
+            android:name=".Repositories.VideoCallService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="microphone" />

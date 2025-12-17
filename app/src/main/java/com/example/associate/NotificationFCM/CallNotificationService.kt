@@ -12,8 +12,8 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
-import com.example.associate.Activitys.IncomingCallActivity
-import com.example.associate.Activitys.VideoCallActivity
+import com.example.associate.Activities.IncomingCallActivity
+import com.example.associate.Activities.VideoCallActivity
 import com.example.associate.R
 import kotlinx.coroutines.launch
 

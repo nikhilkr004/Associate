@@ -12,7 +12,7 @@ import com.example.associate.Fragments.CallHistoryFragment
 import com.example.associate.Fragments.HomeFragment
 import com.example.associate.Fragments.ProfileFragment
 import com.example.associate.Fragments.TransactionFragment
-import com.example.associate.Repositorys.UserRepository
+import com.example.associate.Repositories.UserRepository
 import com.example.associate.databinding.ActivityMainBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging

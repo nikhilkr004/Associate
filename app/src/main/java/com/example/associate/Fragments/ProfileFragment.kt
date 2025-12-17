@@ -17,7 +17,7 @@ import com.bumptech.glide.Glide
 import com.example.associate.R
 import com.example.associate.DataClass.DialogUtils
 import com.example.associate.DataClass.UserData
-import com.example.associate.Repositorys.UserRepository
+import com.example.associate.Repositories.UserRepository
 import com.example.associate.databinding.FragmentProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
