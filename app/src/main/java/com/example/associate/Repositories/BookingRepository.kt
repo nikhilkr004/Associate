@@ -25,7 +25,7 @@ class BookingRepository {
     suspend fun cancelBooking(bookingId: String) {
         val updates = hashMapOf<String, Any>(
             "bookingStatus" to "cancelled",
-            "updatedAt" to System.currentTimeMillis()
+            "updatedAt" to com.google.firebase.Timestamp.now()
         )
         bookingsCollection.document(bookingId).update(updates).await()
     }
@@ -53,10 +53,15 @@ class BookingRepository {
 
                 if (snapshots != null && !snapshots.isEmpty) {
                     val document = snapshots.documents[0]
-                    val booking = document.toObject(SessionBookingDataClass::class.java)
-                    if (booking != null && booking.isActive()) {
-                        trySend(booking)
-                    } else {
+                    try {
+                        val booking = document.toObject(SessionBookingDataClass::class.java)
+                        if (booking != null && booking.isActive()) {
+                            trySend(booking)
+                        } else {
+                            trySend(null)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("BookingRepository", "Error deserializing booking: ${e.message}")
                         trySend(null)
                     }
                 } else {

@@ -76,7 +76,7 @@ class SessionBookingManager(private val context: Context) {
             additionalNotes = additionalNotes,
             urgencyLevel = urgencyLevel,
             bookingTimestamp = Timestamp.now(),
-            advisorResponseDeadline = System.currentTimeMillis() + (5 * 60 * 1000),
+            advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (5 * 60 * 1000))),
             sessionAmount = 100.0,
             paymentStatus = "pending",
             bookingStatus = "pending"
@@ -185,7 +185,7 @@ class SessionBookingManager(private val context: Context) {
                 if (document.exists()) {
                     try {
                         val booking = document.toObject(SessionBookingDataClass::class.java)
-                        if (booking?.bookingStatus == "pending" && booking.advisorCalledAt == 0L) {
+                        if (booking?.bookingStatus == "pending" && booking.advisorCalledAt == null) {
                             Log.d("DEBUG", "Expiring booking: $bookingId")
                             expireBooking(bookingId)
                         } else {
@@ -206,7 +206,7 @@ class SessionBookingManager(private val context: Context) {
     private fun expireBooking(bookingId: String) {
         val updates = hashMapOf<String, Any>(
             "bookingStatus" to "expired",
-            "updatedAt" to System.currentTimeMillis()
+            "updatedAt" to Timestamp.now()
         )
 
         db.collection("instant_bookings")

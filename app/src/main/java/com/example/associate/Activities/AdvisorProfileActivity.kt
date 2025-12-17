@@ -1,20 +1,19 @@
 package com.example.associate.Activities
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.associate.Adapters.AdvisorReviewAdapter
 import com.example.associate.DataClass.AdvisorDataClass
 import com.example.associate.Dialogs.InstantBookingDialog
 import com.example.associate.R
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.example.associate.Repositories.RatingRepository
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
 
@@ -46,8 +45,27 @@ class AdvisorProfileActivity : AppCompatActivity() {
             showErrorAndFinish("Advisor data not found")
             return
         }
+        
+        // Display initial data from intent immediately
         displayAdvisorData()
         setupReviews()
+        
+        // Fetch fresh data from network to get latest availability
+        fetchFreshAdvisorData()
+    }
+
+    private fun fetchFreshAdvisorData() {
+        android.util.Log.d("AdvisorProfile", "Fetching fresh data for: ${advisor.basicInfo.id}")
+        lifecycleScope.launch {
+            val repository = com.example.associate.Repositories.AdvisorRepository()
+            val freshAdvisor = repository.getAdvisorById(advisor.basicInfo.id)
+            
+            if (freshAdvisor != null) {
+                advisor = freshAdvisor
+                android.util.Log.d("AdvisorProfile", "Fresh data fetched. Updating UI.")
+                displayAdvisorData()
+            }
+        }
     }
 
     private fun setupClickListeners() {
@@ -56,21 +74,42 @@ class AdvisorProfileActivity : AppCompatActivity() {
     }
 
     private fun displayAdvisorData() {
-        binding.tvName.text = advisor.name
-        binding.aboutTxt.text = advisor.bio
-        binding.tvLanguages.text = advisor.languages.toString()
-        binding.tvCompany.text = advisor.officeLocation
-        binding.tvExperience.text = advisor.experience.toString()+" years"
-        binding.tvExperience.text = advisor.experience.toString()+" years"
+        binding.tvName.text = advisor.basicInfo.name
+        binding.aboutTxt.text = advisor.professionalInfo.bio
+        binding.tvLanguages.text = advisor.professionalInfo.languages.toString()
+        binding.tvCompany.text = advisor.professionalInfo.officeLocation
+        binding.tvExperience.text = advisor.professionalInfo.experience.toString()+" years"
         
         // Use Pipe Separator for Specializations
-        binding.sepcializationTxt.text = advisor.specializations.joinToString(" | ")
+        binding.sepcializationTxt.text = advisor.professionalInfo.specializations.joinToString(" | ")
         
         // Set Rating
-        binding.ratingTxt.text = advisor.rating.toString()
+        binding.ratingTxt.text = advisor.performanceInfo.rating.toString()
         
         setupProfileImage()
-//        setupAdvisorStatus()
+        setupAvailabilityUI()
+    }
+
+    private fun setupAvailabilityUI() {
+        val availability = advisor.availabilityInfo.scheduledAvailability
+        android.util.Log.d("AdvisorProfile", "Setup UI for availability (Nested): $availability")
+        Toast.makeText(this, "Debug: Chat=${availability.isChatEnabled}, Video=${availability.isVideoCallEnabled}", Toast.LENGTH_LONG).show()
+
+        if (availability.isChatEnabled) {
+            binding.chatLayout.setBackgroundResource(R.drawable.eleveted_bg)
+        }
+        if (availability.isVideoCallEnabled) {
+            binding.videoLayout.setBackgroundResource(R.drawable.eleveted_bg)
+        }
+        if (availability.isAudioCallEnabled) {
+            binding.audioLayout.setBackgroundResource(R.drawable.eleveted_bg)
+        }
+        if (availability.isOfficeVisitEnabled) {
+            binding.officeVisitLayout.setBackgroundResource(R.drawable.eleveted_bg)
+        }
+        if (availability.isInPersonEnabled) {
+            binding.inpersonLayout.setBackgroundResource(R.drawable.eleveted_bg)
+        }
     }
 
     private fun setupReviews() {
@@ -80,7 +119,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
         binding.advisorRecyclerview.layoutManager= LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL,false)
         
-        repository.getReviewsForAdvisor(advisor.id) { reviews ->
+        repository.getReviewsForAdvisor(advisor.basicInfo.id) { reviews ->
             if (reviews.isNotEmpty()) {
                 val adapter = AdvisorReviewAdapter(reviews)
                 binding.advisorRecyclerview.adapter = adapter
@@ -105,7 +144,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
     private fun setupProfileImage() {
         Glide.with(this)
-            .load(advisor.profileimage)
+            .load(advisor.basicInfo.profileImage)
             .placeholder(R.drawable.user)
             .into(binding.profileImage)
     }

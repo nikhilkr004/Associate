@@ -136,8 +136,8 @@ class InstantBookingDialog(
         setLoading(true)
 
         bookingManager.createInstantBooking(
-            advisorId = advisor.id,
-            advisorName = advisor.name,
+            advisorId = advisor.basicInfo.id,
+            advisorName = advisor.basicInfo.name,
             purpose = purpose,
             preferredLanguage = language,
             additionalNotes = notes,

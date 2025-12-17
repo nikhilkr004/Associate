@@ -22,12 +22,12 @@ class AdvisorAdapter(
     inner class AdvisorViewHolder(private val binding: AdvisorDialogBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(advisor: AdvisorDataClass) {
             val context=binding.root.context
-            binding.advisorName.text = advisor.name
-//            binding.userCity.text = advisor.city
-            binding.advisorExp.text = "${advisor.experience} years experience"
-            binding.advisorSpec.text = advisor.specializations.joinToString(", ")
-            binding.advisorLang.text = advisor.languages.joinToString(", ")
-            Glide.with(context).load(advisor.profileimage).placeholder(R.drawable.user).into(binding.profileImage)
+            binding.advisorName.text = advisor.basicInfo.name
+//            binding.userCity.text = advisor.basicInfo.city
+            binding.advisorExp.text = "${advisor.professionalInfo.experience} years experience"
+            binding.advisorSpec.text = advisor.professionalInfo.specializations.joinToString(", ")
+            binding.advisorLang.text = advisor.professionalInfo.languages.joinToString(", ")
+            Glide.with(context).load(advisor.basicInfo.profileImage).placeholder(R.drawable.user).into(binding.profileImage)
             binding.root.setOnClickListener { onItemClick(advisor) }
         }
     }

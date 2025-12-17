@@ -161,7 +161,7 @@ class HomeFragment : Fragment() {
              binding.btnCancelBooking.isEnabled = true
         }
 
-        startResponseTimer(booking.advisorResponseDeadline)
+        startResponseTimer(booking.getAdvisorResponseDeadlineAsLong())
     }
 
     private fun hideActiveBookingCard() {

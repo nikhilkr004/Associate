@@ -58,11 +58,11 @@ class CallHistoryRepository {
                 val advisor = document.toObject(AdvisorDataClass::class.java)
                 advisor?.let {
                     UserData(
-                        userId = it.id,
-                        name = it.name,
-                        email = it.email,
-                        phone = it.phoneNumber,
-                        profilePhotoUrl = it.profileimage
+                        userId = it.basicInfo.id,
+                        name = it.basicInfo.name,
+                        email = it.basicInfo.email,
+                        phone = it.basicInfo.phoneNumber,
+                        profilePhotoUrl = it.basicInfo.profileImage
                     )
                 }
             } else {

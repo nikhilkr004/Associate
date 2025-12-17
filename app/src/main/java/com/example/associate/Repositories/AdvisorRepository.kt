@@ -18,22 +18,34 @@ class AdvisorRepository {
     suspend fun getActiveAdvisors(): List<AdvisorDataClass> {
         return try {
             val documents = advisorsCollection
-                .whereEqualTo("status", "active")
-                .whereEqualTo("isactive", true)
+                .whereEqualTo("basicInfo.status", "active")
                 .get()
                 .await()
 
             documents.mapNotNull { document ->
                 try {
                     val advisor = document.toObject(AdvisorDataClass::class.java)
-                    advisor.id = document.id
-                    advisor
+                    advisor?.copy(basicInfo = advisor.basicInfo.copy(id = document.id))
                 } catch (e: Exception) {
                     null
                 }
             }
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    suspend fun getAdvisorById(advisorId: String): AdvisorDataClass? {
+        return try {
+            val document = advisorsCollection.document(advisorId).get().await()
+            if (document.exists()) {
+                val advisor = document.toObject(AdvisorDataClass::class.java)
+                advisor?.copy(basicInfo = advisor.basicInfo.copy(id = document.id))
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 }
