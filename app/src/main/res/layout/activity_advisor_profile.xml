@@ -394,6 +394,7 @@
                 android:layout_weight="1"
                 android:padding="@dimen/_5sdp"
                 android:gravity="center"
+                android:layout_marginStart="@dimen/_4sdp"
                 android:orientation="vertical">
 
                 <ImageView
