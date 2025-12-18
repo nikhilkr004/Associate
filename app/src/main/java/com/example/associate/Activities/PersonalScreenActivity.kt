@@ -45,8 +45,22 @@ class PersonalScreenActivity : AppCompatActivity() {
             insets
         }
 
-        // Receive phone number
-        userPhoneNumber = intent.getStringExtra("user_number") ?: ""
+        // Receive data
+        val intentNumber = intent.getStringExtra("user_number") ?: ""
+        val intentEmail = intent.getStringExtra("user_email") ?: ""
+        val intentName = intent.getStringExtra("user_name") ?: ""
+
+        // Pre-fill data
+        binding.userEmail.setText(intentEmail)
+        binding.userName.setText(intentName)
+        
+        if (intentNumber.isNotEmpty()) {
+            binding.userPhoneInput.setText(intentNumber)
+            binding.userPhoneInput.isEnabled = false
+            userPhoneNumber = intentNumber
+        } else {
+            binding.userPhoneInput.isEnabled = true
+        }
 
         // Gender Click Listeners
         binding.genderMale.setOnClickListener { selectGender("Male") }
@@ -93,6 +107,12 @@ class PersonalScreenActivity : AppCompatActivity() {
                 return false
             }
 
+            val phoneInput = userPhoneInput.text.toString().trim()
+            if (phoneInput.length != 10) {
+                userPhoneInput.error = "Valid 10-digit number required"
+                return false
+            }
+
             if (selectedGender.isEmpty()) {
                 Toast.makeText(this@PersonalScreenActivity, "Please select your gender", Toast.LENGTH_SHORT).show()
                 return false
@@ -109,7 +129,7 @@ class PersonalScreenActivity : AppCompatActivity() {
         val user = UserData(
             name = binding.userName.text.toString().trim(),
             email = binding.userEmail.text.toString().trim(),
-            phone = userPhoneNumber,
+            phone = binding.userPhoneInput.text.toString().trim(),
             city = binding.userCity.text.toString().trim(),
             jointAt = System.currentTimeMillis().toString(),
             userId = userId,

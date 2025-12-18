@@ -64,7 +64,8 @@ class HomeFragment : Fragment() {
         viewModel.loadData()
 
         // Keep Call Logic
-        listenForIncomingCalls()
+        Log.d("HomeFragment", "Initializing call listener...")
+//        listenForIncomingCalls()
     }
 
     private fun setupViewModel() {
@@ -144,7 +145,9 @@ class HomeFragment : Fragment() {
 
     private fun showActiveBookingCard(booking: SessionBookingDataClass) {
         binding.currentBookingCard.visibility = View.VISIBLE
-        binding.bookingAdvisorName.text = booking.advisorName
+        binding.bookingAdvisorName.text = "Advisor: ${booking.advisorName}"
+        binding.bookingId.text = "ID: #${booking.bookingId}"
+        binding.bookingPurpose.text = "Purpose: ${booking.purpose}"
 
         binding.btnCancelBooking.setOnClickListener {
             binding.btnCancelBooking.text = "Cancelling..."

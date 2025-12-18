@@ -1,5 +1,6 @@
 package com.example.associate.Activities
 
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,11 +15,23 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.*
 import java.util.concurrent.TimeUnit
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.example.associate.Repositories.UserRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PhoneNumberActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPhoneNumberBinding
     private lateinit var auth: FirebaseAuth
+    private lateinit var googleSignInClient: GoogleSignInClient
+    private val userRepository = UserRepository()
 
     private val TAG = "PhoneNumberActivity"
     private lateinit var storedVerificationId: String
@@ -35,6 +48,18 @@ class PhoneNumberActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         binding.progressBar.visibility = View.GONE
+
+        // Configure Google Sign In
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(com.example.associate.R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+        binding.googleSignInBtn.setOnClickListener {
+            signInWithGoogle()
+        }
 
         binding.sendOtp.setOnClickListener {
 
@@ -88,34 +113,36 @@ class PhoneNumberActivity : AppCompatActivity() {
         }
 
         override fun onVerificationFailed(e: FirebaseException) {
-            Log.d(TAG, "Verification Failed: ${e.message}")
-
-            // 🔥 Stops "Too Many Requests" error permanently
-            if (e is FirebaseTooManyRequestsException) {
-                Toast.makeText(
-                    this@PhoneNumberActivity,
-                    "OTP already sent. Please check your SMS.",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                DialogUtils.hideLoadingDialog()
-                binding.progressBar.isVisible = false
-                binding.sendOtp.isEnabled = true
-                return
-            }
-
-            DialogUtils.showStatusDialog(this@PhoneNumberActivity, false, title = "Failure", message = "Something went wrong")
+            Log.e(TAG, "Verification Failed", e)
 
             DialogUtils.hideLoadingDialog()
             binding.progressBar.isVisible = false
             binding.sendOtp.isEnabled = true
 
-            val message = when (e) {
-                is FirebaseAuthInvalidCredentialsException -> "Invalid number format"
-                else -> e.localizedMessage ?: "Verification failed"
+            // 🔥 Stops "Too Many Requests" error permanently
+            if (e is FirebaseTooManyRequestsException) {
+                Toast.makeText(
+                    this@PhoneNumberActivity,
+                    "Quota exceeded or too many requests. Please try again later.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
             }
 
-            Toast.makeText(this@PhoneNumberActivity, message, Toast.LENGTH_LONG).show()
+            val errorMessage = when (e) {
+                is FirebaseAuthInvalidCredentialsException -> "Invalid phone number format. Please check the number."
+                is FirebaseAuthMissingActivityForRecaptchaException -> "reCAPTCHA verification failed. Please try again."
+                else -> e.localizedMessage ?: "Verification failed. Please check your internet connection."
+            }
+
+            DialogUtils.showStatusDialog(
+                this@PhoneNumberActivity,
+                false,
+                title = "Verification Failed",
+                message = errorMessage + "\n\n(Tip: Check SHA-1/SHA-256 in Firebase Console)"
+            )
+
+            Toast.makeText(this@PhoneNumberActivity, errorMessage, Toast.LENGTH_LONG).show()
         }
 
         override fun onCodeSent(
@@ -151,5 +178,65 @@ class PhoneNumberActivity : AppCompatActivity() {
                     binding.sendOtp.isEnabled = true
                 }
             }
+    }
+
+    private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                firebaseAuthWithGoogle(account.idToken!!)
+            } catch (e: ApiException) {
+                Log.w(TAG, "Google sign in failed", e)
+                Toast.makeText(this, "Google Sign-In failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun signInWithGoogle() {
+        val signInIntent = googleSignInClient.signInIntent
+        googleSignInLauncher.launch(signInIntent)
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        DialogUtils.showLoadingDialog(this, "Signing in with Google...")
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    checkUserInFirestore(user)
+                } else {
+                    DialogUtils.hideLoadingDialog()
+                    Toast.makeText(this, "Authentication Failed.", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun checkUserInFirestore(firebaseUser: FirebaseUser?) {
+        if (firebaseUser == null) return
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = userRepository.getUserById(firebaseUser.uid)
+            withContext(Dispatchers.Main) {
+                DialogUtils.hideLoadingDialog()
+                when (result) {
+                    is UserRepository.Result.Success -> {
+                        // User exists -> Go to MainActivity
+                        startActivity(Intent(this@PhoneNumberActivity, MainActivity::class.java))
+                        finishAffinity()
+                    }
+                    is UserRepository.Result.Failure -> {
+                        // User does NOT exist -> Go to PersonalScreenActivity
+                        val intent = Intent(this@PhoneNumberActivity, PersonalScreenActivity::class.java).apply {
+                            putExtra("user_email", firebaseUser.email)
+                            putExtra("user_name", firebaseUser.displayName)
+                            putExtra("user_photo", firebaseUser.photoUrl?.toString())
+                        }
+                        startActivity(intent)
+                    }
+                }
+            }
+        }
     }
 }

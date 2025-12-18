@@ -39,6 +39,9 @@ import im.zego.zegoexpress.constants.ZegoUpdateType
 import im.zego.zegoexpress.entity.ZegoUser
 import org.json.JSONObject
 import java.util.ArrayList
+import android.app.ProgressDialog
+import android.net.Uri
+import com.example.associate.Fragments.ChatBottomSheetFragment
 import java.util.Timer
 import java.util.TimerTask
 
@@ -61,6 +64,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var localUserID: String = ""
     private var localUserName: String = ""
     private var remoteAdvisorId: String = ""
+
 
     // Modern permission request
     private val requestPermissionLauncher = registerForActivityResult(
@@ -247,6 +251,11 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
         binding.btnSwitchCamera.setOnClickListener {
             switchCamera()
+        }
+
+        binding.btnChat.setOnClickListener {
+            val chatBottomSheet = ChatBottomSheetFragment.newInstance(currentCallId)
+            chatBottomSheet.show(supportFragmentManager, "ChatBottomSheet")
         }
     }
 

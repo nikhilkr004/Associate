@@ -113,4 +113,10 @@ dependencies {
 
     // AndroidX WorkManager (Background tasks ke liye)
     implementation("androidx.work:work-runtime-ktx:2.8.1")
+
+    // Browser for reCAPTCHA fallback
+    implementation("androidx.browser:browser:1.8.0")
+    
+    // Google Sign-In (Service Based)
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 }

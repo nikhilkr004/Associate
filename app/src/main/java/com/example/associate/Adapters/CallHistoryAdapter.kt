@@ -105,4 +105,5 @@ class CallHistoryAdapter(
         videoCallList = newList
         notifyDataSetChanged()
     }
+
 }

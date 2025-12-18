@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bottom_sheet_bg"
+    >
+
+    <!-- Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@color/green">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chat"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_centerVertical="true"/>
+
+        <!-- Optional: Close button or just swipe down -->
+    </RelativeLayout>
+
+
+
+    <!-- Messages Area (Overlay with Empty State) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvChat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"/>
+
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/emptyStateView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/baseline_notifications_24"
+                android:alpha="0.5"/> <!-- Placeholder icon, can use a dedicated one -->
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No messages yet"
+                android:textColor="@color/gray"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"/>
+
+    <!-- Footer / Input Area -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical"
+        android:background="#FAFAFA">
+
+        <!-- Attachment: Image -->
+        <ImageButton
+            android:id="@+id/btnUploadImage"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/baseline_image_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/green"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Attachment: Document -->
+        <ImageButton
+            android:id="@+id/btnUploadDoc"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/document"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/green"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Input Field -->
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/edittext_bg"
+            android:hint="Type a message..."
+            android:padding="10dp"
+            android:maxLines="4"
+            android:inputType="textCapSentences|textMultiLine"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- Send Button -->
+        <ImageButton
+            android:id="@+id/btnSendMessage"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/send"
+            android:background="@drawable/secondary_button_bg"
+            app:tint="@color/green"/> <!-- Using secondary button bg for now or specific circle -->
+
+    </LinearLayout>
+
+
+</LinearLayout>

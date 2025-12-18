@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="@color/gray"
     app:cardElevation="8dp">
 
     <LinearLayout
@@ -43,7 +44,7 @@
 
         <TextView
             android:id="@+id/btnDialogAction"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:background="@drawable/primary_button_bg"
