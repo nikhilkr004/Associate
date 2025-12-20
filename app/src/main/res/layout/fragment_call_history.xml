@@ -1,33 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="#F5F5F5"
     tools:context=".Fragments.CallHistoryFragment">
 
-
-    <TextView
+    <!-- Header -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Video Call History"
-        android:fontFamily="@font/archivo_black"
-        android:textStyle="bold"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:textSize="@dimen/_18sdp"
-        android:textAlignment="center"
-        android:layout_marginBottom="16dp" />
+        android:padding="16dp">
 
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="My Bookings"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333" />
+
+
+
+    </RelativeLayout>
+
+    <!-- Tabs -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="@color/blue"
+        app:tabSelectedTextColor="@color/blue"
+        app:tabTextColor="#757575"
+        app:tabTextAppearance="@style/CustomTabTextStyle">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Upcoming" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Completed" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancelled" />
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- Divider Line (if needed specific style, else native tab indicator does it) -->
+    
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:visibility="gone"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewVideoCalls"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:paddingTop="8dp"
+        android:clipToPadding="false"
+        tools:listitem="@layout/call_history_item"/>
 
     <LinearLayout
         android:id="@+id/emptyState"
@@ -41,15 +88,16 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:src="@drawable/session_history"
-            android:tint="@color/gray" />
+            app:tint="@color/gray" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No video calls found"
+            android:text="No bookings found"
             android:textSize="18sp"
             android:textColor="@color/gray"
             android:layout_marginTop="16dp" />
 
     </LinearLayout>
+
 </LinearLayout>

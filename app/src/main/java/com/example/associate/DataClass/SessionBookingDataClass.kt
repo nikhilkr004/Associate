@@ -14,10 +14,11 @@ data class SessionBookingDataClass(
     val purpose: String = "",
     val preferredLanguage: String = "",
     val additionalNotes: String = "",
-    val urgencyLevel: String = "",
+    var urgencyLevel: String = "",
+    val bookingType: String = "AUDIO", // CHAT, AUDIO, VIDEO
     
     // 🔥 UPDATED: Use Timestamp instead of Long
-    val bookingTimestamp: Timestamp? = null,
+    var bookingTimestamp: Timestamp? = null,
     val advisorResponseDeadline: Timestamp? = null,
     val advisorCalledAt: Timestamp? = null,
     val sessionAmount: Double = 100.0,

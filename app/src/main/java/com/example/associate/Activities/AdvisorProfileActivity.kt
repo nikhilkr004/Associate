@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.example.associate.Repositories.RatingRepository
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
+import com.example.associate.Dialogs.AppointmentTypeDialog
+import com.example.associate.Dialogs.ScheduleBookingDialog
 
 class AdvisorProfileActivity : AppCompatActivity() {
 
@@ -152,11 +154,31 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
 
     private fun showBookingDialog() {
+        val dialog = AppointmentTypeDialog(
+            advisor = advisor,
+            onInstantClick = {
+                showInstantBookingDialog()
+            },
+            onScheduleClick = {
+                showScheduleBookingDialog()
+            }
+        )
+        dialog.show(supportFragmentManager, "AppointmentTypeDialog")
+    }
+
+    private fun showInstantBookingDialog() {
         val dialog = InstantBookingDialog(advisor) {
             // Booking success callback
             Toast.makeText(this, "Session booked successfully!", Toast.LENGTH_SHORT).show()
         }
         dialog.show(supportFragmentManager, "InstantBookingDialog")
+    }
+
+    private fun showScheduleBookingDialog() {
+        val dialog = ScheduleBookingDialog(advisor) {
+            Toast.makeText(this, "Session scheduled successfully!", Toast.LENGTH_SHORT).show()
+        }
+        dialog.show(supportFragmentManager, "ScheduleBookingDialog")
     }
 
     private fun showErrorAndFinish(message: String) {

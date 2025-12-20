@@ -346,7 +346,7 @@
                     android:src="@drawable/call"
                     android:padding="@dimen/_8sdp"
                     android:tint="@color/primary"
-                    android:background="@drawable/double_bg"
+
                     />
 
                 <TextView
@@ -374,7 +374,7 @@
                     android:src="@drawable/building"
                     android:padding="@dimen/_5sdp"
                     android:tint="@color/primary"
-                    android:background="@drawable/double_bg"
+
                     />
 
                 <TextView
@@ -403,7 +403,6 @@
                     android:src="@drawable/inperson_icon"
                     android:padding="@dimen/_5sdp"
                     android:tint="@color/primary"
-                    android:background="@drawable/double_bg"
                     />
 
                 <TextView

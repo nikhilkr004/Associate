@@ -25,6 +25,7 @@ class VideoCallService : Service() {
     private var callStartTime: Long = 0
     private var currentCallId: String = ""
     private var totalDeductions: Double = 0.0
+    private var callRatePerMinute: Double = 60.0 // Default fallback
     private val CHANNEL_ID = "video_call_channel"
     private val NOTIFICATION_ID = 1
 
@@ -39,6 +40,7 @@ class VideoCallService : Service() {
         when(intent?.action) {
             "START_PAYMENT" -> {
                 currentCallId = intent.getStringExtra("CALL_ID") ?: ""
+                callRatePerMinute = intent.getDoubleExtra("RATE_PER_MINUTE", 60.0)
                 callStartTime = System.currentTimeMillis()
                 totalDeductions = 0.0
                 startPaymentCalculation()
@@ -85,7 +87,7 @@ class VideoCallService : Service() {
         try {
             val notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Video Call Ongoing")
-                .setContentText("Payment calculation active - ₹10 per 10 seconds")
+                .setContentText("Rate: ₹$callRatePerMinute/min")
                 .setSmallIcon(R.drawable.videocall)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -116,44 +118,31 @@ class VideoCallService : Service() {
     }
 
     private fun calculatePayment() {
-        totalDeductions += AppConstants.PAYMENT_AMOUNT
-
-        val intent = Intent("PAYMENT_CALCULATED").apply {
-            putExtra("TOTAL_AMOUNT", totalDeductions)
-            putExtra("CALL_ID", currentCallId)
-        }
-        sendBroadcast(intent)
-
-        android.util.Log.d("VideoCallService", "Payment calculated locally: ₹$totalDeductions")
+        // Calculate deduction based on rate per minute
+        // Interval is in MS (e.g. 10000ms = 10s)
+        val intervalSeconds = AppConstants.PAYMENT_INTERVAL_MS / 1000.0
+        val deductionPerInterval = (callRatePerMinute / 60.0) * intervalSeconds
+        
+        // Deduct from wallet immediately
+        // Round to 2 decimal places to match real-world currency (e.g. 3.33)
+        val roundedDeduction = String.format("%.2f", deductionPerInterval).toDouble()
+        
+        deductFromWallet(roundedDeduction)
     }
 
-    // CHANGED: Added callback to wait for Firebase update
-    private fun updateFinalPayment(onComplete: (Boolean) -> Unit) {
-        if (totalDeductions <= 0) {
-            android.util.Log.d("VideoCallService", "No amount to deduct")
-            onComplete(true)
-            return
-        }
-
+    private fun deductFromWallet(amount: Double) {
         val db = FirebaseFirestore.getInstance()
         val auth = FirebaseAuth.getInstance()
-        val userId = auth.currentUser?.uid ?: run {
-            android.util.Log.e("VideoCallService", "User ID not found")
-            onComplete(false)
-            return
-        }
+        val userId = auth.currentUser?.uid ?: return
 
-        android.util.Log.d("VideoCallService", "Processing final payment: ₹$totalDeductions for user: $userId")
-
-        // Check wallet balance first
         db.collection("wallets").document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val wallet = document.toObject(WalletDataClass::class.java)
                     wallet?.let {
-                        if (it.balance >= totalDeductions) {
-                            val newBalance = it.balance - totalDeductions
-                            val newTotalSpent = it.totalSpent + totalDeductions
+                        if (it.balance >= amount) {
+                            val newBalance = it.balance - amount
+                            val newTotalSpent = it.totalSpent + amount
 
                             db.collection("wallets").document(userId)
                                 .update(
@@ -162,30 +151,46 @@ class VideoCallService : Service() {
                                     "totalSpent", newTotalSpent
                                 )
                                 .addOnSuccessListener {
-                                    android.util.Log.d("VideoCallService", "Wallet updated successfully")
-                                    savePaymentRecord(userId, totalDeductions) { success ->
-                                        onComplete(success)
+                                    // Update local total for UI and Record
+                                    totalDeductions += amount
+                                    
+                                    // Broadcast Update
+                                    val intent = Intent("PAYMENT_CALCULATED").apply {
+                                        putExtra("TOTAL_AMOUNT", totalDeductions)
+                                        putExtra("CALL_ID", currentCallId)
                                     }
+                                    sendBroadcast(intent)
+                                    
+                                    android.util.Log.d("VideoCallService", "Deducted ₹$amount. New Balance: ₹$newBalance")
                                 }
                                 .addOnFailureListener { e ->
                                     android.util.Log.e("VideoCallService", "Failed to update wallet: ${e.message}")
-                                    onComplete(false)
                                 }
                         } else {
-                            android.util.Log.e("VideoCallService", "Insufficient balance: ${it.balance} < $totalDeductions")
+                            android.util.Log.e("VideoCallService", "Insufficient balance")
                             notifyInsufficientBalance()
-                            onComplete(false)
                         }
                     }
-                } else {
-                    android.util.Log.e("VideoCallService", "Wallet document not found")
-                    onComplete(false)
                 }
             }
-            .addOnFailureListener { e ->
-                android.util.Log.e("VideoCallService", "Failed to fetch wallet: ${e.message}")
-                onComplete(false)
-            }
+    }
+
+    private fun updateFinalPayment(onComplete: (Boolean) -> Unit) {
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: run {
+            onComplete(false)
+            return
+        }
+
+        // We have already deducted from wallet incrementally. 
+        // Just save the Record and Update VideoCall.
+        if (totalDeductions > 0) {
+             savePaymentRecord(userId, totalDeductions) { success ->
+                 onComplete(success)
+             }
+        } else {
+            onComplete(true)
+        }
     }
 
     // CHANGED: Added callback for payment record

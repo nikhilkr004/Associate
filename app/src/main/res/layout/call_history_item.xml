@@ -1,104 +1,183 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/_5sdp"
-    android:layout_marginEnd="@dimen/_5sdp"
-    android:layout_marginTop="@dimen/_2sdp"
-    android:background="@drawable/search_field_bg">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+   android:background="@drawable/double_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/_6sdp">
+        android:orientation="vertical"
+        android:padding="16dp">
 
-        <!-- Advisor Image -->
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/advisorImage"
-            android:layout_width="@dimen/_70sdp"
-            android:layout_height="@dimen/_70sdp"
-            android:layout_marginEnd="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/user" />
-
-        <!-- Call Details -->
-        <LinearLayout
-            android:layout_width="0dp"
+        <!-- Header: Date and Time -->
+        <TextView
+            android:id="@+id/tvBookingDate"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:text="Aug 25, 2023 - 10:00 AM"
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/advisorName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Advisor Name"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+            android:background="#EEEEEE" />
 
-            <TextView
-                android:id="@+id/professionalTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Specialization"
-                android:textColor="@color/gray"
-                android:textSize="12sp" />
+        <!-- Advisor Details Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/callDate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text=""
-                android:textColor="@color/gray"
-                android:textSize="12sp" />
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/advisorImage"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/user"
+                app:civ_border_width="0dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
+                android:layout_marginStart="16dp"
+                android:orientation="vertical"
+                android:gravity="center_vertical">
 
                 <TextView
-                    android:id="@+id/callDuration"
+                    android:id="@+id/advisorName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/double_bg"
-                    android:padding="@dimen/_3sdp"
-                    android:paddingStart="@dimen/_10sdp"
-                    android:paddingEnd="@dimen/_10sdp"
-                    android:text="Duration"
-                    android:textSize="@dimen/_8sdp" />
+                    android:text="Dr. Jenny William"
+                    android:textColor="#333333"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/callAmount"
+                <!-- Type / Location Mock -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:background="@drawable/double_bg"
-                    android:padding="@dimen/_3sdp"
-                    android:paddingStart="@dimen/_10sdp"
-                    android:paddingEnd="@dimen/_10sdp"
-                    android:text="Amount"
-                    android:textSize="@dimen/_8sdp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical">
 
-                <TextView
-                    android:id="@+id/callStatus"
+                    <ImageView
+                        android:id="@+id/imgType"
+                        android:layout_width="14dp"
+                        android:layout_height="14dp"
+                        android:src="@drawable/videocall" 
+                        app:tint="#757575"/>
+
+                    <TextView
+                        android:id="@+id/tvBookingType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="Video Call (Scheduled)"
+                        android:textColor="#757575"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Booking ID -->
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/double_bg"
-                    android:padding="@dimen/_3sdp"
-                    android:paddingStart="@dimen/_10sdp"
-                    android:paddingEnd="@dimen/_10sdp"
-                    android:text="Status"
-                    android:textSize="@dimen/_8sdp" />
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Booking ID : "
+                        android:textColor="#757575"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/tvBookingId"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="#DR452SA54"
+                        android:textColor="@color/green"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="#EEEEEE" />
+
+        <!-- Buttons Row -->
+        <LinearLayout
+            android:id="@+id/actionButtonsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <!-- Cancel Button (For Upcoming) -->
+            <TextView
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/edittext_bg"
+                android:backgroundTint="#F0CED3"
+                android:gravity="center"
+                android:text="Cancel"
+                android:textColor="#D32F2F"
+                android:textStyle="bold"
+                android:visibility="gone"/>
+
+            <!-- Reschedule Button (For Upcoming - Optional based on image, but user said ONLY Cancel. I will add it as visible only if needed) -->
+             <TextView
+                android:id="@+id/btnReschedule"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/primary_button_bg"
+                android:gravity="center"
+                android:text="Reschedule"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:visibility="gone"/>
+
+            <!-- Re-Book Button (For Completed/Cancelled) -->
+            <TextView
+                android:id="@+id/btnReBook"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:background="@drawable/primary_button_bg"
+                android:gravity="center"
+                android:text="Re-Book"
+                android:textStyle="bold" />
+
+            <!-- Add Review Button (For Completed) -->
+            <TextView
+                android:id="@+id/btnAddReview"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/edittext_bg"
+                android:gravity="center"
+                android:text="Add Review"
+                android:textStyle="bold" />
 
         </LinearLayout>
 

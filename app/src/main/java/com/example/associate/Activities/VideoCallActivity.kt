@@ -193,7 +193,9 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 isCallActive = true
                 callStartTime = System.currentTimeMillis()
                 startCallTimer()
-                startPaymentService()
+                
+                // Fetch rate and start service
+                fetchBookingDetailsAndStartService()
                 
             } else {
                 showError("Failed to initialize Zego engine")
@@ -223,14 +225,56 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             }
     }
 
-    private fun startPaymentService() {
+    private fun fetchBookingDetailsAndStartService() {
+        val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: return
+        
+        // Try Instant Bookings first
+        db.collection("instant_bookings").document(bookingId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val rate = document.getDouble("sessionAmount") ?: 60.0
+                     // Instant sessionAmount is usually per session (100) or per min?
+                     // User said "per minute price for instant booking... we cut amount accordingly"
+                     // In my update, I saved 'price' to 'sessionAmount'.
+                     // If 'price' was the 'fee per minute', then correct.
+                     // But wait, createScheduledBooking also saves to sessionAmount.
+                     // If instantVideoFee = 10, then sessionAmount = 10.
+                     
+                    startPaymentService(rate)
+                } else {
+                    // Try Scheduled Bookings
+                   fetchScheduledBooking(bookingId)
+                }
+            }
+            .addOnFailureListener {
+                Log.e("VideoCall", "Failed to fetch booking. Defaulting to 60.")
+                startPaymentService(60.0)
+            }
+    }
+
+    private fun fetchScheduledBooking(bookingId: String) {
+        db.collection("scheduled_bookings").document(bookingId).get()
+            .addOnSuccessListener { document ->
+                val rate = document.getDouble("sessionAmount") ?: 60.0
+                startPaymentService(rate)
+            }
+            .addOnFailureListener {
+                 startPaymentService(60.0)
+            }
+    }
+
+    private fun startPaymentService(rate: Double = 60.0) {
         try {
+            // Update UI with fetched rate
+            binding.tvPaymentInfo.text = "Rate: ₹$rate/min"
+            
             val serviceIntent = Intent(this, VideoCallService::class.java).apply {
                 action = "START_PAYMENT"
                 putExtra("CALL_ID", currentCallId)
+                putExtra("RATE_PER_MINUTE", rate)
             }
             ContextCompat.startForegroundService(this, serviceIntent)
-            Log.d("VideoCall", "Payment service started")
+            Log.d("VideoCall", "Payment service started with Rate: $rate")
         } catch (e: Exception) {
             Log.e("VideoCall", "Failed to start payment service: ${e.message}")
         }
@@ -505,12 +549,42 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         db.collection("videoCalls")
             .document(currentCallId)
             .update(updates)
-            .addOnSuccessListener {
-                Log.d("VideoCall", "Call end status updated successfully")
+            .addOnCompleteListener { task ->
+                 if (task.isSuccessful) {
+                     Log.d("VideoCall", "Call end status updated successfully")
+                 } else {
+                     Log.e("VideoCall", "Failed to update call end status: ${task.exception?.message}")
+                 }
+                 // Always try to update booking status
+                 updateBookingStatusToEnded()
             }
-            .addOnFailureListener { e ->
-                Log.e("VideoCall", "Failed to update call end status: ${e.message}")
+    }
+
+    private fun updateBookingStatusToEnded() {
+        val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: return
+        Log.d("VideoCall", "Attempting to update booking status for ID: $bookingId")
+        
+        // We need to find if it's instant or scheduled to update the correct collection
+        // 1. Try Instant
+        val instantRef = db.collection("instant_bookings").document(bookingId)
+        instantRef.get().addOnSuccessListener { doc ->
+            if (doc.exists()) {
+                instantRef.update("bookingStatus", "ended")
+                    .addOnSuccessListener { Log.d("VideoCall", "Instant Booking status updated to 'ended'") }
+                    .addOnFailureListener { e -> Log.e("VideoCall", "Failed to update Instant Booking: ${e.message}") }
+            } else {
+                // 2. Try Scheduled
+                val scheduledRef = db.collection("scheduled_bookings").document(bookingId)
+                scheduledRef.get().addOnSuccessListener { schedDoc ->
+                   if (schedDoc.exists()) {
+                       scheduledRef.update("bookingStatus", "ended")
+                           .addOnSuccessListener { Log.d("VideoCall", "Scheduled Booking status updated to 'ended'") }
+                   } else {
+                       Log.w("VideoCall", "Booking ID not found in instant or scheduled: $bookingId")
+                   }
+                }
             }
+        }
     }
 
     // Zego Event Listeners

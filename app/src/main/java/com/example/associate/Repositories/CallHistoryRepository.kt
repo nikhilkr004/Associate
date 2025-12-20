@@ -54,7 +54,6 @@ class CallHistoryRepository {
                 .await()
             
             if (document.exists()) {
-                // Map AdvisorDataClass to UserData to maintain Adapter compatibility
                 val advisor = document.toObject(AdvisorDataClass::class.java)
                 advisor?.let {
                     UserData(
@@ -75,26 +74,93 @@ class CallHistoryRepository {
     }
 
     /**
-     * Fetches video calls along with the details of the other party (Advisor).
-     * @return List of Pairs containing the Call and the associated User/Advisor data.
+     * Fetches ALL bookings (Instant + Scheduled) for the current user.
+     * Merges them and attaches Advisor details (like photo).
      */
-    suspend fun getVideoCallsWithUserDetails(): List<Pair<VideoCall, UserData?>> {
-        val videoCalls = getUserVideoCalls()
-        val result = mutableListOf<Pair<VideoCall, UserData?>>()
+    suspend fun getBookingsWithAdvisorDetails(): List<Pair<com.example.associate.DataClass.SessionBookingDataClass, UserData?>> {
+        val userId = auth.currentUser?.uid ?: return emptyList()
+        val resultList = mutableListOf<Pair<com.example.associate.DataClass.SessionBookingDataClass, UserData?>>()
 
-        for (call in videoCalls) {
-            // Determine the target ID (The other person in the call).
-            // For received calls, the callerId represents the Advisor.
-            val targetId = if (call.callerId.isNotEmpty()) call.callerId else call.advisorId
+        try {
+            // 1. Fetch Instant Bookings
+            val instantSnapshot = db.collection("instant_bookings")
+                .whereEqualTo("studentId", userId)
+                .get()
+                .await()
+            android.util.Log.d(TAG, "Instant Bookings found: ${instantSnapshot.size()}")
+
+            // 2. Fetch Scheduled Bookings
+            val scheduledSnapshot = db.collection("scheduled_bookings")
+                .whereEqualTo("studentId", userId)
+                .get()
+                .await()
+            android.util.Log.d(TAG, "Scheduled Bookings found: ${scheduledSnapshot.size()}")
             
-            val user = if (targetId.isNotEmpty()) {
-                getUserDetails(targetId)
-            } else {
-                null
+            val allDocs = instantSnapshot.documents + scheduledSnapshot.documents
+
+            for (doc in allDocs) {
+                try {
+                    val booking = doc.toObject(com.example.associate.DataClass.SessionBookingDataClass::class.java)
+                    if (booking != null) {
+                        // Mark urgency if missing
+                        if (booking.urgencyLevel.isEmpty()) {
+                             val isScheduled = scheduledSnapshot.documents.any { it.id == doc.id }
+                             booking.urgencyLevel = if(isScheduled) "Scheduled" else "Instant"
+                        }
+                        
+                        // Fallback: Check for alternative timestamp fields if bookingTimestamp is null
+                        if (booking.bookingTimestamp == null) {
+                            val data = doc.data
+                            val possibleTimestamp = data?.get("slotStartTime") ?: data?.get("createdAt") ?: data?.get("startTime")
+                            
+                            if (possibleTimestamp is com.google.firebase.Timestamp) {
+                                booking.bookingTimestamp = possibleTimestamp
+                            } else if (possibleTimestamp is String) {
+                                // Try parsing string if needed, or ignore
+                                // android.util.Log.w(TAG, "Timestamp is string: $possibleTimestamp")
+                            }
+                        }
+
+                        // Fetch advisor details
+                        val advisor = if (booking.advisorId.isNotEmpty()) getUserDetails(booking.advisorId) else null
+                        resultList.add(Pair(booking, advisor))
+                    } else {
+                        android.util.Log.e(TAG, "Booking is null for doc: ${doc.id}")
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e(TAG, "Error parsing booking ${doc.id}: ${e.message}")
+                }
             }
-            result.add(Pair(call, user))
+
+            // Sort by timestamp descending
+            resultList.sortByDescending { it.first.bookingTimestamp }
+            
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error fetching bookings history", e)
         }
 
-        return result
+        return resultList
+    }
+
+    /**
+     * Cancels the booking in Firestore.
+     * Identifies the collection based on urgencyLevel.
+     */
+    suspend fun cancelBooking(bookingId: String, urgencyLevel: String): Boolean {
+        return try {
+            val collectionName = if (urgencyLevel.equals("Scheduled", ignoreCase = true)) {
+                "scheduled_bookings"
+            } else {
+                "instant_bookings"
+            }
+
+            db.collection(collectionName).document(bookingId)
+                .update("bookingStatus", "cancelled")
+                .await()
+            true
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Error cancelling booking: ${e.message}")
+            false
+        }
     }
 }

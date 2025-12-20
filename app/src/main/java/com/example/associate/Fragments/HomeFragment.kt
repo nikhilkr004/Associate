@@ -149,22 +149,50 @@ class HomeFragment : Fragment() {
         binding.bookingId.text = "ID: #${booking.bookingId}"
         binding.bookingPurpose.text = "Purpose: ${booking.purpose}"
 
-        binding.btnCancelBooking.setOnClickListener {
-            binding.btnCancelBooking.text = "Cancelling..."
-            binding.btnCancelBooking.isEnabled = false
-            viewModel.cancelBooking(booking.bookingId)
-        }
-        
-        // Reset button state if it was disabled previously
-        if (binding.btnCancelBooking.text == "Cancelling...") {
-             // If we are here, it means booking is still active/pending. 
-             // If cancel failed, we should reset. But we don't have explicit "Cancel Failed" state in Flow easily.
-             // We can observe errorMessage to reset. For now, simple re-bind:
-             binding.btnCancelBooking.text = "Cancel Request"
-             binding.btnCancelBooking.isEnabled = true
-        }
+        when (booking.bookingStatus.lowercase()) {
+            "pending" -> {
+                binding.bookingStatusTitle.text = "Requesting Session..."
+                binding.bookingStatusTitle.setTextColor(android.graphics.Color.BLACK)
+                binding.btnCancelBooking.visibility = View.VISIBLE
+                binding.btnCancelBooking.isEnabled = true
+                binding.btnCancelBooking.text = "Cancel Request"
+                binding.bookingTimer.visibility = View.VISIBLE
+                binding.bookingTimerLabel.visibility = View.VISIBLE
 
-        startResponseTimer(booking.getAdvisorResponseDeadlineAsLong())
+                startResponseTimer(booking.getAdvisorResponseDeadlineAsLong())
+
+                binding.btnCancelBooking.setOnClickListener {
+                    binding.btnCancelBooking.text = "Cancelling..."
+                    binding.btnCancelBooking.isEnabled = false
+                    viewModel.cancelBooking(booking.bookingId)
+                }
+            }
+            "accepted" -> {
+                binding.bookingStatusTitle.text = "Request Accepted"
+                binding.bookingStatusTitle.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
+                binding.btnCancelBooking.visibility = View.GONE
+                
+                binding.bookingTimer.visibility = View.VISIBLE
+                binding.bookingTimerLabel.visibility = View.VISIBLE
+                binding.bookingTimerLabel.text = "Advisor connecting in"
+                
+                startResponseTimer(booking.getAdvisorResponseDeadlineAsLong())
+            }
+            "rejected" -> {
+                binding.bookingStatusTitle.text = "Booking Rejected"
+                binding.bookingStatusTitle.setTextColor(android.graphics.Color.RED)
+                binding.btnCancelBooking.visibility = View.GONE
+                
+                responseTimer?.cancel()
+                binding.bookingTimer.text = "Closed"
+                binding.bookingTimerLabel.visibility = View.GONE
+            }
+            else -> {
+                binding.bookingStatusTitle.text = "Status: ${booking.bookingStatus}"
+                binding.btnCancelBooking.visibility = View.GONE
+                responseTimer?.cancel()
+            }
+        }
     }
 
     private fun hideActiveBookingCard() {

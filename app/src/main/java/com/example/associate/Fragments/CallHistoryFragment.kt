@@ -34,6 +34,7 @@ class CallHistoryFragment : Fragment() {
 
         setupViewModel()
         setupRecyclerView()
+        setupTabs()
         observeViewModel()
         
         // Load data
@@ -45,11 +46,71 @@ class CallHistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        videoCallAdapter = CallHistoryAdapter()
+        videoCallAdapter = CallHistoryAdapter { action, booking ->
+            when (action) {
+                CallHistoryAdapter.CallHistoryAction.CANCEL -> {
+                    viewModel.cancelBooking(booking)
+                    Toast.makeText(requireContext(), "Cancelling booking...", Toast.LENGTH_SHORT).show()
+                }
+                
+                CallHistoryAdapter.CallHistoryAction.REBOOK, 
+                CallHistoryAdapter.CallHistoryAction.ITEM_CLICK,
+                CallHistoryAdapter.CallHistoryAction.RESCHEDULE -> { // Treat reschedule as re-book for now/same flow
+                    navigateToAdvisorProfile(booking)
+                }
+                
+                CallHistoryAdapter.CallHistoryAction.REVIEW -> {
+                    showReviewDialog(booking)
+                }
+            }
+        }
         binding.recyclerViewVideoCalls.apply {
             adapter = videoCallAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+    }
+
+    private fun navigateToAdvisorProfile(booking: com.example.associate.DataClass.SessionBookingDataClass) {
+        if (booking.advisorId.isEmpty()) {
+            Toast.makeText(requireContext(), "Error: Advisor ID missing", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Create minimal AdvisorDataClass to pass ID
+        val advisorData = com.example.associate.DataClass.AdvisorDataClass(
+            basicInfo = com.example.associate.DataClass.BasicInfo(
+                id = booking.advisorId,
+                name = booking.advisorName,
+                // We could pass more if available from UserData, but ID is critical
+            )
+        )
+        
+        val intent = android.content.Intent(requireContext(), com.example.associate.Activities.AdvisorProfileActivity::class.java)
+        intent.putExtra("ADVISOR_DATA", advisorData)
+        startActivity(intent)
+    }
+
+    private fun showReviewDialog(booking: com.example.associate.DataClass.SessionBookingDataClass) {
+        val ratingDialog = com.example.associate.Dialogs.RatingDialog { rating, review ->
+            viewModel.submitReview(booking, rating, review) { success ->
+                if (success) {
+                    com.example.associate.DataClass.DialogUtils.showStatusDialog(
+                        requireContext(), true, "Success", "Review Submitted Successfully"
+                    ) {}
+                }
+            }
+        }
+        ratingDialog.show(parentFragmentManager, "RatingDialog")
+    }
+    
+    private fun setupTabs() {
+        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
+                tab?.let { viewModel.filterByTab(it.position) }
+            }
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+        })
     }
 
     private fun observeViewModel() {

@@ -21,14 +21,40 @@ class AdvisorAdapter(
 
     inner class AdvisorViewHolder(private val binding: AdvisorDialogBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(advisor: AdvisorDataClass) {
-            val context=binding.root.context
+            val context = binding.root.context
             binding.advisorName.text = advisor.basicInfo.name
-//            binding.userCity.text = advisor.basicInfo.city
-            binding.advisorExp.text = "${advisor.professionalInfo.experience} years experience"
-            binding.advisorSpec.text = advisor.professionalInfo.specializations.joinToString(", ")
-            binding.advisorLang.text = advisor.professionalInfo.languages.joinToString(", ")
+            
+            // Subtitle: "Specialization(Exp years Exp)"
+            val spec = advisor.professionalInfo.specializations.firstOrNull() ?: "Advisor"
+            val exp = advisor.professionalInfo.experience
+            binding.advisorExp.text = "$spec($exp years Exp)"
+            
+            // Rating
+            binding.advisorRating.text = String.format("%.1f", advisor.performanceInfo.rating)
+            
+            // Price (Using Scheduled Video Fee as representative or instant)
+            // Ideally display range or 'starts from' but fulfilling design "₹ 180"
+            val price = advisor.pricingInfo.instantVideoFee 
+            binding.advisorPrice.text = "₹ $price"
+            
+            // Availability (Mocking 'Available Now' based on status or instant availability)
+            // If instant video is enabled -> Show "Video Consult" green
+            // Else -> maybe hide or show "Scheduled"
+            // For now, mirroring image style static or simple dynamic
+            if (advisor.availabilityInfo.instantAvailability.isVideoCallEnabled) {
+               binding.tvServiceType.text = "Video Consult"
+               binding.tvAvailabilityLabel.text = "Available Now"
+               binding.tvAvailabilityLabel.setTextColor(android.graphics.Color.parseColor("#191C1F"))
+            } else {
+               binding.tvServiceType.text = "Schedule Only"
+               binding.tvAvailabilityLabel.text = "Busy"
+               binding.tvAvailabilityLabel.setTextColor(android.graphics.Color.GRAY)
+            }
+            
             Glide.with(context).load(advisor.basicInfo.profileImage).placeholder(R.drawable.user).into(binding.profileImage)
+            
             binding.root.setOnClickListener { onItemClick(advisor) }
+            binding.btnBookAppointment.setOnClickListener { onItemClick(advisor) }
         }
     }
 

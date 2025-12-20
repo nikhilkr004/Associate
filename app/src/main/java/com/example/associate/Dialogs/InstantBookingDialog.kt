@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.viewModels
 import com.example.associate.DataClass.AdvisorDataClass
-import com.example.associate.DataClass.DialogUtils
-
+import com.example.associate.R
 import com.example.associate.Repositories.SessionBookingManager
+import com.example.associate.ViewModels.InstantBookingViewModel
+import com.example.associate.ViewModels.InstantBookingViewModel.BookingType
 import com.example.associate.databinding.DialogInstantBookingBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -18,149 +20,167 @@ class InstantBookingDialog(
     private val onBookingSuccess: () -> Unit
 ) : BottomSheetDialogFragment() {
 
-    private lateinit var binding: DialogInstantBookingBinding
+    private var _binding: DialogInstantBookingBinding? = null
+    private val binding get() = _binding!!
     private lateinit var bookingManager: SessionBookingManager
+    
+    // ViewModel integration
+    private val viewModel: InstantBookingViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DialogInstantBookingBinding.inflate(inflater, container, false)
+        _binding = DialogInstantBookingBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         bookingManager = SessionBookingManager(requireContext())
-        setupUI()
+        
+        setupPricing()
+        setupObservers()
         setupClickListeners()
+        setupCharCounter()
+    }
+    
+    private fun setupPricing() {
+        binding.tvChatPrice.text = "₹ ${advisor.pricingInfo.instantChatFee}"
+        binding.tvAudioPrice.text = "₹ ${advisor.pricingInfo.instantAudioFee}"
+        binding.tvVideoPrice.text = "₹ ${advisor.pricingInfo.instantVideoFee}"
+        
+        // Handle availability (disable cards if not available)
+        val availability = advisor.availabilityInfo.instantAvailability
+        
+        if (!availability.isChatEnabled) {
+            disableCard(binding.cardChat, binding.imgChat, binding.tvChatPrice)
+        }
+        if (!availability.isAudioCallEnabled) {
+            disableCard(binding.cardAudio, binding.imgAudio, binding.tvAudioPrice)
+        }
+        if (!availability.isVideoCallEnabled) {
+            disableCard(binding.cardVideo, binding.imgVideo, binding.tvVideoPrice)
+        }
+    }
+    
+    private fun disableCard(card: View, icon: android.widget.ImageView, text: android.widget.TextView) {
+        card.isEnabled = false
+        card.alpha = 0.5f
     }
 
-    private fun setupUI() {
-        setupAdvisorInfo()
-        setupSpinners()
+    private fun setupObservers() {
+        viewModel.selectedType.observe(viewLifecycleOwner) { type ->
+            updateSelectionUI(type)
+        }
+        
+
     }
 
-    private fun setupAdvisorInfo() {
-//        binding.tvAdvisorName.text = advisor.name
-//        binding.tvAdvisorSpecialization.text = advisor.getSpecializationsString()
-//        binding.tvAdvisorExperience.text = "${advisor.experience} years experience"
-//        binding.tvSessionInfo.text = "Advisor will call you within 5 minutes"
+    private fun updateSelectionUI(type: BookingType) {
+        // Reset all backgrounds
+        binding.cardChat.setBackgroundResource(R.drawable.card_bg_unselected)
+        binding.cardAudio.setBackgroundResource(R.drawable.card_bg_unselected)
+        binding.cardVideo.setBackgroundResource(R.drawable.card_bg_unselected)
+        
+        // Update selected
+        when (type) {
+            BookingType.CHAT -> binding.cardChat.setBackgroundResource(R.drawable.card_bg_selected)
+            BookingType.AUDIO -> binding.cardAudio.setBackgroundResource(R.drawable.card_bg_selected)
+            BookingType.VIDEO -> binding.cardVideo.setBackgroundResource(R.drawable.card_bg_selected)
+            else -> {}
+        }
     }
 
-    private fun setupSpinners() {
-        // Purpose Spinner
-        binding.spinnerPurpose.adapter = createAdapter(DialogUtils.getBookingPurposes())
-
-        // Language Spinner
-        binding.spinnerLanguage.adapter = createAdapter(DialogUtils.getPreferredLanguages())
-
-        // Language Spinner
-        binding.spinnerLanguage.adapter = createAdapter(DialogUtils.getPreferredLanguages())
-
-        setupWordCountWatcher()
+    private fun setupClickListeners() {
+        binding.cardChat.setOnClickListener {
+            viewModel.selectType(BookingType.CHAT, advisor.pricingInfo.instantChatFee)
+        }
+        binding.cardAudio.setOnClickListener {
+            viewModel.selectType(BookingType.AUDIO, advisor.pricingInfo.instantAudioFee)
+        }
+        binding.cardVideo.setOnClickListener {
+            viewModel.selectType(BookingType.VIDEO, advisor.pricingInfo.instantVideoFee)
+        }
+        
+        binding.btnProcess.setOnClickListener {
+            processBooking()
+        }
     }
-
-    private fun setupWordCountWatcher() {
-        binding.etAdditionalNotes.addTextChangedListener(object : android.text.TextWatcher {
+    
+    private fun setupCharCounter() {
+        binding.etAgenda.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
-                val charCount = s?.toString()?.length ?: 0
-                binding.wordCountTxt.text = "$charCount / 2000 characters"
-
-                if (charCount > 2000) {
-                    binding.wordCountTxt.setTextColor(android.graphics.Color.RED)
+                val count = s?.length ?: 0
+                binding.tvCharCount.text = "$count/250"
+                if (count > 250) {
+                    binding.tvCharCount.setTextColor(android.graphics.Color.RED)
                 } else {
-                    val defaultColor = androidx.core.content.ContextCompat.getColor(requireContext(), com.example.associate.R.color.text_color)
-                    binding.wordCountTxt.setTextColor(defaultColor)
+                    binding.tvCharCount.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray)) // Assuming gray exists or hardcode color
                 }
             }
         })
     }
 
-    private fun createAdapter(items: List<String>): ArrayAdapter<String> {
-        return ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            items
-        ).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+    private fun processBooking() {
+        val agenda = binding.etAgenda.text.toString().trim()
+        val error = viewModel.validateBooking(agenda)
+        
+        if (error != null) {
+            Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+            return
         }
+        
+        if (agenda.length > 250) {
+            Toast.makeText(requireContext(), "Agenda is too long (max 250 chars)", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Start Booking Process
+        startBookingProcess(viewModel.selectedType.value!!, agenda)
     }
 
-    private fun setupClickListeners() {
-        binding.btnBookInstant.setOnClickListener {
-            bookInstantSession()
-        }
-    }
-
-    private fun bookInstantSession() {
-        val purpose = binding.spinnerPurpose.selectedItem.toString()
-        val language = binding.spinnerLanguage.selectedItem.toString()
-        val notes = binding.etAdditionalNotes.text.toString().trim()
-
-        if (!validateInputs(purpose, language, notes)) return
-
-        startBookingProcess(purpose, language, notes)
-    }
-
-    private fun validateInputs(purpose: String, language: String, notes: String): Boolean {
-        if (!DialogUtils.isValidPurpose(purpose)) {
-            showToast("Please select purpose")
-            return false
-        }
-
-        if (!DialogUtils.isValidLanguage(language)) {
-            showToast("Please select language")
-            return false
-        }
-
-        if (notes.isEmpty()) {
-            showToast("Please provide additional notes")
-            return false
-        }
-
-        // Character count check
-        val charCount = notes.length
-        if (charCount > 200) {
-            showToast("Notes cannot exceed 2000 characters. Current: $charCount")
-            return false
-        }
-
-        return true
-    }
-
-    private fun startBookingProcess(purpose: String, language: String, notes: String) {
+    private fun startBookingProcess(type: BookingType, agenda: String) {
         setLoading(true)
-
+        
+        // Map BookingType to purpose/method string if needed
+        // For now using the type as purpose or passing it appropriately
+        val purpose = "Instant ${type.name}" // Simplification
+        
         bookingManager.createInstantBooking(
             advisorId = advisor.basicInfo.id,
             advisorName = advisor.basicInfo.name,
             purpose = purpose,
-            preferredLanguage = language,
-            additionalNotes = notes,
-            urgencyLevel = "Medium", // Default value since we removed selector
+            preferredLanguage = "English", // Defaulting as simplified inputs
+            additionalNotes = agenda,
+            urgencyLevel = "Medium", 
             onSuccess = { message ->
                 setLoading(false)
-                showToast(message)
+                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
                 onBookingSuccess()
                 dismiss()
             },
             onFailure = { error ->
                 setLoading(false)
-                showToast(error)
+                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
             }
         )
     }
-
+    
     private fun setLoading(loading: Boolean) {
-        binding.btnBookInstant.isEnabled = !loading
-        binding.progressBar.visibility = if (loading) android.view.View.VISIBLE else android.view.View.GONE
+        binding.btnProcess.isEnabled = !loading
+        binding.btnProcess.text = if (loading) "Processing..." else "Process"
     }
 
-    private fun showToast(message: String) {
-        Toast.makeText(requireContext(), message, Toast .LENGTH_LONG).show()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    override fun getTheme(): Int {
+        return R.style.CustomBottomSheetDialogTheme
     }
 }

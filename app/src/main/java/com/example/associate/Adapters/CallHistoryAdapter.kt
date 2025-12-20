@@ -1,109 +1,139 @@
 package com.example.associate.Adapters
 
-import android.util.Log
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.associate.DataClass.SessionBookingDataClass
 import com.example.associate.DataClass.UserData
-import com.example.associate.DataClass.VideoCall
 import com.example.associate.R
 import de.hdodenhof.circleimageview.CircleImageView
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CallHistoryAdapter(
-    private var videoCallList: List<Pair<VideoCall, UserData?>> = emptyList()
-) : RecyclerView.Adapter<CallHistoryAdapter.VideoCallViewHolder>() {
+    private var bookingList: List<Pair<SessionBookingDataClass, UserData?>> = emptyList(),
+    private val onActionClick: (CallHistoryAction, SessionBookingDataClass) -> Unit
+) : RecyclerView.Adapter<CallHistoryAdapter.BookingViewHolder>() {
 
-    inner class VideoCallViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    enum class CallHistoryAction {
+        CANCEL, REBOOK, REVIEW, ITEM_CLICK, RESCHEDULE
+    }
+
+    inner class BookingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        // Views from call_history_item.xml
+        private val tvBookingDate: TextView = itemView.findViewById(R.id.tvBookingDate)
         private val advisorImage: CircleImageView = itemView.findViewById(R.id.advisorImage)
         private val advisorName: TextView = itemView.findViewById(R.id.advisorName)
-        private val callDate: TextView = itemView.findViewById(R.id.callDate)
-        private val callDuration: TextView = itemView.findViewById(R.id.callDuration)
-        private val callAmount: TextView = itemView.findViewById(R.id.callAmount)
-        private val callStatus: TextView = itemView.findViewById(R.id.callStatus)
-        private val professionalTitle: TextView = itemView.findViewById(R.id.professionalTitle)
+        private val imgType: ImageView = itemView.findViewById(R.id.imgType)
+        private val tvBookingType: TextView = itemView.findViewById(R.id.tvBookingType)
+        private val tvBookingId: TextView = itemView.findViewById(R.id.tvBookingId)
+        
+        // Buttons
+        private val btnReBook: TextView = itemView.findViewById(R.id.btnReBook)
+        private val btnAddReview: TextView = itemView.findViewById(R.id.btnAddReview)
+        private val btnCancel: TextView = itemView.findViewById(R.id.btnCancel)
+        private val btnReschedule: TextView = itemView.findViewById(R.id.btnReschedule)
+        private val actionButtonsLayout: View = itemView.findViewById(R.id.actionButtonsLayout)
 
-        fun bind(videoCall: VideoCall, user: UserData?) {
-            // User details
-            if (user != null) {
-                advisorName.text = user.name.toString()
-                professionalTitle.text = user.phone.ifEmpty { user.email }
-
-                if (!user.profilePhotoUrl.isNullOrEmpty()) {
-                    Glide.with(itemView.context)
-                        .load(user.profilePhotoUrl)
-                        .placeholder(R.drawable.user)
-                        .into(advisorImage)
-                }
+        fun bind(booking: SessionBookingDataClass, advisor: UserData?) {
+            // 0. Item Click (Redirect to Advisor Profile)
+            itemView.setOnClickListener {
+                onActionClick(CallHistoryAction.ITEM_CLICK, booking)
+            }
+            
+            // 1. Advisor Details
+            advisorName.text = booking.advisorName.ifEmpty { advisor?.name ?: "Unknown Advisor" }
+            
+            if (advisor?.profilePhotoUrl != null && advisor.profilePhotoUrl.isNotEmpty()) {
+                Glide.with(itemView.context)
+                    .load(advisor.profilePhotoUrl)
+                    .placeholder(R.drawable.user)
+                    .into(advisorImage)
             } else {
-               Log.d("LOG","user is empty ")
-                advisorName.text = "Unknown User"
-                professionalTitle.text = "N/A"
                 advisorImage.setImageResource(R.drawable.user)
             }
 
-            // Call date
-            videoCall.callStartTime?.toDate()?.let { date ->
-                val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-                callDate.text = dateFormat.format(date)
+            // 2. Date Header
+            val date = booking.bookingTimestamp?.toDate()
+            if (date != null) {
+                val dateFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
+                tvBookingDate.text = dateFormat.format(date)
+            } else {
+                tvBookingDate.text = "Date Unknown"
             }
 
-            // Call duration
-            val duration = calculateCallDuration(videoCall)
-            callDuration.text = duration
-
-            // Amount
-            callAmount.text = "₹${videoCall.totalAmount}"
-
-            // Status with color
-            callStatus.text = videoCall.status.replaceFirstChar {
-                if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+            // 3. Booking Type & Source
+            val type = booking.bookingType.uppercase()
+            val urgency = if (booking.urgencyLevel.equals("Scheduled", ignoreCase = true)) "Scheduled" else "Instant"
+            
+            tvBookingType.text = "${type.capitalize()} Call ($urgency)"
+            
+            // Icon based on type
+            val iconRes = when(type) {
+                "VIDEO" -> R.drawable.videocall
+                "AUDIO" -> R.drawable.call
+                "CHAT" -> R.drawable.chat
+                else -> R.drawable.videocall
             }
+            imgType.setImageResource(iconRes)
 
-            // Set status color
-            when (videoCall.status.lowercase()) {
-                "completed", "ended" -> callStatus.setTextColor(itemView.context.getColor(R.color.green))
-                "ongoing" -> callStatus.setTextColor(itemView.context.getColor(R.color.orange))
-                "initiated" -> callStatus.setTextColor(itemView.context.getColor(R.color.blue))
-                else -> callStatus.setTextColor(itemView.context.getColor(R.color.gray))
+            // 4. Booking ID
+            tvBookingId.text = "#${booking.bookingId.takeLast(8).uppercase()}"
+
+            // 5. Button Logic
+            val status = booking.bookingStatus.lowercase()
+            
+            // Reset visibility
+            btnCancel.visibility = View.GONE
+            btnReschedule.visibility = View.GONE
+            btnReBook.visibility = View.GONE
+            btnAddReview.visibility = View.GONE
+
+            if (status == "pending" || status == "accepted" || status == "upcoming" || status == "initiated") {
+                // Upcoming
+                btnCancel.visibility = View.VISIBLE
+                btnCancel.setOnClickListener { onActionClick(CallHistoryAction.CANCEL, booking) }
+                
+            } else if (status == "completed" || status == "ended") {
+                // Completed
+                btnReBook.visibility = View.VISIBLE
+                btnAddReview.visibility = View.VISIBLE
+                
+                btnReBook.setOnClickListener { onActionClick(CallHistoryAction.REBOOK, booking) }
+                btnAddReview.setOnClickListener { onActionClick(CallHistoryAction.REVIEW, booking) }
+                
+            } else {
+                // Cancelled
+                btnReBook.visibility = View.VISIBLE
+                btnReBook.setOnClickListener { onActionClick(CallHistoryAction.REBOOK, booking) }
             }
         }
-
-        private fun calculateCallDuration(videoCall: VideoCall): String {
-            return if (videoCall.callStartTime != null && videoCall.callEndTime != null) {
-                val start = videoCall.callStartTime.toDate().time
-                val end = videoCall.callEndTime.toDate().time
-                val durationMillis = end - start
-                val minutes = durationMillis / (1000 * 60)
-                val seconds = (durationMillis % (1000 * 60)) / 1000
-                "${minutes}m ${seconds}s"
-            } else {
-                "N/A"
-            }
+        
+        private fun String.capitalize(): String {
+            return this.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoCallViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookingViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.call_history_item, parent, false)
-        return VideoCallViewHolder(view)
+        return BookingViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: VideoCallViewHolder, position: Int) {
-        val (videoCall, user) = videoCallList[position]
-        holder.bind(videoCall, user)
+    override fun onBindViewHolder(holder: BookingViewHolder, position: Int) {
+        val (booking, advisor) = bookingList[position]
+        holder.bind(booking, advisor)
     }
 
-    override fun getItemCount(): Int = videoCallList.size
+    override fun getItemCount(): Int = bookingList.size
 
-    fun updateList(newList: List<Pair<VideoCall, UserData?>>) {
-        videoCallList = newList
+    fun updateList(newList: List<Pair<SessionBookingDataClass, UserData?>>) {
+        bookingList = newList
         notifyDataSetChanged()
     }
-
 }

@@ -22,6 +22,7 @@ class SessionBookingManager(private val context: Context) {
         purpose: String,
         preferredLanguage: String,
         additionalNotes: String = "",
+        bookingType: String = "AUDIO", // ✅ New Param
         urgencyLevel: String = "medium",
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
@@ -46,7 +47,7 @@ class SessionBookingManager(private val context: Context) {
                     return@checkWalletBalance
                 }
 
-                createBooking(advisorId, advisorName, studentId, studentName, purpose, preferredLanguage, additionalNotes, urgencyLevel, onSuccess, onFailure)
+                createBooking(advisorId, advisorName, studentId, studentName, purpose, preferredLanguage, additionalNotes, bookingType, urgencyLevel, onSuccess, onFailure)
             }
         }
     }
@@ -59,6 +60,7 @@ class SessionBookingManager(private val context: Context) {
         purpose: String,
         preferredLanguage: String,
         additionalNotes: String,
+        bookingType: String, // ✅ Added Param
         urgencyLevel: String,
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
@@ -74,6 +76,7 @@ class SessionBookingManager(private val context: Context) {
             purpose = purpose,
             preferredLanguage = preferredLanguage,
             additionalNotes = additionalNotes,
+            bookingType = bookingType, // ✅ Save to Object
             urgencyLevel = urgencyLevel,
             bookingTimestamp = Timestamp.now(),
             advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (5 * 60 * 1000))),
@@ -115,7 +118,92 @@ class SessionBookingManager(private val context: Context) {
         )
     }
 
-    // ... (Rest of your existing methods remain same)
+    // ✅ NEW: Create Scheduled Booking
+    fun createScheduledBooking(
+        advisorId: String,
+        advisorName: String,
+        purpose: String,
+        preferredLanguage: String,
+        additionalNotes: String = "",
+        bookingType: String, // ✅ New Param
+        urgencyLevel: String = "Scheduled",
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val currentUser = auth.currentUser ?: run {
+            onFailure("User not logged in")
+            return
+        }
+
+        val studentId = currentUser.uid
+        val studentName = currentUser.displayName ?: "Student"
+
+        // Wallet Check
+        checkWalletBalance(studentId) { balance ->
+            if (balance < 100.0) {
+                onFailure("Insufficient balance. Minimum ₹100 required.")
+                return@checkWalletBalance
+            }
+
+            // Create Booking in "scheduled_bookings"
+            createScheduledBookingInFirestore(
+                advisorId, advisorName, studentId, studentName,
+                purpose, preferredLanguage, additionalNotes, bookingType, urgencyLevel,
+                onSuccess, onFailure
+            )
+        }
+    }
+
+    private fun createScheduledBookingInFirestore(
+        advisorId: String,
+        advisorName: String,
+        studentId: String,
+        studentName: String,
+        purpose: String,
+        preferredLanguage: String,
+        additionalNotes: String,
+        bookingType: String, // ✅ Added Param
+        urgencyLevel: String,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        val bookingId = generateReadableId()
+
+        val bookingData = SessionBookingDataClass(
+            bookingId = bookingId,
+            studentId = studentId,
+            advisorId = advisorId,
+            studentName = studentName,
+            advisorName = advisorName,
+            purpose = purpose,
+            preferredLanguage = preferredLanguage,
+            additionalNotes = additionalNotes,
+            bookingType = bookingType, // ✅ Save to Object
+            urgencyLevel = urgencyLevel,
+            bookingTimestamp = Timestamp.now(),
+            // Set deadline to 24 hours for scheduled requests acceptance
+            advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000))), 
+            sessionAmount = 100.0,
+            paymentStatus = "pending",
+            bookingStatus = "pending"
+        )
+
+        db.collection("scheduled_bookings") // ✅ Separate Collection
+            .document(bookingId)
+            .set(bookingData)
+            .addOnSuccessListener {
+                Log.d("DEBUG", "Scheduled Booking created: $bookingId")
+
+                // Send Notification
+                sendBookingNotificationToAdvisor(advisorId, studentName, bookingId, advisorName)
+
+                onSuccess("Booking request sent! Advisor has been notified.")
+            }
+            .addOnFailureListener { exception ->
+                Log.e("DEBUG", "Scheduled Booking failed: ${exception.message}")
+                onFailure("Booking failed: ${exception.message}")
+            }
+    }
     private fun checkActiveBooking(studentId: String, onResult: (Boolean) -> Unit) {
         Log.d("DEBUG", "Checking active bookings for student: $studentId")
 

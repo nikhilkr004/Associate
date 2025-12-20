@@ -30,7 +30,9 @@ data class ProfessionalInfo(
     val officeLocation: String = "",
     val specializations: List<String> = emptyList(),
     val certifications: List<String> = emptyList(),
-    val languages: List<String> = emptyList()
+    val languages: List<String> = emptyList(),
+    // 🔥 NEW: Map of Specialization Name -> Certificate URL
+    val specializationUrls: Map<String, String> = emptyMap()
 ) : Parcelable
 
 // 🔹 3. Education
@@ -38,10 +40,21 @@ data class ProfessionalInfo(
 data class EducationInfo(
     val highestQualification: String = "",
     val qualificationField: String = "",
-    val university: String = ""
+    val university: String = "",
+    // 🔥 NEW: URL for the highest qualification certificate
+    val highestQualificationUrl: String = ""
 ) : Parcelable
 
 // 🔹 4. Availability & Scheduling
+@Parcelize
+data class AvailabilitySchedule(
+    val startTime: String = "",
+    val endTime: String = "",
+    val activeDays: List<String> = emptyList(),
+    val duration: Int = 15,
+    val generatedSlots: List<String> = emptyList()
+) : Parcelable
+
 @Parcelize
 data class AvailabilityInfo(
     val workingDays: List<String> = emptyList(),
@@ -50,17 +63,34 @@ data class AvailabilityInfo(
     val appointmentDuration: Int = 30,
     val maxDailyAppointments: Int = 10,
     val scheduledAvailability: ScheduledAvailabilityConfig = ScheduledAvailabilityConfig(),
-    val instantAvailability: InstantAvailabilityConfig = InstantAvailabilityConfig()
+    val instantAvailability: InstantAvailabilityConfig = InstantAvailabilityConfig(),
+    val virtualSchedule: AvailabilitySchedule = AvailabilitySchedule(),
+    val inPersonSchedule: AvailabilitySchedule = AvailabilitySchedule()
 ) : Parcelable
 
-// 🔹 5. Communication Preferences
+// 🔹 5. Pricing Information
+@Parcelize
+data class PricingInfo(
+    // Instant (Per Minute)
+    val instantChatFee: Int = 0,
+    val instantAudioFee: Int = 0,
+    val instantVideoFee: Int = 0,
+
+    // Scheduled (Per Session - e.g. 30 mins)
+    val scheduledChatFee: Int = 0,
+    val scheduledAudioFee: Int = 0,
+    val scheduledVideoFee: Int = 0,
+    val scheduledInPersonFee: Int = 0
+) : Parcelable
+
+// 🔹 6. Communication Preferences
 @Parcelize
 data class ContactPreferences(
     val preferredContactMethod: String = "",
     val responseTime: String = ""
 ) : Parcelable
 
-// 🔹 6. System & Permissions
+// 🔹 7. System & Permissions
 @Parcelize
 data class SystemInfo(
     val userRole: String = "advisor",
@@ -69,7 +99,7 @@ data class SystemInfo(
     val canManageResources: Boolean = false
 ) : Parcelable
 
-// 🔹 7. Performance & Reviews
+// 🔹 8. Performance & Reviews
 @Parcelize
 data class PerformanceInfo(
     val totalStudentsAdvised: Int = 0,
@@ -77,7 +107,7 @@ data class PerformanceInfo(
     val reviewCount: Int = 0
 ) : Parcelable
 
-// 🔹 8. Links & Documents
+// 🔹 9. Links & Documents
 @Parcelize
 data class Resources(
     val linkedinProfile: String = "",
@@ -85,7 +115,7 @@ data class Resources(
     val documentUrls: Map<String, String> = emptyMap()
 ) : Parcelable
 
-// 🔹 9. Timestamps
+// 🔹 10. Timestamps
 @Parcelize
 data class TimeInfo(
     val createdAt: Timestamp = Timestamp.now(),
@@ -100,13 +130,14 @@ data class AdvisorDataClass(
     val professionalInfo: ProfessionalInfo = ProfessionalInfo(),
     val educationInfo: EducationInfo = EducationInfo(),
     val availabilityInfo: AvailabilityInfo = AvailabilityInfo(),
+    val pricingInfo: PricingInfo = PricingInfo(),
     val contactPreferences: ContactPreferences = ContactPreferences(),
     val systemInfo: SystemInfo = SystemInfo(),
     val performanceInfo: PerformanceInfo = PerformanceInfo(),
     val resources: Resources = Resources(),
     val timeInfo: TimeInfo = TimeInfo()
 ) : Parcelable {
-    // Helper to get title easily
+    // Get full professional title
     fun getProfessionalTitle(): String {
         return "${professionalInfo.designation} - ${professionalInfo.department}"
     }

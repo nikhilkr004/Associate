@@ -44,8 +44,8 @@ class BookingRepository {
 
         val listener = bookingsCollection
             .whereEqualTo("studentId", userId)
-            .whereEqualTo("bookingStatus", "pending")
-            .addSnapshotListener { snapshots, error ->
+            .whereIn("bookingStatus", listOf("pending", "accepted", "rejected"))
+                .addSnapshotListener { snapshots, error ->
                 if (error != null) {
                     android.util.Log.e("BookingRepository", "Listen failed.", error)
                     close(error)
