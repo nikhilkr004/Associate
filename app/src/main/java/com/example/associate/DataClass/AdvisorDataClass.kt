@@ -16,7 +16,7 @@ data class BasicInfo(
     val city: String = "",
     val profileImage: String = "",
     val status: String = "",
-    val isactive: Boolean = false
+    val isactive: String = "false"
 ) : Parcelable
 
 // 🔹 2. Professional Info

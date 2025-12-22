@@ -38,7 +38,8 @@ class AdvisorAdapter(
             binding.advisorPrice.text = "₹ $price"
             
             // Availability (Mocking 'Available Now' based on status or instant availability)
-            val isOnline = advisor.basicInfo.isactive
+            // 'isactive' is a String "true"/"false" in database
+            val isOnline = advisor.basicInfo.isactive == "true"
             
             // Set online indicator visibility
             binding.icOnlineStatus.visibility = if (isOnline) {
