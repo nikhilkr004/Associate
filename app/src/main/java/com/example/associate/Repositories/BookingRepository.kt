@@ -193,7 +193,7 @@ class BookingRepository {
                     "amount" to finalCost,
                     "type" to "DEBIT",
                     "description" to "Call Fee",
-                    "timestamp" to com.google.firebase.FieldValue.serverTimestamp(),
+                    "timestamp" to FieldValue.serverTimestamp(),
                     "relatedBookingId" to bookingId
                 )
                 transaction.set(userTransactionRef, userTx)
@@ -204,7 +204,7 @@ class BookingRepository {
                     "amount" to finalCost,
                     "type" to "CREDIT",
                     "description" to "Session Earning",
-                    "timestamp" to com.google.firebase.FieldValue.serverTimestamp(),
+                    "timestamp" to FieldValue.serverTimestamp(),
                     "relatedBookingId" to bookingId
                 )
                 transaction.set(advisorTransactionRef, advisorTx)
