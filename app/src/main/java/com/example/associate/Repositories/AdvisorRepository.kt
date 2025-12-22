@@ -18,14 +18,22 @@ class AdvisorRepository {
     suspend fun getActiveAdvisors(): List<AdvisorDataClass> {
         return try {
             val documents = advisorsCollection
-                .whereEqualTo("basicInfo.status", "active")
+                // Assuming "active" means the advisor account is valid/approved.
+                // If you want to filter by "active" account status:
+                .whereEqualTo("basicInfo.status", "active") 
                 .get()
                 .await()
 
             documents.mapNotNull { document ->
                 try {
                     val advisor = document.toObject(AdvisorDataClass::class.java)
-                    advisor?.copy(basicInfo = advisor.basicInfo.copy(id = document.id))
+                    // Ensure ID is set from document ID
+                    advisor?.copy(basicInfo = advisor.basicInfo.copy(
+                        id = document.id,
+                        // If 'isactive' is missing in some docs, default to "false" 
+                        // (though data class default handles this if null, Firestore might return null if field missing)
+                        isactive = document.getString("basicInfo.isactive") ?: advisor.basicInfo.isactive
+                    ))
                 } catch (e: Exception) {
                     null
                 }
