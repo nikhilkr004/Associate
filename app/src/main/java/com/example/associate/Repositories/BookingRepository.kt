@@ -178,14 +178,19 @@ class BookingRepository {
                 transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
                 transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost)
 
-                // 4. Update Booking
-                transaction.update(bookingRef, mapOf(
-                    "bookingStatus" to "completed",
-                    "paymentStatus" to "paid",
-                    "sessionAmount" to finalCost,
-                    "callDuration" to callDurationSeconds,
-                    "callEndedAt" to com.google.firebase.Timestamp.now()
-                ))
+                // 4. Update Booking (Only if exists)
+                val bookingSnapshot = transaction.get(bookingRef)
+                if (bookingSnapshot.exists()) {
+                    transaction.update(bookingRef, mapOf(
+                        "bookingStatus" to "completed",
+                        "paymentStatus" to "paid",
+                        "sessionAmount" to finalCost,
+                        "callDuration" to callDurationSeconds,
+                        "callEndedAt" to com.google.firebase.Timestamp.now()
+                    ))
+                } else {
+                    android.util.Log.w("BookingRepository", "Booking document $bookingId not found. Skipping status update but processing payment.")
+                }
 
                 // 5. Transaction History (User)
                 val userTransactionRef = userRef.collection("transactions").document()
