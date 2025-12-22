@@ -114,13 +114,22 @@ class TransactionFragment : Fragment() {
 
         DialogUtils.showLoadingDialog(requireContext(), "Loading...")
 
-        firestore.collection("payments")
+        val paymentsTask = firestore.collection("payments")
             .whereEqualTo("userId", currentUser.uid)
             .get()
-            .addOnSuccessListener { querySnapshot ->
+
+        val callTransactionsTask = firestore.collection("users")
+            .document(currentUser.uid)
+            .collection("transactions")
+            .get()
+
+        com.google.android.gms.tasks.Tasks.whenAllSuccess<com.google.firebase.firestore.QuerySnapshot>(paymentsTask, callTransactionsTask)
+            .addOnSuccessListener { results ->
                 transactionList.clear()
 
-                for (document in querySnapshot.documents) {
+                // 1. Process 'payments' (Top-ups)
+                val paymentsSnapshot = results[0]
+                for (document in paymentsSnapshot.documents) {
                     val payment = document.toObject(PaymentDataClass::class.java)
                     payment?.let {
                         val transaction = convertPaymentToTransaction(it, document.id)
@@ -128,8 +137,41 @@ class TransactionFragment : Fragment() {
                     }
                 }
 
-                // Manually sort by date in code
-                transactionList.sortByDescending { it.paymentData?.createdAt }
+                // 2. Process 'transactions' (Call Debits/Credits)
+                val callTxnSnapshot = results[1]
+                for (document in callTxnSnapshot.documents) {
+                    try {
+                        val data = document.data ?: continue
+                        val amount = (data["amount"] as? Number)?.toDouble() ?: 0.0
+                        val type = data["type"] as? String ?: "DEBIT"
+                        val timestamp = data["timestamp"] as? Timestamp ?: Timestamp.now()
+                        val relatedBookingId = data["relatedBookingId"] as? String ?: document.id
+                        val description = data["description"] as? String ?: "Transaction"
+
+                        val formattedAmount = if (type == "DEBIT") {
+                             "- ₹${String.format("%.2f", amount)}"
+                        } else {
+                             "+ ₹${String.format("%.2f", amount)}"
+                        }
+
+                        val transaction = Transaction(
+                            id = document.id,
+                            type = description,
+                            amount = formattedAmount,
+                            date = formatDate(timestamp),
+                            transactionId = relatedBookingId,
+                            status = if (type == "DEBIT") "Debited" else "Credited",
+                            paymentData = null,
+                            timestamp = timestamp
+                        )
+                        transactionList.add(transaction)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                // Sort by Timestamp Descending
+                transactionList.sortByDescending { it.timestamp }
 
                 transactionAdapter.notifyDataSetChanged()
                 DialogUtils.hideLoadingDialog()
@@ -153,7 +195,8 @@ class TransactionFragment : Fragment() {
             date = formatDate(payment.createdAt), // Ensure createdAt is used
             transactionId = payment.razorpayPaymentId.ifEmpty { payment.paymentId },
             status = getFormattedStatus(payment),
-            paymentData = payment
+            paymentData = payment,
+            timestamp = payment.createdAt
         )
     }
 

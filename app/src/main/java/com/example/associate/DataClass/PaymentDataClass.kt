@@ -52,5 +52,6 @@ data class Transaction(
     val date: String,
     val transactionId: String,
     val status: String,
-    val paymentData: PaymentDataClass? = null // Optional: agar complete data chahiye
+    val paymentData: PaymentDataClass? = null,
+    val timestamp: Timestamp = Timestamp.now()
 )
