@@ -478,7 +478,8 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             Toast.makeText(this, "Processing Secure Payment...", Toast.LENGTH_SHORT).show()
             
             // Invoke Repository
-            androidx.lifecycle.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            // Invoke Repository
+            lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                 val success = bookingRepository.completeBookingWithTransaction(
                     bookingId, userId, advisorId, callDurationSeconds, ratePerMinute, isInstantBooking
                 )
