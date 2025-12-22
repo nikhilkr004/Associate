@@ -38,6 +38,15 @@ class AdvisorAdapter(
             binding.advisorPrice.text = "₹ $price"
             
             // Availability (Mocking 'Available Now' based on status or instant availability)
+            val isOnline = advisor.basicInfo.status == "online"
+            
+            // Set online indicator visibility
+            binding.icOnlineStatus.visibility = if (isOnline) {
+                android.view.View.VISIBLE 
+            } else {
+                 android.view.View.GONE
+            }
+
             // If instant video is enabled -> Show "Video Consult" green
             // Else -> maybe hide or show "Scheduled"
             // For now, mirroring image style static or simple dynamic
