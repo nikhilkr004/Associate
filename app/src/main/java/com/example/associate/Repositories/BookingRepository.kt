@@ -140,6 +140,8 @@ class BookingRepository {
 
                 val userSnapshot = transaction.get(userRef)
                 val advisorSnapshot = transaction.get(advisorRef)
+                // Ensure booking doc is read early for txn consistency rules
+                val bookingSnapshot = transaction.get(bookingRef)
 
                 // 1. Calculate Costs
                 val totalCost = if (isInstant) {
@@ -179,7 +181,6 @@ class BookingRepository {
                 transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost)
 
                 // 4. Update Booking (Only if exists)
-                val bookingSnapshot = transaction.get(bookingRef)
                 if (bookingSnapshot.exists()) {
                     transaction.update(bookingRef, mapOf(
                         "bookingStatus" to "completed",
