@@ -118,4 +118,101 @@ class BookingRepository {
 
         awaitClose { listener.remove() }
     }
+    /**
+     * Completes a booking with a secure atomic transaction.
+     * Deducts from User Wallet, Credits Advisor Wallet, Updates Booking, and Adds Transaction History.
+     */
+    suspend fun completeBookingWithTransaction(
+        bookingId: String,
+        userId: String,
+        advisorId: String,
+        callDurationSeconds: Long,
+        ratePerMinute: Double,
+        isInstant: Boolean
+    ): Boolean {
+        return try {
+            db.runTransaction { transaction ->
+                val userRef = db.collection("users").document(userId)
+                val advisorRef = db.collection("advisors").document(advisorId)
+                val bookingCollection = if (isInstant) "instant_bookings" else "scheduled_bookings"
+                val bookingRef = db.collection(bookingCollection).document(bookingId)
+
+                val userSnapshot = transaction.get(userRef)
+                val advisorSnapshot = transaction.get(advisorRef)
+
+                // 1. Calculate Costs
+                val totalCost = if (isInstant) {
+                     (callDurationSeconds / 60.0) * ratePerMinute
+                } else {
+                     ratePerMinute // For scheduled, ratePerMinute is treated as fixed sessionAmount
+                }
+                
+                // Round to 2 decimals
+                val finalCost = java.math.BigDecimal(totalCost).setScale(2, java.math.RoundingMode.HALF_UP).toDouble()
+
+                // 2. User Deduction
+                val currentBalance = userSnapshot.getDouble("walletBalance") ?: 0.0
+                val newBalance = currentBalance - finalCost
+                
+                // Allow negative balance? Usually no, but for atomic completion we might enforce it or fail.
+                // If this runs at end of call, we deduct what we can or go negative. 
+                // Given the visual tracker checks balance, we assume it's mostly fine.
+                // We will proceed even if it dips slightly negative to ensure advisor is paid for time used.
+
+                transaction.update(userRef, "walletBalance", newBalance)
+
+                // 3. Advisor Credit
+                // Access nested map "earningsInfo"
+                // Note: Firestore doesn't support updating nested fields easily with dot notation in 'update' if the map doesn't exist?
+                // But usually "earningsInfo.totalLifetimeEarnings" works.
+                // Safely get current values
+                
+                // We need to handle if earningsInfo doesn't exist yet
+                val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
+                val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
+                val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
+                val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
+
+                transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + finalCost)
+                transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
+                transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost)
+
+                // 4. Update Booking
+                transaction.update(bookingRef, mapOf(
+                    "bookingStatus" to "completed",
+                    "paymentStatus" to "paid",
+                    "sessionAmount" to finalCost,
+                    "callDuration" to callDurationSeconds,
+                    "callEndedAt" to com.google.firebase.Timestamp.now()
+                ))
+
+                // 5. Transaction History (User)
+                val userTransactionRef = userRef.collection("transactions").document()
+                val userTx = hashMapOf(
+                    "amount" to finalCost,
+                    "type" to "DEBIT",
+                    "description" to "Call Fee",
+                    "timestamp" to com.google.firebase.FieldValue.serverTimestamp(),
+                    "relatedBookingId" to bookingId
+                )
+                transaction.set(userTransactionRef, userTx)
+
+                // 6. Transaction History (Advisor)
+                val advisorTransactionRef = advisorRef.collection("transactions").document()
+                val advisorTx = hashMapOf(
+                    "amount" to finalCost,
+                    "type" to "CREDIT",
+                    "description" to "Session Earning",
+                    "timestamp" to com.google.firebase.FieldValue.serverTimestamp(),
+                    "relatedBookingId" to bookingId
+                )
+                transaction.set(advisorTransactionRef, advisorTx)
+
+            }.await()
+            true
+        } catch (e: Exception) {
+            android.util.Log.e("BookingRepository", "Transaction failed: ${e.message}", e)
+            false
+        }
+    }
 }

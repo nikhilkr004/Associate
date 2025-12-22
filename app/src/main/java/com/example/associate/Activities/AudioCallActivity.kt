@@ -36,6 +36,8 @@ import org.json.JSONObject
 import java.util.ArrayList
 import java.util.Timer
 import java.util.TimerTask
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener {
 
@@ -72,12 +74,20 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
     }
 
+    private lateinit var bookingRepository: com.example.associate.Repositories.BookingRepository
+    private var isInstantBooking = false
+    private var ratePerMinute = 0.0
+    private var userWalletBalance = 0.0
+    private var visualTrackerHandler: Handler? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(binding.root)
+        
+        bookingRepository = com.example.associate.Repositories.BookingRepository()
 
-        // Window flags for lock screen
+        // ... (keep existing window flags) ...
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -94,6 +104,8 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         
         localUserID = auth.currentUser?.uid ?: "user_${System.currentTimeMillis()}"
         localUserName = auth.currentUser?.displayName ?: "User"
+        
+        fetchWalletBalance()
 
         currentCallId = intent.getStringExtra("CALL_ID") ?: ""
         if (currentCallId.isEmpty()) {
@@ -107,6 +119,20 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         setupCallControls()
         registerBroadcastReceiver()
         stopCallNotificationService()
+    }
+    
+    private fun fetchWalletBalance() {
+        val userId = auth.currentUser?.uid ?: return
+        db.collection("wallets").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    userWalletBalance = document.getDouble("walletBalance") ?: document.getDouble("balance") ?: 0.0
+                    Log.d("AudioCall", "Wallet Balance fetched: $userWalletBalance")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("AudioCall", "Failed to fetch wallet balance: ${e.message}")
+            }
     }
 
     private fun stopCallNotificationService() {
@@ -126,7 +152,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         
         binding.tvAdvisorName.text = advisorName
         binding.tvTimer.text = "00:00"
-        binding.tvPaymentInfo.text = "Rate: ₹60/min"
+        binding.tvPaymentInfo.text = "Initializing..."
         binding.tvConnectionStatus.text = "Initializing Audio Call..."
 
         // Load Advisor Avatar with Fallback
@@ -139,7 +165,8 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             }
         }
     }
-    
+
+    // ... (keep fetchAdvisorAvatar, loadAvatar, checkPermissionsAndInitialize) ...
     private fun fetchAdvisorAvatar(advisorId: String) {
         val db = FirebaseFirestore.getInstance()
         db.collection("advisors").document(advisorId).get()
@@ -189,10 +216,8 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             val initialized = zegoManager.initializeEngine(AppConstants.ZEGO_APP_ID, AppConstants.ZEGO_APP_SIGN)
 
             if (initialized) {
-                // Strictly disable camera for Audio Call
                 zegoManager.enableCamera(false)
                 
-                // Join room
                 val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
                 zegoManager.joinRoom(roomID, localUserID, localUserName)
                 
@@ -211,6 +236,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
     }
 
+    // ... (keep updateCallStatusInFirestore) ...
     private fun updateCallStatusInFirestore(status: String) {
         val updates = hashMapOf<String, Any>(
             "status" to status,
@@ -236,8 +262,9 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         db.collection("instant_bookings").document(bookingId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val rate = document.getDouble("sessionAmount") ?: 60.0
-                    startPaymentService(rate)
+                    isInstantBooking = true
+                    ratePerMinute = document.getDouble("sessionAmount") ?: 60.0
+                    startVisualTracker()
                 } else {
                     // Try Scheduled Bookings
                     fetchScheduledBooking(bookingId)
@@ -253,8 +280,9 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         db.collection("scheduled_bookings").document(bookingId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val rate = document.getDouble("sessionAmount") ?: 60.0
-                    startPaymentService(rate)
+                    isInstantBooking = false
+                    ratePerMinute = document.getDouble("sessionAmount") ?: 100.0 // Fixed
+                    startVisualTracker()
                 } else {
                     Log.e("AudioCall", "Booking not found in Scheduled either. Fetching Advisor Rate.")
                     fetchAdvisorRateFromProfile()
@@ -271,24 +299,52 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         
         repository.fetchInstantRate(advisorId ?: "", "AUDIO") { rate ->
             Log.d("AudioCall", "Fetched dynamic rate from Advisor Profile: $rate")
-            startPaymentService(rate)
+            isInstantBooking = true
+            ratePerMinute = rate
+            startVisualTracker()
         }
     }
 
-    private fun startPaymentService(rate: Double = 60.0) {
-        try {
-            binding.tvPaymentInfo.text = "Rate: ₹$rate/min"
-            val serviceIntent = Intent(this, VideoCallService::class.java).apply {
-                action = "START_PAYMENT"
-                putExtra("CALL_ID", currentCallId)
-                putExtra("RATE_PER_MINUTE", rate)
+    // 🔥 NEW: Visual Cost Tracker (UI Only)
+    private fun startVisualTracker() {
+        visualTrackerHandler?.removeCallbacksAndMessages(null)
+        visualTrackerHandler = Handler(Looper.getMainLooper())
+        
+        val runnable = object : Runnable {
+            override fun run() {
+                if (!isCallActive) return
+
+                val elapsedSeconds = (System.currentTimeMillis() - callStartTime) / 1000
+                val durationInMinutes = elapsedSeconds / 60.0
+                
+                val currentCost = if (isInstantBooking) {
+                    durationInMinutes * ratePerMinute
+                } else {
+                    ratePerMinute
+                }
+                
+                // Update UI
+                val formattedCost = String.format("%.2f", currentCost)
+                binding.tvPaymentInfo.text = "Rate: ₹$ratePerMinute/min"
+                binding.tvSpentAmount.text = "₹$formattedCost"
+
+                // Balance Check
+                if (isInstantBooking && currentCost >= userWalletBalance) {
+                     showInsufficientBalanceDialog()
+                     return
+                }
+
+                visualTrackerHandler?.postDelayed(this, 1000)
             }
-            ContextCompat.startForegroundService(this, serviceIntent)
-        } catch (e: Exception) {
-            Log.e("AudioCall", "Failed to start payment service: ${e.message}")
         }
+        visualTrackerHandler?.post(runnable)
+    }
+
+    private fun startPaymentService(rate: Double = 60.0) {
+        // Deprecated
     }
     
+    // ... (keep setupCallControls, toggles) ...
     private fun setupCallControls() {
         binding.btnEndCall.setOnClickListener {
             showEndCallConfirmation()
@@ -303,10 +359,6 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
         
         binding.btnBack.setOnClickListener {
-            // Optional: minimize or simple back? 
-            // Usually in call screens, back button works same as home (background) or strictly ends call.
-            // Let's make it act like home/background for safety, or just ignore. 
-            // User requested 'Back button', let's assume minimizing or back press behavior.
             onBackPressed() 
         }
     }
@@ -322,8 +374,6 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         if (!isCallActive) return
         isSpeakerOn = !isSpeakerOn
         zegoManager.enableSpeaker(isSpeakerOn)
-        // Update icon tint or background to show active state if needed?
-        // Using Alpha for simple feedback
         binding.btnSpeaker.alpha = if(isSpeakerOn) 1.0f else 0.6f
         Toast.makeText(this, "Speaker ${if(isSpeakerOn) "On" else "Off"}", Toast.LENGTH_SHORT).show()
     }
@@ -349,50 +399,20 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun registerBroadcastReceiver() {
-        try {
-            val filter = IntentFilter().apply {
-                addAction("INSUFFICIENT_BALANCE")
-                addAction("PAYMENT_CALCULATED")
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(balanceReceiver, filter, Context.RECEIVER_EXPORTED)
-            } else {
-                registerReceiver(balanceReceiver, filter)
-            }
-        } catch (e: Exception) {
-            Log.e("AudioCall", "Failed to register broadcast receiver: ${e.message}")
-        }
+        // ...
     }
-
     private val balanceReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when(intent?.action) {
-                "INSUFFICIENT_BALANCE" -> {
-                    runOnUiThread {
-                        showInsufficientBalanceDialog()
-                    }
-                }
-                "PAYMENT_CALCULATED" -> {
-                    totalAmountSpent = intent.getDoubleExtra("TOTAL_AMOUNT", 0.0)
-                    runOnUiThread {
-                        updatePaymentUI()
-                    }
-                }
-            }
-        }
+        override fun onReceive(context: Context?, intent: Intent?) {}
     }
 
     private fun updatePaymentUI() {
-        val elapsedSeconds = (System.currentTimeMillis() - callStartTime) / 1000
-        val minutes = elapsedSeconds / 60
-        val seconds = elapsedSeconds % 60
-        binding.tvTimer.text = String.format("%02d:%02d", minutes, seconds)
-        // Update Live Spent Amount
-        binding.tvSpentAmount.text = "₹${String.format("%.2f", totalAmountSpent)}"
+        // Handled by visualTracker
     }
-
+    
+    // ... (Dialog and End Call) ...
     private fun showInsufficientBalanceDialog() {
-        AlertDialog.Builder(this)
+        if (!isFinishing) {
+             AlertDialog.Builder(this)
             .setTitle("Insufficient Balance")
             .setMessage("Your wallet balance is low. The call will be ended.")
             .setPositiveButton("OK") { dialog, which ->
@@ -400,31 +420,64 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             }
             .setCancelable(false)
             .show()
+        }
     }
 
+    // 🔥 UPDATE: End Call with Secure Transaction
     private fun endCall() {
         if (!isCallActive) {
             finish()
             return
         }
+        
         isCallActive = false
-        stopPaymentService()
+        visualTrackerHandler?.removeCallbacksAndMessages(null)
+
+        val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
         try {
-            val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
             zegoManager.leaveRoom(roomID)
         } catch (e: Exception) {}
 
-        updateCallEndStatus()
+        updateCallEndStatus() // Updates videoCalls doc
+
+        // 🔥 ATOMIC TRANSACTION
+        val callDurationSeconds = (System.currentTimeMillis() - callStartTime) / 1000
+        val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: ""
+        val advisorId = intent.getStringExtra("ADVISOR_ID") ?: remoteAdvisorId
+        val userId = localUserID
+        
+        if (bookingId.isNotEmpty() && advisorId.isNotEmpty()) {
+            Toast.makeText(this, "Processing Secure Payment...", Toast.LENGTH_SHORT).show()
+            
+            // Invoke Repository
+            lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                val success = bookingRepository.completeBookingWithTransaction(
+                    bookingId, userId, advisorId, callDurationSeconds, ratePerMinute, isInstantBooking
+                )
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    if (success) {
+                        Toast.makeText(this@AudioCallActivity, "Payment Successful!", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@AudioCallActivity, "Payment Processing Failed. Please contact support.", Toast.LENGTH_LONG).show()
+                    }
+                    navigationAfterEnd()
+                }
+            }
+        } else {
+             navigationAfterEnd()
+        }
     }
 
-    private fun endCallWithNavigation() {
-        endCall()
+    private fun navigationAfterEnd() {
         navigateToHome()
     }
-
-    private fun saveRatingToBackend(ratingValue: Float, review: String) {
-        // Rating feature removed as per request
+    
+    private fun endCallWithNavigation() {
+        endCall()
+        // navigateToHome is called inside endCall -> transaction scope
     }
+
+    private fun saveRatingToBackend(ratingValue: Float, review: String) {}
 
     private fun navigateToHome() {
         val intent = Intent(this, MainActivity::class.java)
@@ -435,47 +488,24 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     }
 
     private fun stopPaymentService() {
-        try {
-            val serviceIntent = Intent(this, VideoCallService::class.java).apply {
-                action = "STOP_PAYMENT"
-                putExtra("CALL_ID", currentCallId)
-            }
-            startService(serviceIntent)
-        } catch (e: Exception) {}
+        // No-op
     }
 
     private fun updateCallEndStatus() {
         val endTime = Timestamp.now()
         val elapsedSeconds = (System.currentTimeMillis() - callStartTime) / 1000
-
         val updates = hashMapOf<String, Any>(
             "status" to "ended",
             "callEndTime" to endTime,
             "duration" to elapsedSeconds
         )
-
-        db.collection("videoCalls")
-            .document(currentCallId)
-            .update(updates)
-            .addOnCompleteListener { 
-                 updateBookingStatusToEnded()
-            }
+        db.collection("videoCalls").document(currentCallId).update(updates)
     }
+    
+    // Kept for compatibility but logic moved to Transaction
+    private fun updateBookingStatusToEnded() {}
 
-    private fun updateBookingStatusToEnded() {
-        val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: return
-        val instantRef = db.collection("instant_bookings").document(bookingId)
-        instantRef.get().addOnSuccessListener { doc ->
-            if (doc.exists()) {
-                instantRef.update("bookingStatus", "ended")
-            } else {
-                val scheduledRef = db.collection("scheduled_bookings").document(bookingId)
-                scheduledRef.update("bookingStatus", "ended")
-            }
-        }
-    }
-
-    // Zego Event Listeners
+    // ... (Keep Zego Listeners) ...
     override fun onRoomStateChanged(roomID: String, reason: Int, errorCode: Int, extendedData: JSONObject) {
         runOnUiThread {
             if (errorCode == 0) {
@@ -496,7 +526,6 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     remoteAdvisorId = user.userID
                     Toast.makeText(this, "Advisor joined!", Toast.LENGTH_SHORT).show()
                     
-                    // Play remote audio
                     val streamID = "stream_${user.userID}"
                     zegoManager.startPlayingAudio(streamID)
                 }
@@ -509,44 +538,35 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
     }
 
-    override fun onRemoteCameraStateUpdate(streamID: String, state: Int) {
-        // Not used in Audio Call
-    }
+    override fun onRemoteCameraStateUpdate(streamID: String, state: Int) {}
 
     private fun showError(message: String) {
         Log.e("AudioCall", message)
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-        Handler(Looper.getMainLooper()).postDelayed({
-            finish()
-        }, 3000)
+        Handler(Looper.getMainLooper()).postDelayed({ finish() }, 3000)
     }
 
     private fun showEndCallConfirmation() {
         AlertDialog.Builder(this)
             .setTitle("End Call")
             .setMessage("Are you sure you want to end the call?")
-            .setPositiveButton("End Call") { dialog, which ->
-                endCallWithNavigation()
-            }
+            .setPositiveButton("End Call") { dialog, which -> endCallWithNavigation() }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    override fun onBackPressed() {
-        showEndCallConfirmation()
-    }
+    override fun onBackPressed() { showEndCallConfirmation() }
 
     override fun onDestroy() {
         super.onDestroy()
         callTimer?.cancel()
         callTimer = null
+        visualTrackerHandler?.removeCallbacksAndMessages(null)
         try {
             val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
             zegoManager.leaveRoom(roomID)
         } catch (e: Exception) {}
-        try {
-            unregisterReceiver(balanceReceiver)
-        } catch (e: Exception) {}
+        try { unregisterReceiver(balanceReceiver) } catch (e: Exception) {}
         stopPaymentService()
     }
 }
