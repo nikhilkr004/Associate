@@ -83,6 +83,10 @@ class HomeFragment : Fragment() {
                 binding.swipeRefreshLayout.isRefreshing = false
             }, 2000)
         }
+
+        binding.notifictionBtn.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.associate.Activities.NotificationActivity::class.java))
+        }
     }
 
     private fun setupRecyclerView() {

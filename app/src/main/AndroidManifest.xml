@@ -44,9 +44,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/app_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/app_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Associate"
         tools:targetApi="31">
@@ -79,6 +79,16 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:hardwareAccelerated="true" />
+
+        <!-- Audio Call Activity -->
+        <activity
+            android:name=".Activities.AudioCallActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTop" />
 
         <!-- Payment Activity -->
         <activity
@@ -126,6 +136,13 @@
             android:turnScreenOn="true"
             android:launchMode="singleTop"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+
+        <!-- Notification Activity -->
+        <activity
+            android:name=".Activities.NotificationActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+             />
 
         <!-- Video Call Service -->
         <service

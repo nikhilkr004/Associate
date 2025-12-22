@@ -48,4 +48,40 @@ class AdvisorRepository {
             null
         }
     }
+
+
+
+    /**
+     * Fetches the specific Instant Call Rate for an Advisor.
+     * @param advisorId The ID of the advisor.
+     * @param type "AUDIO" or "VIDEO".
+     * @param onResult Callback with the rate (Double). Returns default 60.0 on failure.
+     */
+    fun fetchInstantRate(advisorId: String, type: String, onResult: (Double) -> Unit) {
+        if (advisorId.isEmpty()) {
+            onResult(60.0)
+            return
+        }
+
+        advisorsCollection.document(advisorId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val pricingInfo = document.get("pricingInfo") as? Map<String, Any>
+                    val field = if (type.equals("AUDIO", ignoreCase = true)) "instantAudioFee" else "instantVideoFee"
+                    
+                    // Robust parsing: Handle Int, Long, Double, String
+                    val rate = when (val value = pricingInfo?.get(field)) {
+                        is Number -> value.toDouble()
+                        is String -> value.toDoubleOrNull() ?: 60.0
+                        else -> 60.0
+                    }
+                    onResult(rate)
+                } else {
+                    onResult(60.0)
+                }
+            }
+            .addOnFailureListener {
+                onResult(60.0)
+            }
+    }
 }

@@ -15,9 +15,12 @@ data class SessionBookingDataClass(
     val preferredLanguage: String = "",
     val additionalNotes: String = "",
     var urgencyLevel: String = "",
+    var bookingSlot: String = "",
+    var bookingDate: String = "",
     val bookingType: String = "AUDIO", // CHAT, AUDIO, VIDEO
     
     // 🔥 UPDATED: Use Timestamp instead of Long
+    @com.google.firebase.firestore.PropertyName("timestamp")
     var bookingTimestamp: Timestamp? = null,
     val advisorResponseDeadline: Timestamp? = null,
     val advisorCalledAt: Timestamp? = null,

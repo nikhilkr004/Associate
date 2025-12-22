@@ -50,19 +50,22 @@ class IncomingCallActivity : AppCompatActivity() {
         val channelName = intent.getStringExtra("CHANNEL_NAME") ?: ""
         val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
+        val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
         
         binding.tvCallerName.text = callerName
+        
+        // Update UI based on Call Type
+        if (callType == "AUDIO") {
+             binding.tvCallerName.text = "$callerName (Audio Call)"
+        }
 
         // Load Avatar
         if (advisorAvatar.isNotEmpty()) {
-            try {
-                com.bumptech.glide.Glide.with(this)
-                    .load(advisorAvatar)
-                    .placeholder(R.drawable.user)
-                    .circleCrop()
-                    .into(binding.ivCallerImage)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            loadAvatar(advisorAvatar)
+        } else {
+            val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+            if (advisorId.isNotEmpty()) {
+                fetchAdvisorAvatar(advisorId)
             }
         }
 
@@ -70,7 +73,7 @@ class IncomingCallActivity : AppCompatActivity() {
 
         binding.btnAccept.setOnClickListener {
             stopService()
-            acceptCall(callId, channelName, callerName, advisorId)
+            acceptCall(callId, channelName, callerName, advisorId, callType)
         }
 
         binding.btnDecline.setOnClickListener {
@@ -92,18 +95,56 @@ class IncomingCallActivity : AppCompatActivity() {
         // Update UI for new call
         val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
+        val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
+        
         binding.tvCallerName.text = callerName
         
         if (advisorAvatar.isNotEmpty()) {
-            try {
-                com.bumptech.glide.Glide.with(this)
-                    .load(advisorAvatar)
-                    .placeholder(R.drawable.user)
-                    .circleCrop()
-                    .into(binding.ivCallerImage)
-            } catch (e: Exception) {
+            loadAvatar(advisorAvatar)
+        } else {
+            val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+            if (advisorId.isNotEmpty()) {
+                fetchAdvisorAvatar(advisorId)
+            }
+        }
+    }
+    
+    private fun fetchAdvisorAvatar(advisorId: String) {
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        db.collection("advisors").document(advisorId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    // Check for nested basicInfo first (AdvisorDataClass structure)
+                    val basicInfo = document.get("basicInfo") as? Map<*, *>
+                    var avatarUrl = basicInfo?.get("profileImage") as? String
+                    
+                    // Fallback to root level if not found
+                    if (avatarUrl.isNullOrEmpty()) {
+                        avatarUrl = document.getString("profileImage") ?: document.getString("profileimage")
+                    }
+                    
+                    if (!avatarUrl.isNullOrEmpty()) {
+                        // Update Intent for next activity
+                        intent.putExtra("advisorAvatar", avatarUrl)
+                        intent.putExtra("ADVISOR_AVATAR", avatarUrl)
+                        loadAvatar(avatarUrl)
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
                 e.printStackTrace()
             }
+    }
+
+    private fun loadAvatar(url: String) {
+        try {
+            com.bumptech.glide.Glide.with(this)
+                .load(url)
+                .placeholder(R.drawable.user)
+                .circleCrop()
+                .into(binding.ivCallerImage)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -114,14 +155,20 @@ class IncomingCallActivity : AppCompatActivity() {
         startService(intent)
     }
 
-    private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String) {
-        android.widget.Toast.makeText(this, "Accepting call...", android.widget.Toast.LENGTH_SHORT).show()
+    private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String, callType: String) {
+        android.widget.Toast.makeText(this, "Accepting ${if(callType=="AUDIO") "Audio" else "Video"} call...", android.widget.Toast.LENGTH_SHORT).show()
+        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: "" // Retrieve avatar
+        
         stopService()
-        val intent = Intent(this, VideoCallActivity::class.java).apply {
+        val targetActivity = if (callType == "AUDIO") AudioCallActivity::class.java else VideoCallActivity::class.java
+        
+        val intent = Intent(this, targetActivity).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
             putExtra("ADVISOR_NAME", advisorName)
             putExtra("ADVISOR_ID", advisorId)
+            putExtra("CALL_TYPE", callType)
+            putExtra("ADVISOR_AVATAR", advisorAvatar)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(intent)

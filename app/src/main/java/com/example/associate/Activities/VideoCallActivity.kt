@@ -113,8 +113,8 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             return
         }
 
-        // NEW: Get Call Type
-        callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
+        // Call Type is now handled by separate activities, default to VIDEO here for safety
+        callType = "VIDEO"
 
         initializeUI()
         android.widget.Toast.makeText(this, "Starting ${if(callType=="AUDIO") "Audio" else "Video"} Call...", android.widget.Toast.LENGTH_SHORT).show()
@@ -137,22 +137,16 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     private fun initializeUI() {
         val advisorName = intent.getStringExtra("ADVISOR_NAME") ?: "Advisor"
+        
         binding.tvCallStatus.text = advisorName
         // ... keep existing UI init code ...
         binding.tvTimer.text = "00:00"
-        binding.tvPaymentInfo.text = "Rate: ₹60 per minute (₹10/10sec)"
+        binding.tvPaymentInfo.text = ""
         binding.tvConnectionStatus.text = "Initializing..."
 
-        if (callType == "AUDIO") {
-            // AUDIO MODE
-            binding.localVideoView.visibility = View.GONE
-            binding.remoteVideoView.visibility = View.GONE
-            binding.tvConnectionStatus.text = "Audio Call Initialized"
-        } else {
-            // VIDEO MODE
-            binding.localVideoView.visibility = View.VISIBLE
-            binding.remoteVideoView.visibility = View.VISIBLE
-        }
+        // VIDEO MODE - Ensure Video Views are Visible
+        binding.localVideoView.visibility = View.VISIBLE
+        binding.remoteVideoView.visibility = View.VISIBLE
     }
 
     private fun checkPermissionsAndInitialize() {
@@ -176,17 +170,12 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 Log.d("VideoCall", "Zego engine initialized successfully")
 
                 // NEW: Configure Camera based on Type
-                if (callType == "AUDIO") {
-                     zegoManager.enableCamera(false) // Disable Camera for Audio Call
-                     Log.d("VideoCall", "Camera disabled for Audio Call")
-                } else {
-                     zegoManager.enableCamera(true)  // Enable Camera
+                zegoManager.enableCamera(true)  // Enable Camera
                      
-                     // Setup local video only for Video Call
-                     val localTextureView = TextureView(this)
-                     binding.localVideoView.addView(localTextureView)
-                     zegoManager.setupLocalVideo(localTextureView)
-                }
+                // Setup local video only for Video Call
+                val localTextureView = TextureView(this)
+                binding.localVideoView.addView(localTextureView)
+                zegoManager.setupLocalVideo(localTextureView)
                 // ... join room code
                 val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
                 zegoManager.joinRoom(roomID, localUserID, localUserName)
@@ -239,26 +228,41 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 }
             }
             .addOnFailureListener {
-                Log.e("VideoCall", "Failed to fetch booking. Defaulting to 60.")
-                startPaymentService(60.0)
+                Log.e("VideoCall", "Failed to fetch Instant booking. Trying fallback.")
+                fetchAdvisorRateFromProfile()
             }
     }
 
     private fun fetchScheduledBooking(bookingId: String) {
         db.collection("scheduled_bookings").document(bookingId).get()
             .addOnSuccessListener { document ->
-                val rate = document.getDouble("sessionAmount") ?: 60.0
-                startPaymentService(rate)
+                if (document.exists()) {
+                    val rate = document.getDouble("sessionAmount") ?: 60.0
+                    startPaymentService(rate)
+                } else {
+                     Log.e("VideoCall", "Booking not found in Scheduled either. Fetching Advisor Rate.")
+                     fetchAdvisorRateFromProfile()
+                }
             }
             .addOnFailureListener {
-                 startPaymentService(60.0)
+                 fetchAdvisorRateFromProfile()
             }
+    }
+
+    private fun fetchAdvisorRateFromProfile() {
+        val advisorId = intent.getStringExtra("ADVISOR_ID")
+        val repository = com.example.associate.Repositories.AdvisorRepository()
+
+        repository.fetchInstantRate(advisorId ?: "", "VIDEO") { rate ->
+             Log.d("VideoCall", "Fetched dynamic rate from Advisor Profile: $rate")
+             startPaymentService(rate)
+        }
     }
 
     private fun startPaymentService(rate: Double = 60.0) {
         try {
             // Update UI with fetched rate
-            binding.tvPaymentInfo.text = "Rate: ₹$rate/min"
+//            binding.tvPaymentInfo.text = "Rate: ₹$rate/min"
             
             val serviceIntent = Intent(this, VideoCallService::class.java).apply {
                 action = "START_PAYMENT"
@@ -281,20 +285,15 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             toggleAudio()
         }
         
-        if (callType == "AUDIO") {
-            binding.btnVideoToggle.visibility = View.GONE
-            binding.btnSwitchCamera.visibility = View.GONE
-        } else {
-            binding.btnVideoToggle.visibility = View.VISIBLE
-            binding.btnSwitchCamera.visibility = View.VISIBLE
+        binding.btnVideoToggle.visibility = View.VISIBLE
+        binding.btnSwitchCamera.visibility = View.VISIBLE
             
-            binding.btnVideoToggle.setOnClickListener {
-                toggleVideo()
-            }
+        binding.btnVideoToggle.setOnClickListener {
+            toggleVideo()
+        }
 
-            binding.btnSwitchCamera.setOnClickListener {
-                switchCamera()
-            }
+        binding.btnSwitchCamera.setOnClickListener {
+            switchCamera()
         }
 
         binding.btnChat.setOnClickListener {
@@ -416,7 +415,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .setTitle("Insufficient Balance")
             .setMessage("Your wallet balance is low. The call will be ended.")
             .setPositiveButton("OK") { dialog, which ->
-                showRatingDialog()
+                endCallWithNavigation()
             }
             .setCancelable(false)
             .show()
@@ -446,72 +445,13 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         ).show()
     }
 
-    private fun showRatingDialog() {
-        // First end the call logic
+    private fun endCallWithNavigation() {
         endCall()
-        
-        // Show rating dialog
-        val ratingDialog = RatingDialog { rating, review ->
-            saveRatingToBackend(rating, review)
-        }
-        ratingDialog.isCancelable = false // Force user to rate or dismiss via back press if handled, 
-                                          // but usually we want to ensure they see it. 
-                                          // If they cancel/back out, we should also finish content.
-        
-        // Handle cancel/dismiss to ensure activity finishes
-        ratingDialog.show(supportFragmentManager, "RatingDialog")
-        
-        // We delay finishing until dialog is interacted with
+        navigateToHome()
     }
 
     private fun saveRatingToBackend(ratingValue: Float, review: String) {
-        var advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
-        val userId = auth.currentUser?.uid ?: ""
-        
-        // Fallback to captured ID if intent ID is missing
-        if (advisorId.isEmpty() && remoteAdvisorId.isNotEmpty()) {
-            advisorId = remoteAdvisorId
-            Log.d("VideoCall", "Using captured remote Advisor ID: $advisorId")
-        }
-        
-        Log.d("VideoCall", "Saving Rating - AdvisorID: '$advisorId', UserID: '$userId'")
-        
-        if (advisorId.isEmpty() || userId.isEmpty()) {
-            val missing = if (advisorId.isEmpty()) "Advisor ID" else "User ID"
-            Toast.makeText(this, "Error: Missing $missing. detailed log check Logcat", Toast.LENGTH_LONG).show()
-            Log.e("VideoCall", "Cannot save rating. Missing info. AdvisorID: $advisorId, UserID: $userId")
-            navigateToHome()
-            return
-        }
-        
-        val ratingData = Rating(
-            advisorId = advisorId,
-            userId = userId,
-            rating = ratingValue,
-            review = review,
-            callId = currentCallId,
-            timestamp = Timestamp.now()
-        )
-        
-        val repository = RatingRepository()
-        repository.saveRating(ratingData) { success, error ->
-            if (success) {
-                // Show Success Dialog using the user's Utils
-                com.example.associate.DataClass.DialogUtils.showStatusDialog(
-                    this,
-                    true,
-                    "Success",
-                    "Your Review Valuable for us!"
-                ) {
-                    // Navigate to Home when user clicks "Okay" (or whatever the button text is in the dialog)
-                    navigateToHome()
-                }
-            } else {
-                Toast.makeText(this, "Failed to submit rating", Toast.LENGTH_SHORT).show()
-                Log.e("VideoCall", "Rating error: $error")
-                navigateToHome()
-            }
-        }
+         // Rating feature removed as per request
     }
 
     private fun navigateToHome() {
@@ -628,7 +568,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     Log.d("VideoCall", "User left: ${user.userID}")
                     updateCallStatus("Advisor left the call")
                     Handler(Looper.getMainLooper()).postDelayed({
-                        showRatingDialog()
+                        endCallWithNavigation()
                     }, 2000)
                 }
             }
@@ -675,7 +615,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .setTitle("End Call")
             .setMessage("Are you sure you want to end the call?")
             .setPositiveButton("End Call") { dialog, which ->
-                showRatingDialog()
+                endCallWithNavigation()
             }
             .setNegativeButton("Cancel", null)
             .show()

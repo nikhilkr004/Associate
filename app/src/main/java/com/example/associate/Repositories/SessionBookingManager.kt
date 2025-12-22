@@ -22,8 +22,9 @@ class SessionBookingManager(private val context: Context) {
         purpose: String,
         preferredLanguage: String,
         additionalNotes: String = "",
-        bookingType: String = "AUDIO", // ✅ New Param
+        bookingType: String = "AUDIO",
         urgencyLevel: String = "medium",
+        sessionAmount: Double, // ✅ New Param
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
     ) {
@@ -42,12 +43,12 @@ class SessionBookingManager(private val context: Context) {
             }
 
             checkWalletBalance(studentId) { balance ->
-                if (balance < 100.0) {
-                    onFailure("Insufficient balance. Minimum ₹100 required.")
+                if (balance < sessionAmount) { // ✅ Check against actual amount
+                    onFailure("Insufficient balance. Minimum ₹$sessionAmount required.")
                     return@checkWalletBalance
                 }
 
-                createBooking(advisorId, advisorName, studentId, studentName, purpose, preferredLanguage, additionalNotes, bookingType, urgencyLevel, onSuccess, onFailure)
+                createBooking(advisorId, advisorName, studentId, studentName, purpose, preferredLanguage, additionalNotes, bookingType, urgencyLevel, sessionAmount, onSuccess, onFailure)
             }
         }
     }
@@ -60,34 +61,35 @@ class SessionBookingManager(private val context: Context) {
         purpose: String,
         preferredLanguage: String,
         additionalNotes: String,
-        bookingType: String, // ✅ Added Param
+        bookingType: String,
         urgencyLevel: String,
+        sessionAmount: Double, // ✅ Added Param
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
     ) {
         val bookingId = generateReadableId()
 
-        val bookingData = SessionBookingDataClass(
-            bookingId = bookingId,
-            studentId = studentId,
-            advisorId = advisorId,
-            studentName = studentName,
-            advisorName = advisorName,
-            purpose = purpose,
-            preferredLanguage = preferredLanguage,
-            additionalNotes = additionalNotes,
-            bookingType = bookingType, // ✅ Save to Object
-            urgencyLevel = urgencyLevel,
-            bookingTimestamp = Timestamp.now(),
-            advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (5 * 60 * 1000))),
-            sessionAmount = 100.0,
-            paymentStatus = "pending",
-            bookingStatus = "pending"
+        val bookingDataMap = hashMapOf(
+            "bookingId" to bookingId,
+            "studentId" to studentId,
+            "advisorId" to advisorId,
+            "studentName" to studentName,
+            "advisorName" to advisorName,
+            "purpose" to purpose,
+            "preferredLanguage" to preferredLanguage,
+            "additionalNotes" to additionalNotes,
+            "bookingType" to bookingType,
+            "urgencyLevel" to urgencyLevel,
+            "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp(), // ✅ Strict User Request
+            "advisorResponseDeadline" to Timestamp(Date(System.currentTimeMillis() + (5 * 60 * 1000))),
+            "sessionAmount" to sessionAmount,
+            "paymentStatus" to "pending",
+            "bookingStatus" to "pending"
         )
 
         db.collection("instant_bookings")
             .document(bookingId)
-            .set(bookingData)
+            .set(bookingDataMap)
             .addOnSuccessListener {
                 Log.d("DEBUG", "Booking created successfully: $bookingId")
 
@@ -125,7 +127,9 @@ class SessionBookingManager(private val context: Context) {
         purpose: String,
         preferredLanguage: String,
         additionalNotes: String = "",
-        bookingType: String, // ✅ New Param
+        bookingType: String,
+        bookingSlot: String,
+        bookingDate: String, // ✅ New Param
         urgencyLevel: String = "Scheduled",
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
@@ -148,7 +152,7 @@ class SessionBookingManager(private val context: Context) {
             // Create Booking in "scheduled_bookings"
             createScheduledBookingInFirestore(
                 advisorId, advisorName, studentId, studentName,
-                purpose, preferredLanguage, additionalNotes, bookingType, urgencyLevel,
+                purpose, preferredLanguage, additionalNotes, bookingType, bookingSlot, bookingDate, urgencyLevel,
                 onSuccess, onFailure
             )
         }
@@ -162,7 +166,9 @@ class SessionBookingManager(private val context: Context) {
         purpose: String,
         preferredLanguage: String,
         additionalNotes: String,
-        bookingType: String, // ✅ Added Param
+        bookingType: String,
+        bookingSlot: String,
+        bookingDate: String, // ✅ Added Param
         urgencyLevel: String,
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
@@ -178,7 +184,9 @@ class SessionBookingManager(private val context: Context) {
             purpose = purpose,
             preferredLanguage = preferredLanguage,
             additionalNotes = additionalNotes,
-            bookingType = bookingType, // ✅ Save to Object
+            bookingType = bookingType,
+            bookingSlot = bookingSlot,
+            bookingDate = bookingDate, // ✅ Save Date
             urgencyLevel = urgencyLevel,
             bookingTimestamp = Timestamp.now(),
             // Set deadline to 24 hours for scheduled requests acceptance
@@ -187,16 +195,13 @@ class SessionBookingManager(private val context: Context) {
             paymentStatus = "pending",
             bookingStatus = "pending"
         )
-
-        db.collection("scheduled_bookings") // ✅ Separate Collection
+        
+        db.collection("scheduled_bookings")
             .document(bookingId)
             .set(bookingData)
             .addOnSuccessListener {
                 Log.d("DEBUG", "Scheduled Booking created: $bookingId")
-
-                // Send Notification
                 sendBookingNotificationToAdvisor(advisorId, studentName, bookingId, advisorName)
-
                 onSuccess("Booking request sent! Advisor has been notified.")
             }
             .addOnFailureListener { exception ->

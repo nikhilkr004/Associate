@@ -9,15 +9,14 @@
     tools:context=".Activitys.VideoCallActivity">
 
     <!-- Remote Video View (Advisor Video) -->
+    <!-- Remote Video View (Advisor Video) -->
     <FrameLayout
         android:id="@+id/remoteVideoView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/black" >
-
-
     </FrameLayout>
-
+    
     <!-- Local Video View (User's own video) -->
     <FrameLayout
         android:id="@+id/localVideoView"
@@ -51,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Rate: ₹60 per minute (₹10/10sec)"
+            android:text=""
             android:textColor="@color/white"
             android:textSize="14sp" />
 
@@ -65,6 +64,7 @@
         android:layout_alignParentBottom="true"
         android:background="#80000000"
         android:gravity="center"
+        android:layout_marginBottom="@dimen/_10sdp"
         android:orientation="horizontal"
         android:paddingVertical="10dp">
 

@@ -8,6 +8,5 @@ object AppConstants {
 
     // Payment Configuration
     const val PAYMENT_INTERVAL_MS = 10000L // 10 seconds
-    const val PAYMENT_AMOUNT = 1.0 // 10 rupees per 10 seconds
-    const val PAYMENT_RATE_PER_MINUTE = 10.0 // 60 rupees per minute
+
 }

@@ -156,7 +156,9 @@ class InstantBookingDialog(
             purpose = purpose,
             preferredLanguage = "English", // Defaulting as simplified inputs
             additionalNotes = agenda,
-            urgencyLevel = "Medium", 
+            bookingType = type.name, // ✅ Pass correctly
+            urgencyLevel = "Medium",
+            sessionAmount = viewModel.totalPrice.value?.toDouble() ?: 100.0, // ✅ Pass Price 
             onSuccess = { message ->
                 setLoading(false)
                 Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()

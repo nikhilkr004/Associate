@@ -1,0 +1,53 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/asus/.gradle/wrapper/dists/gradle-8.13-bin/5xuhj0ry160q40clulazy9h7d/gradle-8.13/lib/native-platform-0.22-milestone-28.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:processDebugGoogleServices UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:parseDebugLocalResources
+
+> Task :app:processDebugMainManifest
+[com.razorpay:standard-core:1.7.1] C:\Users\asus\.gradle\caches\8.13\transforms\d544a77bbe739be597de3039b965f2c1\transformed\jetified-standard-core-1.7.1\AndroidManifest.xml Warning:
+	Namespace 'com.razorpay' is used in multiple modules and/or libraries: com.razorpay:standard-core:1.7.1, com.razorpay:core:1.0.1. Please ensure that all modules and libraries have a unique namespace. For more information, See https://developer.android.com/studio/build/configure-app-module#set-namespace
+
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:processDebugResources
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/VideoCallActivity.kt:150:84 Unresolved reference 'DEFAULT_CHANNEL_NAME'.
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/VideoCallActivity.kt:354:76 Unresolved reference 'DEFAULT_CHANNEL_NAME'.
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/VideoCallActivity.kt:500:80 Unresolved reference 'DEFAULT_CHANNEL_NAME'.
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/PreferencesHelper/ZegoCallManager.kt:77:9 'onRoomStateChanged' overrides nothing.
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/PreferencesHelper/ZegoCallManager.kt:78:46 Argument type mismatch: actual type is 'kotlin.Int', but 'im.zego.zegoexpress.constants.ZegoRoomStateChangedReason!' was expected.
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/PreferencesHelper/ZegoCallManager.kt:91:9 'onPublisherStateUpdate' overrides nothing.
+e: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/PreferencesHelper/ZegoCallManager.kt:92:53 Argument type mismatch: actual type is 'kotlin.Int', but 'im.zego.zegoexpress.constants.ZegoPublisherState!' was expected.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 44s
+17 actionable tasks: 6 executed, 11 up-to-date

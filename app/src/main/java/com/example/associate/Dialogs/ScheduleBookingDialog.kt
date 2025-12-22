@@ -239,6 +239,10 @@ class ScheduleBookingDialog(
         // Construct full purpose string or data
         val purpose = "Scheduled ${type.name}: $slot"
         
+        // Format Date
+        val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+        val dateString = dateFormat.format(date.time)
+
         // Use createScheduledBooking for separate collection
         bookingManager.createScheduledBooking(
             advisorId = advisor.basicInfo.id,
@@ -247,6 +251,8 @@ class ScheduleBookingDialog(
             preferredLanguage = "English",
             additionalNotes = agenda,
             bookingType = type.name, // ✅ Pass "CHAT", "AUDIO", or "VIDEO"
+            bookingSlot = slot, // ✅ Pass valid Slot e.g. "10:00 AM - 10:30 AM"
+            bookingDate = dateString, // ✅ Pass formatted Date
             urgencyLevel = "Scheduled", 
             onSuccess = { message ->
                 dismissLoadingDialog()

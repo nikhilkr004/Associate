@@ -1,0 +1,44 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/asus/.gradle/wrapper/dists/gradle-8.13-bin/5xuhj0ry160q40clulazy9h7d/gradle-8.13/lib/native-platform-0.22-milestone-28.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:processDebugGoogleServices UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+> Task :app:processDebugMainManifest UP-TO-DATE
+> Task :app:processDebugManifest UP-TO-DATE
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+> Task :app:processDebugResources UP-TO-DATE
+
+> Task :app:compileDebugKotlin
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/AdvisorProfileActivity.kt:41:26 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/OtpScreenActivity.kt:64:30 'fun <T : Parcelable!> getParcelableExtra(p0: String!): T?' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/SplashScreenActivity.kt:7:8 'class Contacts : Any' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Activitys/VideoCallActivity.kt:490:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Dialogs/IncomingCallDialog.kt:54:44 'static field FLAG_FULLSCREEN: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Dialogs/IncomingCallDialog.kt:55:44 'static field FLAG_FULLSCREEN: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Dialogs/IncomingCallDialog.kt:59:49 'static field FLAG_SHOW_WHEN_LOCKED: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Dialogs/IncomingCallDialog.kt:60:49 'static field FLAG_TURN_SCREEN_ON: Int' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Dialogs/IncomingCallDialog.kt:197:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Fragments/ProfileFragment.kt:91:29 Check for instance is always 'true'.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Fragments/ProfileFragment.kt:151:9 'fun startActivityForResult(p0: Intent, p1: Int): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Fragments/ProfileFragment.kt:154:18 This declaration overrides a deprecated member but is not marked as deprecated itself. Please add the '@Deprecated' annotation or suppress the diagnostic.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Fragments/ProfileFragment.kt:155:15 'fun onActivityResult(p0: Int, p1: Int, p2: Intent?): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/MainActivity.kt:40:34 'fun setOnNavigationItemSelectedListener(p0: BottomNavigationView.OnNavigationItemSelectedListener?): Unit' is deprecated. Deprecated in Java.
+w: file:///C:/Users/asus/StudioProjects/Associate/app/src/main/java/com/example/associate/Repositorys/VideoCallService.kt:58:21 'fun stopForeground(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+
+BUILD SUCCESSFUL in 34s
+17 actionable tasks: 1 executed, 16 up-to-date

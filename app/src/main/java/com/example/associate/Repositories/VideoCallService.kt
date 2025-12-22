@@ -114,17 +114,18 @@ class VideoCallService : Service() {
             override fun run() {
                 calculatePayment()
             }
-        }, 0, AppConstants.PAYMENT_INTERVAL_MS)
+        }, AppConstants.PAYMENT_INTERVAL_MS, AppConstants.PAYMENT_INTERVAL_MS)
     }
 
     private fun calculatePayment() {
         // Calculate deduction based on rate per minute
-        // Interval is in MS (e.g. 10000ms = 10s)
-        val intervalSeconds = AppConstants.PAYMENT_INTERVAL_MS / 1000.0
-        val deductionPerInterval = (callRatePerMinute / 60.0) * intervalSeconds
+        // User Logic: Every 10 seconds, deduct (Rate / 6)
+        // e.g. Rate 100 -> Deduct 16.66
+        
+        val deductionPerInterval = callRatePerMinute / 6.0
         
         // Deduct from wallet immediately
-        // Round to 2 decimal places to match real-world currency (e.g. 3.33)
+        // Round to 2 decimal places to match real-world currency (e.g. 16.67)
         val roundedDeduction = String.format("%.2f", deductionPerInterval).toDouble()
         
         deductFromWallet(roundedDeduction)

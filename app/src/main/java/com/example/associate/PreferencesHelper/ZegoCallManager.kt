@@ -64,12 +64,21 @@ class ZegoCallManager(private val context: Context, private val listener: ZegoCa
         engine?.startPlayingStream(streamID, canvas)
     }
 
+    fun startPlayingAudio(streamID: String) {
+        // Play stream without video canvas for audio-only
+        engine?.startPlayingStream(streamID, null as ZegoCanvas?)
+    }
+
     fun muteMicrophone(mute: Boolean) {
         engine?.muteMicrophone(mute)
     }
 
     fun enableCamera(enable: Boolean) {
         engine?.enableCamera(enable)
+    }
+
+    fun enableSpeaker(enable: Boolean) {
+        engine?.setAudioRouteToSpeaker(enable)
     }
 
     fun switchCamera() {

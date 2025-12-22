@@ -95,7 +95,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
     private fun setupAvailabilityUI() {
         val availability = advisor.availabilityInfo.scheduledAvailability
         android.util.Log.d("AdvisorProfile", "Setup UI for availability (Nested): $availability")
-        Toast.makeText(this, "Debug: Chat=${availability.isChatEnabled}, Video=${availability.isVideoCallEnabled}", Toast.LENGTH_LONG).show()
+//        Toast.makeText(this, "Debug: Chat=${availability.isChatEnabled}, Video=${availability.isVideoCallEnabled}", Toast.LENGTH_LONG).show()
 
         if (availability.isChatEnabled) {
             binding.chatLayout.setBackgroundResource(R.drawable.eleveted_bg)
