@@ -17,9 +17,9 @@ import java.util.*
 
 class CallHistoryAdapter(
     private var bookingList: List<Pair<SessionBookingDataClass, UserData?>> = emptyList(),
-    private val onActionClick: (CallHistoryAction, SessionBookingDataClass) -> Unit
+    private val onActionClick: (CallHistoryAction, SessionBookingDataClass, UserData?) -> Unit
 ) : RecyclerView.Adapter<CallHistoryAdapter.BookingViewHolder>() {
-
+    
     enum class CallHistoryAction {
         CANCEL, REBOOK, REVIEW, ITEM_CLICK, RESCHEDULE
     }
@@ -41,9 +41,9 @@ class CallHistoryAdapter(
         private val actionButtonsLayout: View = itemView.findViewById(R.id.actionButtonsLayout)
 
         fun bind(booking: SessionBookingDataClass, advisor: UserData?) {
-            // 0. Item Click (Redirect to Advisor Profile)
+            // 0. Item Click (Redirect to Advisor Profile or Summary)
             itemView.setOnClickListener {
-                onActionClick(CallHistoryAction.ITEM_CLICK, booking)
+                onActionClick(CallHistoryAction.ITEM_CLICK, booking, advisor)
             }
             
             // 1. Advisor Details
@@ -97,20 +97,20 @@ class CallHistoryAdapter(
             if (status == "pending" || status == "accepted" || status == "upcoming" || status == "initiated") {
                 // Upcoming
                 btnCancel.visibility = View.VISIBLE
-                btnCancel.setOnClickListener { onActionClick(CallHistoryAction.CANCEL, booking) }
+                btnCancel.setOnClickListener { onActionClick(CallHistoryAction.CANCEL, booking, advisor) }
                 
             } else if (status == "completed" || status == "ended") {
                 // Completed
                 btnReBook.visibility = View.VISIBLE
                 btnAddReview.visibility = View.VISIBLE
                 
-                btnReBook.setOnClickListener { onActionClick(CallHistoryAction.REBOOK, booking) }
-                btnAddReview.setOnClickListener { onActionClick(CallHistoryAction.REVIEW, booking) }
+                btnReBook.setOnClickListener { onActionClick(CallHistoryAction.REBOOK, booking, advisor) }
+                btnAddReview.setOnClickListener { onActionClick(CallHistoryAction.REVIEW, booking, advisor) }
                 
             } else {
                 // Cancelled
                 btnReBook.visibility = View.VISIBLE
-                btnReBook.setOnClickListener { onActionClick(CallHistoryAction.REBOOK, booking) }
+                btnReBook.setOnClickListener { onActionClick(CallHistoryAction.REBOOK, booking, advisor) }
             }
         }
         

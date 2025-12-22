@@ -3,6 +3,7 @@ package com.example.associate.DataClass
 
 import java.util.Date
 
+@kotlinx.parcelize.Parcelize
 data class UserData(
     // Registration & Profile
     val userId: String = "",
@@ -17,5 +18,5 @@ data class UserData(
     val preferredLanguage: String = "en",
     val jointAt: String = "",
     val fcmToken: String = ""
-)
+) : android.os.Parcelable
 // Kotlin automatically creates no-arg constructor when all parameters have default values

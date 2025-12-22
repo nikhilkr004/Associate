@@ -46,17 +46,34 @@ class CallHistoryFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        videoCallAdapter = CallHistoryAdapter { action, booking ->
+        videoCallAdapter = CallHistoryAdapter { action, booking, advisor ->
             when (action) {
                 CallHistoryAdapter.CallHistoryAction.CANCEL -> {
                     viewModel.cancelBooking(booking)
                     Toast.makeText(requireContext(), "Cancelling booking...", Toast.LENGTH_SHORT).show()
                 }
                 
-                CallHistoryAdapter.CallHistoryAction.REBOOK, 
-                CallHistoryAdapter.CallHistoryAction.ITEM_CLICK,
-                CallHistoryAdapter.CallHistoryAction.RESCHEDULE -> { // Treat reschedule as re-book for now/same flow
+                CallHistoryAdapter.CallHistoryAction.REBOOK,
+                CallHistoryAdapter.CallHistoryAction.RESCHEDULE -> {
                     navigateToAdvisorProfile(booking)
+                }
+                
+                CallHistoryAdapter.CallHistoryAction.ITEM_CLICK -> {
+                     val status = booking.bookingStatus.lowercase()
+                     if (status == "completed" || status == "ended") {
+                         val intent = android.content.Intent(requireContext(), com.example.associate.Activities.BookingSummaryActivity::class.java)
+                         intent.putExtra("BOOKING_DATA", booking)
+                         if (advisor != null) {
+                             intent.putExtra("ADVISOR_DATA", advisor)
+                         }
+                         startActivity(intent)
+                     } else {
+                         // Pending/Upcoming -> Maybe show details too OR go to Profile
+                         // User asked specifically for "booking complete" items.
+                         // For now, let's keep others pointing to profile OR do nothing/toast.
+                         // But usually clicking an item should do something useful.
+                         navigateToAdvisorProfile(booking)
+                     }
                 }
                 
                 CallHistoryAdapter.CallHistoryAction.REVIEW -> {

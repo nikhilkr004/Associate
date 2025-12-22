@@ -144,6 +144,11 @@
             android:exported="false"
              />
 
+        <activity
+            android:name=".Activities.BookingSummaryActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
         <!-- Video Call Service -->
         <service
             android:name=".Repositories.VideoCallService"
