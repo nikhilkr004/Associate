@@ -153,16 +153,42 @@ class BookingRepository {
                 // Round to 2 decimals
                 val finalCost = java.math.BigDecimal(totalCost).setScale(2, java.math.RoundingMode.HALF_UP).toDouble()
 
+                val walletRef = db.collection("wallets").document(userId)
+                
+                // Read wallet instead of user doc for balance
+                val walletSnapshot = transaction.get(walletRef)
+                
+                // ...
+                
                 // 2. User Deduction
-                val currentBalance = userSnapshot.getDouble("walletBalance") ?: 0.0
+                val currentBalance = if (walletSnapshot.exists()) {
+                    walletSnapshot.getDouble("balance") ?: 0.0
+                } else {
+                     0.0
+                     // If wallet missing, maybe fail? Or assume 0 and go negative.
+                }
+                
                 val newBalance = currentBalance - finalCost
                 
-                // Allow negative balance? Usually no, but for atomic completion we might enforce it or fail.
-                // If this runs at end of call, we deduct what we can or go negative. 
-                // Given the visual tracker checks balance, we assume it's mostly fine.
-                // We will proceed even if it dips slightly negative to ensure advisor is paid for time used.
-
-                transaction.update(userRef, "walletBalance", newBalance)
+                if (walletSnapshot.exists()) {
+                    transaction.update(walletRef, "balance", newBalance)
+                    // Also update stats
+                    val totalSpent = walletSnapshot.getDouble("totalSpent") ?: 0.0
+                    val count = walletSnapshot.getLong("transactionCount") ?: 0
+                    transaction.update(walletRef, "totalSpent", totalSpent + finalCost)
+                    transaction.update(walletRef, "transactionCount", count + 1)
+                } else {
+                    // Create wallet doc?
+                    // Transaction requires docs to exist for update. Set for create.
+                    val newWallet = hashMapOf(
+                        "userId" to userId,
+                        "balance" to newBalance,
+                        "totalSpent" to finalCost,
+                        "transactionCount" to 1,
+                        "lastUpdated" to FieldValue.serverTimestamp()
+                    )
+                    transaction.set(walletRef, newWallet)
+                }
 
                 // 3. Advisor Credit
                 // Access nested map "earningsInfo"
