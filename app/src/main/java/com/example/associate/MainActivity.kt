@@ -67,7 +67,10 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(HomeFragment.newInstance())
                     true
                 }
-
+                R.id.navigation_advisors -> {
+                    loadFragment(com.example.associate.Fragments.SearchFragment.newInstance())
+                    true
+                }
                 R.id.transactionFragment -> {
                     loadFragment(TransactionFragment.newInstance())
                     true

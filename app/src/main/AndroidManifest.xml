@@ -77,7 +77,8 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="false"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+            android:supportsPictureInPicture="true"
             android:hardwareAccelerated="true" />
 
         <!-- Audio Call Activity -->
@@ -86,6 +87,8 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
+            android:supportsPictureInPicture="true"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:launchMode="singleTop" />
@@ -107,6 +110,13 @@
             android:name=".Activities.AdvisorListActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
+
+        <!-- Personal Screen Activity -->
+        <activity
+            android:name=".Activities.FeedbackActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
 
         <!-- Personal Screen Activity -->
         <activity

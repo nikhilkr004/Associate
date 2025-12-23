@@ -160,4 +160,36 @@ class UserRepository {
             Result.Failure(e)
         }
     }
+    // Favorite functionality
+    suspend fun addFavoriteAdvisor(userId: String, advisorId: String): Result<Unit> {
+        return try {
+            usersCollection.document(userId)
+                .update("favoriteAdvisors", com.google.firebase.firestore.FieldValue.arrayUnion(advisorId))
+                .await()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    suspend fun removeFavoriteAdvisor(userId: String, advisorId: String): Result<Unit> {
+        return try {
+            usersCollection.document(userId)
+                .update("favoriteAdvisors", com.google.firebase.firestore.FieldValue.arrayRemove(advisorId))
+                .await()
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    suspend fun getFavoriteAdvisors(userId: String): Result<List<String>> {
+        return try {
+            val document = usersCollection.document(userId).get().await()
+            val favorites = document.get("favoriteAdvisors") as? List<String> ?: emptyList()
+            Result.Success(favorites)
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
 }

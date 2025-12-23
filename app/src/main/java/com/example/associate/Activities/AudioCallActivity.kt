@@ -569,4 +569,50 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         try { unregisterReceiver(balanceReceiver) } catch (e: Exception) {}
         stopPaymentService()
     }
+    // PIP Mode Implementation
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (isCallActive) {
+                val params = android.app.PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(1, 1)) // Square for Audio/Avatar
+                    .build()
+                enterPictureInPictureMode(params)
+            }
+        }
+    }
+    
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode) {
+            // Hide Controls
+            binding.btnEndCall.visibility = View.GONE
+            binding.btnMute.visibility = View.GONE
+            binding.btnSpeaker.visibility = View.GONE
+            binding.btnBack.visibility = View.GONE
+            
+            binding.tvTimer.visibility = View.GONE
+            binding.tvPaymentInfo.visibility = View.GONE
+            binding.tvSpentAmount.visibility = View.GONE
+            binding.tvAdvisorName.visibility = View.GONE
+            binding.tvConnectionStatus.visibility = View.GONE
+            
+            // Adjust Avatar to fill/center
+            // Assuming constraint layout, we might just let it be. 
+            // If it's the only thing visible, it should look okay.
+            
+        } else {
+            // Restore Controls
+            binding.btnEndCall.visibility = View.VISIBLE
+            binding.btnMute.visibility = View.VISIBLE
+            binding.btnSpeaker.visibility = View.VISIBLE
+            binding.btnBack.visibility = View.VISIBLE
+            
+            binding.tvTimer.visibility = View.VISIBLE
+            binding.tvPaymentInfo.visibility = View.VISIBLE
+            binding.tvSpentAmount.visibility = View.VISIBLE
+            binding.tvAdvisorName.visibility = View.VISIBLE
+            binding.tvConnectionStatus.visibility = View.GONE // Usually gone unless connecting
+        }
+    }
 }

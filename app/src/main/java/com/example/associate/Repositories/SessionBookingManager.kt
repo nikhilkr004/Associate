@@ -120,6 +120,7 @@ class SessionBookingManager(private val context: Context) {
         )
     }
 
+
     // ✅ NEW: Create Scheduled Booking
     fun createScheduledBooking(
         advisorId: String,
@@ -131,6 +132,7 @@ class SessionBookingManager(private val context: Context) {
         bookingSlot: String,
         bookingDate: String, // ✅ New Param
         urgencyLevel: String = "Scheduled",
+        sessionAmount: String, // ✅ New Param
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
     ) {
@@ -141,18 +143,19 @@ class SessionBookingManager(private val context: Context) {
 
         val studentId = currentUser.uid
         val studentName = currentUser.displayName ?: "Student"
+        val amount = sessionAmount.toDoubleOrNull() ?: 0.0
 
         // Wallet Check
         checkWalletBalance(studentId) { balance ->
-            if (balance < 100.0) {
-                onFailure("Insufficient balance. Minimum ₹100 required.")
+            if (balance < amount) {
+                onFailure("Insufficient balance. Minimum ₹$amount required.")
                 return@checkWalletBalance
             }
 
             // Create Booking in "scheduled_bookings"
             createScheduledBookingInFirestore(
                 advisorId, advisorName, studentId, studentName,
-                purpose, preferredLanguage, additionalNotes, bookingType, bookingSlot, bookingDate, urgencyLevel,
+                purpose, preferredLanguage, additionalNotes, bookingType, bookingSlot, bookingDate, urgencyLevel, amount,
                 onSuccess, onFailure
             )
         }
@@ -170,6 +173,7 @@ class SessionBookingManager(private val context: Context) {
         bookingSlot: String,
         bookingDate: String, // ✅ Added Param
         urgencyLevel: String,
+        sessionAmount: Double, // ✅ Added Param
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
     ) {
@@ -191,7 +195,7 @@ class SessionBookingManager(private val context: Context) {
             bookingTimestamp = Timestamp.now(),
             // Set deadline to 24 hours for scheduled requests acceptance
             advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000))), 
-            sessionAmount = 100.0,
+            sessionAmount = sessionAmount,
             paymentStatus = "pending",
             bookingStatus = "pending"
         )

@@ -77,7 +77,9 @@ class CallHistoryFragment : Fragment() {
                 }
                 
                 CallHistoryAdapter.CallHistoryAction.REVIEW -> {
-                    showReviewDialog(booking)
+                    val intent = android.content.Intent(requireContext(), com.example.associate.Activities.FeedbackActivity::class.java)
+                    intent.putExtra("BOOKING_DATA", booking)
+                    startActivity(intent)
                 }
             }
         }

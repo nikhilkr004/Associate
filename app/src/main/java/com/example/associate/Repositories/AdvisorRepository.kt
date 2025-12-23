@@ -92,4 +92,24 @@ class AdvisorRepository {
                 onResult(60.0)
             }
     }
+
+    suspend fun addAdvisorReview(advisorId: String, userId: String, rating: Double, review: String): Boolean {
+        return try {
+            val reviewData = hashMapOf(
+                "advisorId" to advisorId,
+                "userId" to userId,
+                "rating" to rating,
+                "review" to review,
+                "timestamp" to com.google.firebase.Timestamp.now()
+            )
+            val adId = if(advisorId.isEmpty()) "unknown_advisor" else advisorId
+            advisorsCollection.document(adId)
+                .collection("reviews")
+                .add(reviewData)
+                .await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

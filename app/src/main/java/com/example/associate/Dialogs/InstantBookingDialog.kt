@@ -161,9 +161,29 @@ class InstantBookingDialog(
             sessionAmount = viewModel.totalPrice.value?.toDouble() ?: 100.0, // ✅ Pass Price 
             onSuccess = { message ->
                 setLoading(false)
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
-                onBookingSuccess()
-                dismiss()
+                
+                // Format Date for Instant
+                val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                val today = java.util.Date()
+                val dateString = dateFormat.format(today)
+                val timeString = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()).format(today)
+
+                BookingSuccessDialog(
+                    requireContext(),
+                    advisor.basicInfo.name,
+                    "You", 
+                    (viewModel.totalPrice.value?.toString() ?: "0.0"),
+                    dateString,
+                    timeString,
+                    onGoHome = {
+                        onBookingSuccess()
+                        dismiss()
+                    },
+                    onViewAppointment = {
+                         onBookingSuccess()
+                         dismiss()
+                    }
+                ).show()
             },
             onFailure = { error ->
                 setLoading(false)

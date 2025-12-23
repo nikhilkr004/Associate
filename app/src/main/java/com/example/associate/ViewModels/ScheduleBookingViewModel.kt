@@ -8,7 +8,15 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+import com.example.associate.Repositories.BookingRepository
+
 class ScheduleBookingViewModel : ViewModel() {
+
+    private val bookingRepository = BookingRepository()
+
 
     private val _selectedDate = MutableLiveData<Calendar?>()
     val selectedDate: LiveData<Calendar?> = _selectedDate
@@ -44,7 +52,10 @@ class ScheduleBookingViewModel : ViewModel() {
 
     fun selectDate(calendar: Calendar) {
         _selectedDate.value = calendar
-        generateSlotsForDate(calendar)
+        // Launch coroutine to handle async fetching of booked slots
+        viewModelScope.launch {
+            generateSlotsForDate(calendar)
+        }
         _selectedSlot.value = null // Reset slot when date changes
     }
 
@@ -71,7 +82,8 @@ class ScheduleBookingViewModel : ViewModel() {
         _totalPrice.value = price
     }
 
-    private fun generateSlotsForDate(date: Calendar) {
+    private suspend fun generateSlotsForDate(date: Calendar) {
+        _isLoading.value = true
         val schedule = advisor.availabilityInfo.virtualSchedule
         
         // 0. Check Active Days
@@ -90,12 +102,20 @@ class ScheduleBookingViewModel : ViewModel() {
         // If activeDays is not empty and dayString is NOT in it -> No slots
         if (schedule.activeDays.isNotEmpty() && !schedule.activeDays.contains(dayString)) {
              _availableSlots.value = emptyList()
+             _isLoading.value = false
              return
         }
-        
+
+        // Fetch Booked Slots from Firestore
+        val dateFormatForDb = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val dateString = dateFormatForDb.format(date.time)
+        val bookedSlots = bookingRepository.getBookedSlots(advisor.basicInfo.id, dateString)
+
         // 1. Priority: Use pre-generated slots if available
         if (schedule.generatedSlots.isNotEmpty()) {
-            _availableSlots.value = schedule.generatedSlots
+            val validSlots = schedule.generatedSlots.filter { !bookedSlots.contains(it) }
+            _availableSlots.value = validSlots
+            _isLoading.value = false
             return
         }
 
@@ -105,6 +125,7 @@ class ScheduleBookingViewModel : ViewModel() {
         
         if (startStr.isEmpty() || endStr.isEmpty()) {
             _availableSlots.value = emptyList() // No availability set
+            _isLoading.value = false
             return
         }
 
@@ -143,7 +164,10 @@ class ScheduleBookingViewModel : ViewModel() {
                 
                 // Filter past slots if today
                 if (date.get(Calendar.DAY_OF_YEAR) != now.get(Calendar.DAY_OF_YEAR) || startCal.after(now)) {
-                     slots.add("$slotStart - $slotEnd")
+                     val fullSlot = "$slotStart - $slotEnd"
+                     if (!bookedSlots.contains(fullSlot)) {
+                        slots.add(fullSlot)
+                     }
                 }
                
                 startCal.add(Calendar.MINUTE, duration)
@@ -154,6 +178,8 @@ class ScheduleBookingViewModel : ViewModel() {
         } catch (e: Exception) {
             _availableSlots.value = emptyList()
             e.printStackTrace()
+        } finally {
+            _isLoading.value = false
         }
     }
 

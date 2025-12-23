@@ -253,12 +253,32 @@ class ScheduleBookingDialog(
             bookingType = type.name, // ✅ Pass "CHAT", "AUDIO", or "VIDEO"
             bookingSlot = slot, // ✅ Pass valid Slot e.g. "10:00 AM - 10:30 AM"
             bookingDate = dateString, // ✅ Pass formatted Date
-            urgencyLevel = "Scheduled", 
+            urgencyLevel = "Scheduled",
+            sessionAmount = viewModel.totalPrice.value?.toString() ?: "0", // ✅ Pass Calculated Price
             onSuccess = { message ->
                 dismissLoadingDialog()
-                Toast.makeText(requireContext(), "Scheduled: $message", Toast.LENGTH_LONG).show()
-                onBookingSuccess()
-                dismiss()
+                val fee = when(type) {
+                    BookingType.CHAT -> advisor.pricingInfo.scheduledChatFee
+                    BookingType.AUDIO -> advisor.pricingInfo.scheduledAudioFee
+                    BookingType.VIDEO -> advisor.pricingInfo.scheduledVideoFee
+                }
+                
+                BookingSuccessDialog(
+                    requireContext(),
+                    advisor.basicInfo.name,
+                    "You", // Placeholder for User Name
+                    fee.toString(),
+                    dateString,
+                    slot,
+                    onGoHome = {
+                        onBookingSuccess()
+                        dismiss()
+                    },
+                    onViewAppointment = {
+                         onBookingSuccess()
+                         dismiss()
+                    }
+                ).show()
             },
             onFailure = { error ->
                 dismissLoadingDialog()

@@ -248,4 +248,25 @@ class BookingRepository {
             false
         }
     }
+    /**
+     * Fetches booked slots for a specific advisor and date.
+     * @param advisorId The ID of the advisor.
+     * @param date The date string in "dd/MM/yyyy" format.
+     * @return List of booked time slots strings.
+     */
+    suspend fun getBookedSlots(advisorId: String, date: String): List<String> {
+        return try {
+            val snapshots = db.collection("scheduled_bookings")
+                .whereEqualTo("advisorId", advisorId)
+                .whereEqualTo("bookingDate", date)
+                .whereNotEqualTo("bookingStatus", "cancelled")
+                .get()
+                .await()
+
+            snapshots.documents.mapNotNull { it.getString("bookingSlot") }
+        } catch (e: Exception) {
+            android.util.Log.e("BookingRepository", "Error fetching booked slots", e)
+            emptyList()
+        }
+    }
 }

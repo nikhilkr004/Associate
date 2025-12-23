@@ -621,4 +621,48 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         } catch (e: Exception) {}
         try { unregisterReceiver(balanceReceiver) } catch (e: Exception) {}
     }
+    // PIP Mode Implementation
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            if (isCallActive) {
+                val params = android.app.PictureInPictureParams.Builder()
+                    .setAspectRatio(android.util.Rational(9, 16)) // Standard portrait ratio
+                    .build()
+                enterPictureInPictureMode(params)
+            }
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode) {
+            // Hide Controls
+            binding.btnEndCall.visibility = View.GONE
+            binding.btnMute.visibility = View.GONE
+            binding.btnVideoToggle.visibility = View.GONE
+            binding.btnSwitchCamera.visibility = View.GONE
+            binding.btnChat.visibility = View.GONE
+            binding.tvTimer.visibility = View.GONE
+            binding.tvPaymentInfo.visibility = View.GONE
+            binding.tvCallStatus.visibility = View.GONE
+            binding.tvConnectionStatus.visibility = View.GONE
+            binding.localVideoView.visibility = View.GONE // Hide self view to focus on Advisor
+        } else {
+            // Restore Controls
+            binding.btnEndCall.visibility = View.VISIBLE
+            binding.btnMute.visibility = View.VISIBLE
+            binding.btnVideoToggle.visibility = View.VISIBLE
+            binding.btnSwitchCamera.visibility = View.VISIBLE
+            binding.btnChat.visibility = View.VISIBLE
+            binding.tvTimer.visibility = View.VISIBLE
+            binding.tvPaymentInfo.visibility = View.VISIBLE
+            binding.tvCallStatus.visibility = View.VISIBLE
+            // Don't restore connection status if it was gone
+            // binding.tvConnectionStatus.visibility = View.VISIBLE 
+            if (isVideoEnabled) {
+                binding.localVideoView.visibility = View.VISIBLE
+            }
+        }
+    }
 }
