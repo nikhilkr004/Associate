@@ -34,6 +34,7 @@ import im.zego.zegoexpress.constants.ZegoUpdateType
 import im.zego.zegoexpress.entity.ZegoUser
 import org.json.JSONObject
 import java.util.ArrayList
+import android.app.ProgressDialog
 import java.util.Timer
 import java.util.TimerTask
 import androidx.lifecycle.lifecycleScope
@@ -115,10 +116,22 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
 
         initializeUI()
-        checkPermissionsAndInitialize()
-        setupCallControls()
-        registerBroadcastReceiver()
-        stopCallNotificationService()
+
+        // 🔥 Show Loading Dialog
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Connecting securely...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        // Delay slightly to confirm setup (User Request)
+        Handler(Looper.getMainLooper()).postDelayed({
+            progressDialog.dismiss()
+            android.widget.Toast.makeText(this, "Starting Audio Call...", android.widget.Toast.LENGTH_SHORT).show()
+            checkPermissionsAndInitialize()
+            setupCallControls()
+            registerBroadcastReceiver()
+            stopCallNotificationService()
+        }, 1500)
     }
     
     private fun fetchWalletBalance() {
@@ -152,7 +165,13 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         
         binding.tvAdvisorName.text = advisorName
         binding.tvTimer.text = "00:00"
+        
+        // 🔥 Hide Payment Info Initially to prevent flashing wrong state
+        binding.tvPaymentInfo.visibility = View.GONE
+        binding.tvSpentAmount.visibility = View.GONE
         binding.tvPaymentInfo.text = "Initializing..."
+        binding.tvSpentAmount.text = "..."
+
         binding.tvConnectionStatus.text = "Initializing Audio Call..."
 
         // Load Advisor Avatar with Fallback
@@ -255,23 +274,88 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             }
     }
 
+
+    private var forceScheduledMode = false // 🔥 Prevent Overwrites
+
     private fun fetchBookingDetailsAndStartService() {
         val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: return
-        
-        // Try Instant Bookings first
-        db.collection("instant_bookings").document(bookingId).get()
+
+        Log.w("AudioCall", "Step 1: Fetching details for bookingId/Channel: $bookingId")
+
+        // 🚨 CLIENT-SIDE RULE: Check Intent Extra from Notification for Immediate UI
+        val intentUrgency = intent.getStringExtra("urgencyLevel")
+        Log.w("AudioCall", "🔍 RAW INTENT URGENCY: '$intentUrgency'")
+
+        if (intentUrgency != null && intentUrgency.equals("Scheduled", ignoreCase = true)) {
+             Log.w("AudioCall", "Client-Side Rule: Intent says Scheduled. Forcing Scheduled Mode immediately.")
+             isInstantBooking = false
+             forceScheduledMode = true // 🔥 Lock mode
+             startVisualTracker()
+        }
+
+        // 🚨 NEW LOGIC: Check 'urgencyLevel' field (Requested by User)
+        // Check Scheduled Collection and verify urgencyLevel
+        db.collection("scheduled_bookings").document(bookingId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    isInstantBooking = true
-                    ratePerMinute = document.getDouble("sessionAmount") ?: 60.0
-                    startVisualTracker()
+                    val urgencyLevel = document.getString("urgencyLevel") ?: ""
+                    Log.w("AudioCall", "Step 2A: Found in Scheduled. Urgency: $urgencyLevel")
+                    
+                    // Only update if not forced
+                    if (!forceScheduledMode) {
+                        if (urgencyLevel.equals("Scheduled", ignoreCase = true)) {
+                            isInstantBooking = false
+                            ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
+                            startVisualTracker()
+                        } else {
+                             // Fallback
+                             isInstantBooking = false 
+                             ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
+                             startVisualTracker()
+                        }
+                    } else {
+                         // Even if forced, update rate if available
+                         ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
+                    }
                 } else {
-                    // Try Scheduled Bookings
-                    fetchScheduledBooking(bookingId)
+                    Log.w("AudioCall", "Step 2B: NOT found in scheduled_bookings. Checking Instant...")
+                    // Only check instant if not forced!
+                    if (!forceScheduledMode) {
+                        fetchInstantBooking(bookingId)
+                    } else {
+                        Log.w("AudioCall", "Step 2C: Forced Scheduled Mode. Ignoring Instant lookup.")
+                    }
                 }
             }
             .addOnFailureListener {
-                Log.e("AudioCall", "Failed to fetch Instant booking. Trying fallback.")
+                 Log.e("AudioCall", "Step 2 Error: Failed to check scheduled booking: ${it.message}. Trying Instant.")
+                 if (!forceScheduledMode) fetchInstantBooking(bookingId)
+            }
+    }
+
+
+    private fun fetchInstantBooking(bookingId: String) {
+        db.collection("instant_bookings").document(bookingId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val urgencyLevel = document.getString("urgencyLevel") ?: ""
+                    Log.w("AudioCall", "Step 3A: Found Instant Booking. Urgency: $urgencyLevel")
+                    
+                    if (urgencyLevel.equals("Scheduled", ignoreCase = true)) {
+                        isInstantBooking = false
+                        ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
+                    } else {
+                        isInstantBooking = true
+                        ratePerMinute = document.getDouble("sessionAmount") ?: 60.0
+                    }
+                    startVisualTracker()
+                } else {
+                    Log.e("AudioCall", "Step 3B: Booking not found. Defaulting to Instant Profile Rate.")
+                    fetchAdvisorRateFromProfile()
+                }
+            }
+            .addOnFailureListener {
+                Log.e("AudioCall", "Step 3 Error: Failed to check instant booking: ${it.message}. Falling back to profile.")
                 fetchAdvisorRateFromProfile()
             }
     }
@@ -322,16 +406,41 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 } else {
                     ratePerMinute
                 }
-                
-                // Update UI
-                val formattedCost = String.format("%.2f", currentCost)
-                binding.tvPaymentInfo.text = "Rate: ₹$ratePerMinute/min"
-                binding.tvSpentAmount.text = "₹$formattedCost"
 
-                // Balance Check
-                if (isInstantBooking && currentCost >= userWalletBalance) {
-                     showInsufficientBalanceDialog()
-                     return
+                // Scheduled Logic: 30 Min Limit
+                if (!isInstantBooking) {
+                    val remainingSeconds = (30 * 60) - elapsedSeconds
+                    val minutesLeft = remainingSeconds / 60
+                    val secondsLeft = remainingSeconds % 60
+
+                    if (remainingSeconds <= 0) {
+                        Toast.makeText(this@AudioCallActivity, "Scheduled Session Completed", Toast.LENGTH_LONG).show()
+                        endCallWithNavigation()
+                        return
+                    }
+
+                    // Show Countdown for Scheduled
+                    binding.tvPaymentInfo.visibility = View.GONE
+                    binding.tvSpentAmount.visibility = View.GONE
+                    binding.tvTimer.text = String.format("%02d:%02d", minutesLeft, secondsLeft)
+                } else {
+                    // Instant Logic: Rate & Spent
+                    binding.tvPaymentInfo.visibility = View.VISIBLE
+                    binding.tvSpentAmount.visibility = View.VISIBLE
+                    val formattedCost = String.format("%.2f", currentCost)
+                    binding.tvPaymentInfo.text = "Rate: ₹$ratePerMinute/min"
+                    binding.tvSpentAmount.text = "₹$formattedCost"
+                    
+                    // Normal Timer for Instant
+                    val minutes = elapsedSeconds / 60
+                    val seconds = elapsedSeconds % 60
+                    binding.tvTimer.text = String.format("%02d:%02d", minutes, seconds)
+
+                    // Balance Check
+                    if (currentCost >= userWalletBalance) {
+                         showInsufficientBalanceDialog()
+                         return
+                    }
                 }
 
                 visualTrackerHandler?.postDelayed(this, 1000)

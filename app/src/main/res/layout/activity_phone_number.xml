@@ -55,10 +55,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/_10sdp"
-        android:layout_marginTop="@dimen/_20sdp"
         android:background="@drawable/double_bg"
         android:gravity="center"
         android:padding="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_40sdp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout">
@@ -66,11 +66,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Continue with Google"
             android:fontFamily="@font/orienta"
+            android:text="Continue with Google"
             android:textColor="@color/green"
-            android:textSize="18sp"
-            />
+            android:textSize="18sp" />
     </LinearLayout>
 
     <TextView
@@ -91,10 +90,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_10sdp"
-        android:layout_marginTop="@dimen/_15sdp"
         android:text="Enter your phone number "
         app:layout_constraintEnd_toEndOf="parent"
-        android:fontFamily="@font/orienta"
         app:layout_constraintStart_toStartOf="@+id/linearLayout"
         app:layout_constraintTop_toBottomOf="@+id/or_divider" />
 
@@ -115,41 +112,38 @@
         app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/sssfdjb"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:text="We will send you an OTP on this mobile\nnumber"
+        android:textAlignment="center"
+        android:textColor="@color/gray"
+        app:layout_constraintEnd_toEndOf="@+id/mobile_number"
+        app:layout_constraintStart_toStartOf="@+id/mobile_number"
+        app:layout_constraintTop_toBottomOf="@+id/mobile_number" />
+
+    <TextView
+        android:id="@+id/send_otp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_30sdp"
+        android:background="@drawable/primary_button_bg"
+        android:padding="@dimen/_10sdp"
+        android:text="Generate OTP"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/mobile_number">
-
-        <TextView
-            android:id="@+id/send_otp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginEnd="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_5sdp"
-            android:background="@drawable/primary_button_bg"
-            android:padding="@dimen/_10sdp"
-            android:text="Generate OTP"
-            android:fontFamily="@font/orienta"
-            android:gravity="center"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:layout_gravity="bottom"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/mobile_number" />
-
-    </LinearLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyle"
-        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"

@@ -55,15 +55,16 @@ class CallNotificationService : Service() {
         val advisorAvatar = intent?.getStringExtra("advisorAvatar") ?: ""
         val advisorId = intent?.getStringExtra("ADVISOR_ID") ?: ""
         val callType = intent?.getStringExtra("CALL_TYPE") ?: "VIDEO"
+        val urgencyLevel = intent?.getStringExtra("urgencyLevel") ?: "Medium" // 🔥 Extraction
         
         createNotificationChannel()
-        showNotification(callId, channelName, callerName, advisorAvatar, advisorId, callType)
+        showNotification(callId, channelName, callerName, advisorAvatar, advisorId, callType, urgencyLevel)
         playRingtone()
 
         return START_NOT_STICKY
     }
 
-    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String, callType: String) {
+    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String, callType: String, urgencyLevel: String) {
         // Custom Layout
         val customView = RemoteViews(packageName, R.layout.notification_call)
         customView.setTextViewText(R.id.tv_caller_name, callerName)
@@ -76,6 +77,7 @@ class CallNotificationService : Service() {
             putExtra("ADVISOR_NAME", callerName) // Pass name directly if accepting from notif
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
+            putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         val acceptPendingIntent = PendingIntent.getActivity(
@@ -106,6 +108,7 @@ class CallNotificationService : Service() {
             putExtra("ADVISOR_NAME", callerName) // Normalize extra keys
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
+            putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(

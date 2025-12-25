@@ -105,9 +105,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // Robust ID extraction
         val advisorId = data["advisorId"] ?: data["senderId"] ?: data["advisorUid"] ?: data["uid"] ?: data["id"] ?: ""
         val callType = data["callType"] ?: "VIDEO"
+        val urgencyLevel = data["urgencyLevel"] ?: "Medium" // 🔥 Default to Medium/Instant
         
         Log.d(TAG, "Notification Payload Data Keys: ${data.keys}")
-        Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName, Type: $callType")
+        Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName, Type: $callType, Urgency: $urgencyLevel")
         
         val serviceIntent = Intent(this, CallNotificationService::class.java).apply {
             putExtra("CALL_ID", callId)
@@ -116,6 +117,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             putExtra("advisorAvatar", callerAvatar)
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
+            putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate to Service
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

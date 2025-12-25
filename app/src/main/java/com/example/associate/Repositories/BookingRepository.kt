@@ -136,15 +136,44 @@ class BookingRepository {
                 val userRef = db.collection("users").document(userId)
                 val advisorRef = db.collection("advisors").document(advisorId)
                 val bookingCollection = if (isInstant) "instant_bookings" else "scheduled_bookings"
-                val bookingRef = db.collection(bookingCollection).document(bookingId)
+                var bookingRef = db.collection(bookingCollection).document(bookingId)
+
+                // 🔥 FORCE CHECK: If it's claimed as "Instant" but exists in "scheduled_bookings", treat as Scheduled (Prepaid)
+                if (isInstant) {
+                     android.util.Log.d("BookingRepository", "Client claims Instant. Checking Scheduled existence for ID: $bookingId")
+                     val scheduledRef = db.collection("scheduled_bookings").document(bookingId)
+                     try {
+                        val scheduledSnapshot = transaction.get(scheduledRef)
+                        if (scheduledSnapshot.exists()) {
+                             android.util.Log.w("BookingRepository", "Force-Correcting to Scheduled (Prepaid) - Found in scheduled_bookings")
+                             bookingRef = scheduledRef
+                        } else {
+                             android.util.Log.d("BookingRepository", "Not found in scheduled_bookings. Proceeding as Instant.")
+                        }
+                     } catch (e: Exception) {
+                         android.util.Log.e("BookingRepository", "Error checking scheduled_bookings: ${e.message}")
+                     }
+                }
 
                 val userSnapshot = transaction.get(userRef)
                 val advisorSnapshot = transaction.get(advisorRef)
                 // Ensure booking doc is read early for txn consistency rules
                 val bookingSnapshot = transaction.get(bookingRef)
+                
+                // 🛑 SAFETY: If booking doesn't exist, DO NOT DEDUCT.
+                if (!bookingSnapshot.exists()) {
+                     android.util.Log.e("BookingRepository", "Booking Document NOT FOUND at ${bookingRef.path}. Aborting transaction to prevent double/ghost deduction.")
+                     throw com.google.firebase.firestore.FirebaseFirestoreException("Booking not found", com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED)
+                }
+
+                val currentPath = bookingSnapshot.reference.path
+                val isReallyScheduled = currentPath.contains("scheduled_bookings")
+                val shouldDeductFromUser = !isReallyScheduled
+
+                android.util.Log.d("BookingRepository", "Transaction Decision -> Path: $currentPath, isReallyScheduled: $isReallyScheduled, shouldDeduct: $shouldDeductFromUser")
 
                 // 1. Calculate Costs
-                val totalCost = if (isInstant) {
+                val totalCost = if (shouldDeductFromUser) {
                      (callDurationSeconds / 60.0) * ratePerMinute
                 } else {
                      ratePerMinute // For scheduled, ratePerMinute is treated as fixed sessionAmount
@@ -161,42 +190,48 @@ class BookingRepository {
                 // ...
                 
                 // 2. User Deduction
-                val currentBalance = if (walletSnapshot.exists()) {
-                    walletSnapshot.getDouble("balance") ?: 0.0
-                } else {
-                     0.0
-                     // If wallet missing, maybe fail? Or assume 0 and go negative.
-                }
-                
-                val newBalance = currentBalance - finalCost
-                
-                if (walletSnapshot.exists()) {
-                    transaction.update(walletRef, "balance", newBalance)
-                    // Also update stats
-                    val totalSpent = walletSnapshot.getDouble("totalSpent") ?: 0.0
-                    val count = walletSnapshot.getLong("transactionCount") ?: 0
-                    transaction.update(walletRef, "totalSpent", totalSpent + finalCost)
-                    transaction.update(walletRef, "transactionCount", count + 1)
-                } else {
-                    // Create wallet doc?
-                    // Transaction requires docs to exist for update. Set for create.
-                    val newWallet = hashMapOf(
-                        "userId" to userId,
-                        "balance" to newBalance,
-                        "totalSpent" to finalCost,
-                        "transactionCount" to 1,
-                        "lastUpdated" to FieldValue.serverTimestamp()
+                // IF INSTANT: Deduct now. IF SCHEDULED: Already deducted (Prepaid), so skip deduction.
+                if (shouldDeductFromUser) {
+                     android.util.Log.d("BookingRepository", "DEDUCTING FROM USER: $finalCost")
+                    val currentBalance = if (walletSnapshot.exists()) {
+                        walletSnapshot.getDouble("balance") ?: 0.0
+                    } else {
+                        0.0
+                    }
+
+                    val newBalance = currentBalance - finalCost
+
+                    if (walletSnapshot.exists()) {
+                        transaction.update(walletRef, "balance", newBalance)
+                        val totalSpent = walletSnapshot.getDouble("totalSpent") ?: 0.0
+                        val count = walletSnapshot.getLong("transactionCount") ?: 0
+                        transaction.update(walletRef, "totalSpent", totalSpent + finalCost)
+                        transaction.update(walletRef, "transactionCount", count + 1)
+                    } else {
+                        val newWallet = hashMapOf(
+                            "userId" to userId,
+                            "balance" to newBalance,
+                            "totalSpent" to finalCost,
+                            "transactionCount" to 1,
+                            "lastUpdated" to FieldValue.serverTimestamp()
+                        )
+                        transaction.set(walletRef, newWallet)
+                    }
+
+                    // 5a. Transaction History (User) - Only for Instant Deduction
+                    val userTransactionRef = userRef.collection("transactions").document()
+                    val userTx = hashMapOf(
+                        "amount" to finalCost,
+                        "type" to "DEBIT",
+                        "description" to "Call Fee",
+                        "timestamp" to FieldValue.serverTimestamp(),
+                        "relatedBookingId" to bookingId
                     )
-                    transaction.set(walletRef, newWallet)
+                    transaction.set(userTransactionRef, userTx)
                 }
 
                 // 3. Advisor Credit
                 // Access nested map "earningsInfo"
-                // Note: Firestore doesn't support updating nested fields easily with dot notation in 'update' if the map doesn't exist?
-                // But usually "earningsInfo.totalLifetimeEarnings" works.
-                // Safely get current values
-                
-                // We need to handle if earningsInfo doesn't exist yet
                 val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
                 val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
                 val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
@@ -215,20 +250,7 @@ class BookingRepository {
                         "callDuration" to callDurationSeconds,
                         "callEndedAt" to com.google.firebase.Timestamp.now()
                     ))
-                } else {
-                    android.util.Log.w("BookingRepository", "Booking document $bookingId not found. Skipping status update but processing payment.")
                 }
-
-                // 5. Transaction History (User)
-                val userTransactionRef = userRef.collection("transactions").document()
-                val userTx = hashMapOf(
-                    "amount" to finalCost,
-                    "type" to "DEBIT",
-                    "description" to "Call Fee",
-                    "timestamp" to FieldValue.serverTimestamp(),
-                    "relatedBookingId" to bookingId
-                )
-                transaction.set(userTransactionRef, userTx)
 
                 // 6. Transaction History (Advisor)
                 val advisorTransactionRef = advisorRef.collection("transactions").document()

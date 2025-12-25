@@ -145,73 +145,72 @@ class SessionBookingManager(private val context: Context) {
         val studentName = currentUser.displayName ?: "Student"
         val amount = sessionAmount.toDoubleOrNull() ?: 0.0
 
-        // Wallet Check
-        checkWalletBalance(studentId) { balance ->
-            if (balance < amount) {
-                onFailure("Insufficient balance. Minimum ₹$amount required.")
-                return@checkWalletBalance
-            }
 
-            // Create Booking in "scheduled_bookings"
-            createScheduledBookingInFirestore(
-                advisorId, advisorName, studentId, studentName,
-                purpose, preferredLanguage, additionalNotes, bookingType, bookingSlot, bookingDate, urgencyLevel, amount,
-                onSuccess, onFailure
-            )
-        }
-    }
-
-    private fun createScheduledBookingInFirestore(
-        advisorId: String,
-        advisorName: String,
-        studentId: String,
-        studentName: String,
-        purpose: String,
-        preferredLanguage: String,
-        additionalNotes: String,
-        bookingType: String,
-        bookingSlot: String,
-        bookingDate: String, // ✅ Added Param
-        urgencyLevel: String,
-        sessionAmount: Double, // ✅ Added Param
-        onSuccess: (String) -> Unit,
-        onFailure: (String) -> Unit
-    ) {
-        val bookingId = generateReadableId()
-
-        val bookingData = SessionBookingDataClass(
-            bookingId = bookingId,
-            studentId = studentId,
-            advisorId = advisorId,
-            studentName = studentName,
-            advisorName = advisorName,
-            purpose = purpose,
-            preferredLanguage = preferredLanguage,
-            additionalNotes = additionalNotes,
-            bookingType = bookingType,
-            bookingSlot = bookingSlot,
-            bookingDate = bookingDate, // ✅ Save Date
-            urgencyLevel = urgencyLevel,
-            bookingTimestamp = Timestamp.now(),
-            // Set deadline to 24 hours for scheduled requests acceptance
-            advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000))), 
-            sessionAmount = sessionAmount,
-            paymentStatus = "pending",
-            bookingStatus = "pending"
-        )
         
-        db.collection("scheduled_bookings")
-            .document(bookingId)
-            .set(bookingData)
-            .addOnSuccessListener {
-                Log.d("DEBUG", "Scheduled Booking created: $bookingId")
-                sendBookingNotificationToAdvisor(advisorId, studentName, bookingId, advisorName)
-                onSuccess("Booking request sent! Advisor has been notified.")
+        // Run Transaction: Check Balance -> Deduct -> Create Booking
+        db.runTransaction { transaction ->
+            val walletRef = db.collection("wallets").document(studentId)
+            val walletSnapshot = transaction.get(walletRef)
+            val currentBalance = walletSnapshot.getDouble("balance") ?: 0.0
+
+            if (currentBalance < amount) {
+                throw com.google.firebase.firestore.FirebaseFirestoreException("Insufficient balance", com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED)
             }
-            .addOnFailureListener { exception ->
-                Log.e("DEBUG", "Scheduled Booking failed: ${exception.message}")
-                onFailure("Booking failed: ${exception.message}")
-            }
+
+            // 1. Deduct from User
+            val newBalance = currentBalance - amount
+            transaction.update(walletRef, "balance", newBalance)
+            transaction.update(walletRef, "totalSpent", (walletSnapshot.getDouble("totalSpent") ?: 0.0) + amount)
+
+            // 2. Transaction Record
+            val transactionRef = db.collection("users").document(studentId).collection("transactions").document()
+            val txData = hashMapOf(
+                "amount" to amount,
+                "type" to "DEBIT",
+                "description" to "Scheduled Session Pre-payment",
+                "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp(),
+                "bookingDate" to bookingDate
+            )
+            transaction.set(transactionRef, txData)
+
+            // 3. Create Booking
+            val bookingId = generateReadableId()
+            val bookingData = SessionBookingDataClass(
+                bookingId = bookingId,
+                studentId = studentId,
+                advisorId = advisorId,
+                studentName = studentName,
+                advisorName = advisorName,
+                purpose = purpose,
+                preferredLanguage = preferredLanguage,
+                additionalNotes = additionalNotes,
+                bookingType = bookingType,
+                bookingSlot = bookingSlot,
+                bookingDate = bookingDate,
+                urgencyLevel = urgencyLevel,
+                bookingTimestamp = Timestamp.now(),
+                advisorResponseDeadline = Timestamp(Date(System.currentTimeMillis() + (24 * 60 * 60 * 1000))),
+                sessionAmount = amount,
+                paymentStatus = "paid", // ✅ PAID IMMEDIATELY
+                bookingStatus = "pending"
+            )
+            transaction.set(db.collection("scheduled_bookings").document(bookingId), bookingData)
+            
+            bookingId // Return for success
+        }
+        .addOnSuccessListener { bookingId ->
+             Log.d("DEBUG", "Scheduled Booking & Payment successful: $bookingId")
+             sendBookingNotificationToAdvisor(advisorId, studentName, bookingId as String, advisorName)
+             onSuccess("Booking Confirmed! Payment of ₹$amount deducted.")
+        }
+        .addOnFailureListener { e ->
+             if (e.message?.contains("Insufficient balance") == true) {
+                 onFailure("Insufficient balance. Please add funds.")
+             } else {
+                 Log.e("DEBUG", "Booking Failed: ${e.message}")
+                 onFailure("Booking failed: ${e.message}")
+             }
+        }
     }
     private fun checkActiveBooking(studentId: String, onResult: (Boolean) -> Unit) {
         Log.d("DEBUG", "Checking active bookings for student: $studentId")

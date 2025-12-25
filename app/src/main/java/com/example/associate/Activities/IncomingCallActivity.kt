@@ -162,16 +162,20 @@ class IncomingCallActivity : AppCompatActivity() {
         stopService()
         val targetActivity = if (callType == "AUDIO") AudioCallActivity::class.java else VideoCallActivity::class.java
         
-        val intent = Intent(this, targetActivity).apply {
+        // 🔥 Capture from Activity Intent first!
+        val urgencyLevel = this.intent.getStringExtra("urgencyLevel") 
+        
+        val newIntent = Intent(this, targetActivity).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
             putExtra("ADVISOR_NAME", advisorName)
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
             putExtra("ADVISOR_AVATAR", advisorAvatar)
+            putExtra("urgencyLevel", urgencyLevel) // Pass captured value
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
-        startActivity(intent)
+        startActivity(newIntent)
         finish()
     }
 
