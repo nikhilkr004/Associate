@@ -163,12 +163,13 @@ class OtpScreenActivity : AppCompatActivity() {
                     this@OtpScreenActivity,
                     true,
                     title = "OTP Sent",
-                    message = "New OTP has been sent successfully"
-                ) {
-                    // Clear OTP fields after resend
-                    clearOtpFields()
-                    binding.otp1.requestFocus()
-                }
+                    message = "New OTP has been sent successfully",
+                    action = {
+                        // Clear OTP fields after resend
+                        clearOtpFields()
+                        binding.otp1.requestFocus()
+                    }
+                )
             }
         }
 
@@ -262,12 +263,14 @@ class OtpScreenActivity : AppCompatActivity() {
                         this,
                         false,
                         title = "Verification Failed",
-                        message = errorMessage
-                    ) {
-                        // Clear all fields on failure
-                        clearOtpFields()
-                        otpFields[0].requestFocus()
-                    }
+                        message = errorMessage,
+                        buttonText = "Retry",
+                        action = {
+                            // Clear all fields on failure
+                            clearOtpFields()
+                            otpFields[0].requestFocus()
+                        }
+                    )
                 }
             }
     }
@@ -296,10 +299,11 @@ class OtpScreenActivity : AppCompatActivity() {
             this,
             true,
             title = "Success",
-            message = "Login successful"
-        ) {
-            navigateToMainActivity()
-        }
+            message = "Login successful",
+            action = {
+                navigateToMainActivity()
+            }
+        )
     }
 
     private fun handleNewUser() {
@@ -307,10 +311,11 @@ class OtpScreenActivity : AppCompatActivity() {
             this,
             true,
             title = "Welcome",
-            message = "Please complete your profile"
-        ) {
-            navigateToProfileSetup()
-        }
+            message = "Please complete your profile",
+            action = {
+                navigateToProfileSetup()
+            }
+        )
     }
 
     private fun navigateToMainActivity() {

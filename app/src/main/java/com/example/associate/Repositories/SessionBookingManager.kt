@@ -96,7 +96,7 @@ class SessionBookingManager(private val context: Context) {
                 // ✅ SEND NOTIFICATION TO ADVISOR
                 sendBookingNotificationToAdvisor(advisorId, studentName, bookingId, advisorName)
 
-                onSuccess("Booking request sent! Advisor has 5 minutes to call you.")
+                onSuccess(bookingId)
                 startResponseTimer(bookingId)
             }
             .addOnFailureListener { exception ->

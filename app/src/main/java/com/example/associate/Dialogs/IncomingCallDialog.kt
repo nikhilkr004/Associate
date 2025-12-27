@@ -110,9 +110,15 @@ class IncomingCallDialog(
             // Stop any existing ringtone
             stopRingtone()
 
-            // Play default ringtone
-            val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-            mediaPlayer = MediaPlayer.create(context, ringtoneUri)
+            // Play custom ringtone if available, else default
+            val rawId = context.resources.getIdentifier("incoming_call_tone", "raw", context.packageName)
+            if (rawId != 0) {
+                 mediaPlayer = MediaPlayer.create(context, rawId)
+            } else {
+                 val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+                 mediaPlayer = MediaPlayer.create(context, ringtoneUri)
+            }
+            
             mediaPlayer?.isLooping = true
             mediaPlayer?.start()
 
@@ -177,14 +183,31 @@ class IncomingCallDialog(
     }
 
     private fun updateCallStatus(status: String) {
+        // Update videoCalls collection
         db.collection("videoCalls")
             .document(callId)
             .update("status", status)
             .addOnSuccessListener {
-                Log.d("IncomingCallDialog", "Call status updated to: $status")
+                Log.d("IncomingCallDialog", "VideoCall status updated to: $status")
             }
             .addOnFailureListener { e ->
-                Log.e("IncomingCallDialog", "Failed to update call status: ${e.message}")
+                Log.e("IncomingCallDialog", "Failed to update videoCall status: ${e.message}")
+            }
+
+        // Update instant_bookings collection (Redundancy for Advisor Listener)
+        db.collection("instant_bookings")
+            .document(callId)
+            // Combined update for both fields to avoid chaining error (update() returns Task, not Ref)
+            .update(mapOf(
+                "status" to status,
+                "bookingStatus" to status
+            ))
+            .addOnSuccessListener {
+                 Log.d("IncomingCallDialog", "InstantBooking status updated to: $status")
+            }
+            .addOnFailureListener { e ->
+                 // Start silent, might not exist if it's just a call.
+                 Log.w("IncomingCallDialog", "Failed/Skipped instant_booking update: ${e.message}")
             }
     }
 

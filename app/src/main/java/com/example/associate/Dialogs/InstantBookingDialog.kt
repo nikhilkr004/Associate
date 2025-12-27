@@ -13,11 +13,12 @@ import com.example.associate.Repositories.SessionBookingManager
 import com.example.associate.ViewModels.InstantBookingViewModel
 import com.example.associate.ViewModels.InstantBookingViewModel.BookingType
 import com.example.associate.databinding.DialogInstantBookingBinding
+import com.example.associate.DataClass.DialogUtils
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class InstantBookingDialog(
     private val advisor: AdvisorDataClass,
-    private val onBookingSuccess: () -> Unit
+    private val onBookingSuccess: (String) -> Unit
 ) : BottomSheetDialogFragment() {
 
     private var _binding: DialogInstantBookingBinding? = null
@@ -168,26 +169,31 @@ class InstantBookingDialog(
                 val dateString = dateFormat.format(today)
                 val timeString = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault()).format(today)
 
-                BookingSuccessDialog(
+                DialogUtils.showStatusDialog(
                     requireContext(),
-                    advisor.basicInfo.name,
-                    "You", 
-                    (viewModel.totalPrice.value?.toString() ?: "0.0"),
-                    dateString,
-                    timeString,
-                    onGoHome = {
-                        onBookingSuccess()
+                    isSuccess = true,
+                    title = "Booking Successful",
+                    message = "Your booking with ${advisor.basicInfo.name} has been confirmed for $dateString at $timeString.",
+                    buttonText = "Go to Home",
+                    action = {
+                        onBookingSuccess(message)
                         dismiss()
-                    },
-                    onViewAppointment = {
-                         onBookingSuccess()
-                         dismiss()
                     }
-                ).show()
+                )
             },
             onFailure = { error ->
                 setLoading(false)
-                Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
+                DialogUtils.showStatusDialog(
+                    requireContext(),
+                    isSuccess = false,
+                    title = "Booking Failed",
+                    message = error,
+                    buttonText = "Try Again",
+                    action = {
+                        // Just dismiss dialog, allowing user to retry in the form? Or dismiss sheet?
+                        // User likely wants to retry. 'Try Again' could just close error dialog.
+                    }
+                )
             }
         )
     }

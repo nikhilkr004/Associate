@@ -165,6 +165,12 @@ class BookingRepository {
                      android.util.Log.e("BookingRepository", "Booking Document NOT FOUND at ${bookingRef.path}. Aborting transaction to prevent double/ghost deduction.")
                      throw com.google.firebase.firestore.FirebaseFirestoreException("Booking not found", com.google.firebase.firestore.FirebaseFirestoreException.Code.ABORTED)
                 }
+                
+                // 🛑 IDEMPOTENCY CHECK: If already completed, DO NOT DEDUCT AGAIN.
+                if (bookingSnapshot.getString("bookingStatus") == "completed") {
+                    android.util.Log.w("BookingRepository", "Booking $bookingId is ALREADY COMPLETED. Skipping transaction.")
+                    return@runTransaction // Exit transaction successfully but do nothing
+                }
 
                 val currentPath = bookingSnapshot.reference.path
                 val isReallyScheduled = currentPath.contains("scheduled_bookings")

@@ -96,10 +96,11 @@ class FeedbackActivity : AppCompatActivity() {
                                  this@FeedbackActivity, 
                                  true, 
                                  "Success", 
-                                 "Thank you for your feedback!"
-                             ) {
-                                 finish()
-                             }
+                                 "Thank you for your feedback!",
+                                 action = {
+                                     finish()
+                                 }
+                             )
                          }
                      } else {
                          withContext(Dispatchers.Main) {

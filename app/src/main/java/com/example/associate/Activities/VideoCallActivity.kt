@@ -27,7 +27,6 @@ import com.example.associate.Utils.AppConstants
 import com.example.associate.PreferencesHelper.ZegoCallManager
 import com.example.associate.R
 import com.example.associate.DataClass.Rating
-import com.example.associate.Dialogs.RatingDialog
 import com.example.associate.MainActivity
 import com.example.associate.Repositories.RatingRepository
 import com.example.associate.Repositories.VideoCallService
@@ -66,6 +65,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var localUserID: String = ""
     private var localUserName: String = ""
     private var remoteAdvisorId: String = ""
+    private var storedAdvisorId: String = "" // 🔥 Added to persist ID
     private var callType: String = "VIDEO"
 
 
@@ -319,7 +319,8 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
              .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val urgencyLevel = document.getString("urgencyLevel") ?: ""
-                    Log.w("VideoCall", "Step 3A: Found Instant Booking. Urgency: $urgencyLevel")
+                    storedAdvisorId = document.getString("advisorId") ?: "" // 🔥 Save Advisor ID
+                    Log.w("VideoCall", "Step 3A: Found Instant Booking. Urgency: $urgencyLevel, AdvisorID: $storedAdvisorId")
                     
                     // Double check if it's marked as "Scheduled" even in Instant
                     if (urgencyLevel.equals("Scheduled", ignoreCase = true)) {
@@ -346,6 +347,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     isInstantBooking = false
+                    storedAdvisorId = document.getString("advisorId") ?: "" // 🔥 Save Advisor ID
                     ratePerMinute = document.getDouble("sessionAmount") ?: 100.0 // Fixed Amount
                     startVisualTracker()
                 } else {
@@ -565,7 +567,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         // 🔥 ATOMIC TRANSACTION
         val callDurationSeconds = (System.currentTimeMillis() - callStartTime) / 1000
         val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: ""
-        val advisorId = intent.getStringExtra("ADVISOR_ID") ?: remoteAdvisorId // Fallback to captured ID
+        // 🔥 PRIORITY: Intent -> Remote (Joined) -> Stored (Booking Doc)
+        val advisorId = intent.getStringExtra("ADVISOR_ID") 
+            ?: if (remoteAdvisorId.isNotEmpty()) remoteAdvisorId 
+            else storedAdvisorId
         val userId = localUserID
         
         if (bookingId.isNotEmpty() && advisorId.isNotEmpty()) {

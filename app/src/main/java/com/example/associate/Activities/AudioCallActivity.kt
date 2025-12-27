@@ -19,7 +19,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.associate.DataClass.Rating
-import com.example.associate.Dialogs.RatingDialog
 import com.example.associate.MainActivity
 import com.example.associate.PreferencesHelper.ZegoCallManager
 import com.example.associate.R
@@ -59,6 +58,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var localUserID: String = ""
     private var localUserName: String = ""
     private var remoteAdvisorId: String = ""
+    private var storedAdvisorId: String = "" // 🔥 Added to persist ID
 
     // Modern permission request
     private val requestPermissionLauncher = registerForActivityResult(
@@ -339,7 +339,8 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val urgencyLevel = document.getString("urgencyLevel") ?: ""
-                    Log.w("AudioCall", "Step 3A: Found Instant Booking. Urgency: $urgencyLevel")
+                    storedAdvisorId = document.getString("advisorId") ?: "" // 🔥 Save Advisor ID
+                    Log.w("AudioCall", "Step 3A: Found Instant Booking. Urgency: $urgencyLevel, AdvisorID: $storedAdvisorId")
                     
                     if (urgencyLevel.equals("Scheduled", ignoreCase = true)) {
                         isInstantBooking = false
@@ -365,6 +366,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     isInstantBooking = false
+                    storedAdvisorId = document.getString("advisorId") ?: "" // 🔥 Save Advisor ID
                     ratePerMinute = document.getDouble("sessionAmount") ?: 100.0 // Fixed
                     startVisualTracker()
                 } else {
@@ -552,7 +554,10 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         // 🔥 ATOMIC TRANSACTION
         val callDurationSeconds = (System.currentTimeMillis() - callStartTime) / 1000
         val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: ""
-        val advisorId = intent.getStringExtra("ADVISOR_ID") ?: remoteAdvisorId
+        // 🔥 PRIORITY: Intent -> Remote (Joined) -> Stored (Booking Doc)
+        val advisorId = intent.getStringExtra("ADVISOR_ID") 
+            ?: if (remoteAdvisorId.isNotEmpty()) remoteAdvisorId 
+            else storedAdvisorId
         val userId = localUserID
         
         if (bookingId.isNotEmpty() && advisorId.isNotEmpty()) {

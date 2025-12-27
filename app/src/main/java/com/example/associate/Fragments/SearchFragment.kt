@@ -60,12 +60,16 @@ class SearchFragment : Fragment() {
                     favoriteAdvisorIds.clear()
                     favoriteAdvisorIds.addAll(result.data)
                     withContext(Dispatchers.Main) {
-                        loadAllAdvisors() // Load advisors after fetching favorites to correct initial state
+                        if (_binding != null) {
+                            loadAllAdvisors()
+                        }
                     }
                 }
                 else -> {
                     withContext(Dispatchers.Main) {
-                        loadAllAdvisors()
+                        if (_binding != null) {
+                            loadAllAdvisors()
+                        }
                     }
                 }
             }
@@ -137,6 +141,8 @@ class SearchFragment : Fragment() {
             .limit(50)
             .get()
             .addOnSuccessListener { documents ->
+                if (_binding == null) return@addOnSuccessListener
+                
                 allAdvisorsList.clear()
                 searchList.clear()
                 for (doc in documents) {
@@ -163,6 +169,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun performSearch(query: String) {
+        if (_binding == null) return
         val lowerCaseQuery = query.toLowerCase().trim()
         
         searchList.clear()

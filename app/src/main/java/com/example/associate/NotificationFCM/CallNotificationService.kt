@@ -70,14 +70,23 @@ class CallNotificationService : Service() {
         customView.setTextViewText(R.id.tv_caller_name, callerName)
         customView.setImageViewResource(R.id.iv_caller_avatar, R.drawable.user) // Default placeholder
 
+        // Determine Target Activity
+        val targetClass = when (callType) {
+            "CHAT" -> com.example.associate.Activities.ChatActivity::class.java
+            "AUDIO" -> com.example.associate.Activities.AudioCallActivity::class.java
+            else -> VideoCallActivity::class.java
+        }
+
         // Accept Intent
-        val acceptIntent = Intent(this, VideoCallActivity::class.java).apply {
+        val acceptIntent = Intent(this, targetClass).apply {
             putExtra("CALL_ID", callId)
+            putExtra("ROOM_ID", callId) // Map callId to ROOM_ID
+            putExtra("BOOKING_ID", callId) // For session reference
             putExtra("CHANNEL_NAME", channelName)
-            putExtra("ADVISOR_NAME", callerName) // Pass name directly if accepting from notif
+            putExtra("ADVISOR_NAME", callerName) 
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
-            putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate
+            putExtra("urgencyLevel", urgencyLevel) 
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         val acceptPendingIntent = PendingIntent.getActivity(
@@ -102,13 +111,14 @@ class CallNotificationService : Service() {
         // Full Screen Intent (for Lock Screen)
         val fullScreenIntent = Intent(this, IncomingCallActivity::class.java).apply {
             putExtra("CALL_ID", callId)
+            putExtra("ROOM_ID", callId) // Map callId to ROOM_ID
             putExtra("CHANNEL_NAME", channelName)
             putExtra("title", callerName)
             putExtra("advisorAvatar", advisorAvatar)
-            putExtra("ADVISOR_NAME", callerName) // Normalize extra keys
+            putExtra("ADVISOR_NAME", callerName) 
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
-            putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate
+            putExtra("urgencyLevel", urgencyLevel) 
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(

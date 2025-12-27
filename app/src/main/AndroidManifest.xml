@@ -147,6 +147,14 @@
             android:launchMode="singleTop"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 
+        <!-- Chat Activity -->
+        <activity
+            android:name=".Activities.ChatActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:windowSoftInputMode="adjustResize"/>
+
         <!-- Notification Activity -->
         <activity
             android:name=".Activities.NotificationActivity"

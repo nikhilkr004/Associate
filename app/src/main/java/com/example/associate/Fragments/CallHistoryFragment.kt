@@ -17,14 +17,18 @@ import com.example.associate.databinding.FragmentCallHistoryBinding
  * Uses [CallHistoryViewModel] to fetch and manage data.
  */
 class CallHistoryFragment : Fragment() {
-    
+
     private var _binding: FragmentCallHistoryBinding? = null
     private val binding get() = _binding!!
-    
+
     private lateinit var videoCallAdapter: CallHistoryAdapter
     private lateinit var viewModel: CallHistoryViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _binding = FragmentCallHistoryBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -36,7 +40,7 @@ class CallHistoryFragment : Fragment() {
         setupRecyclerView()
         setupTabs()
         observeViewModel()
-        
+
         // Load data
         viewModel.loadCallHistory()
     }
@@ -50,34 +54,74 @@ class CallHistoryFragment : Fragment() {
             when (action) {
                 CallHistoryAdapter.CallHistoryAction.CANCEL -> {
                     viewModel.cancelBooking(booking)
-                    Toast.makeText(requireContext(), "Cancelling booking...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Cancelling booking...", Toast.LENGTH_SHORT)
+                        .show()
                 }
-                
+
                 CallHistoryAdapter.CallHistoryAction.REBOOK,
                 CallHistoryAdapter.CallHistoryAction.RESCHEDULE -> {
                     navigateToAdvisorProfile(booking)
                 }
-                
+
                 CallHistoryAdapter.CallHistoryAction.ITEM_CLICK -> {
-                     val status = booking.bookingStatus.lowercase()
-                     if (status == "completed" || status == "ended") {
-                         val intent = android.content.Intent(requireContext(), com.example.associate.Activities.BookingSummaryActivity::class.java)
-                         intent.putExtra("BOOKING_DATA", booking)
-                         if (advisor != null) {
-                             intent.putExtra("ADVISOR_DATA", advisor)
-                         }
-                         startActivity(intent)
-                     } else {
-                         // Pending/Upcoming -> Maybe show details too OR go to Profile
-                         // User asked specifically for "booking complete" items.
-                         // For now, let's keep others pointing to profile OR do nothing/toast.
-                         // But usually clicking an item should do something useful.
-                         navigateToAdvisorProfile(booking)
-                     }
+                    val status = booking.bookingStatus.trim().lowercase()
+                    // Check if it's a Chat (or Audio that was upgraded/handled in ChatActivity)
+                    val isChat = booking.bookingType.contains("Chat", ignoreCase = true) ||
+                            booking.bookingType.contains("Audio", ignoreCase = true)
+
+                    // 1. Completed/Ended -> History Mode
+                    if (status == "completed" || status == "ended" || status == "complete" || status == "end" || status == "finished") {
+                        if (isChat) {
+                            val intent = android.content.Intent(
+                                requireContext(),
+                                com.example.associate.Activities.ChatActivity::class.java
+                            )
+                            intent.putExtra("CHAT_ID", booking.bookingId)
+                            intent.putExtra("BOOKING_ID", booking.bookingId)
+                            intent.putExtra("ADVISOR_ID", booking.advisorId)
+                            intent.putExtra("ADVISOR_NAME", booking.advisorName)
+                            intent.putExtra("ADVISOR_AVATAR", advisor?.profilePhotoUrl)
+                            intent.putExtra("IS_HISTORY", true)
+                            intent.putExtra("PAID_AMOUNT", booking.sessionAmount)
+                            intent.putExtra("ROOM_ID", booking.roomId) // Passing roomId as per requirement
+                            Toast.makeText(requireContext(), "History ID: ${booking.roomId}", Toast.LENGTH_LONG).show() // DEBUG
+                            startActivity(intent)
+                        } else {
+                            val intent = android.content.Intent(
+                                requireContext(),
+                                com.example.associate.Activities.BookingSummaryActivity::class.java
+                            )
+                            intent.putExtra("BOOKING_DATA", booking)
+                            if (advisor != null) {
+                                intent.putExtra("ADVISOR_DATA", advisor)
+                            }
+                            startActivity(intent)
+                        }
+                    } 
+                    // 2. Active/Pending -> Live Chat Mode
+                    else if ((status == "accepted" || status == "pending" || status == "upcoming" || status == "initiated") && isChat) {
+                        val intent = android.content.Intent(
+                            requireContext(),
+                            com.example.associate.Activities.ChatActivity::class.java
+                        )
+                        intent.putExtra("BOOKING_ID", booking.bookingId)
+                        intent.putExtra("ADVISOR_ID", booking.advisorId)
+                        intent.putExtra("ADVISOR_NAME", booking.advisorName)
+                        intent.putExtra("ADVISOR_AVATAR", advisor?.profilePhotoUrl)
+                        intent.putExtra("ROOM_ID", booking.roomId)
+                        startActivity(intent)
+                    } 
+                    // 3. Default -> Advisor Profile
+                    else {
+                        navigateToAdvisorProfile(booking)
+                    }
                 }
-                
+
                 CallHistoryAdapter.CallHistoryAction.REVIEW -> {
-                    val intent = android.content.Intent(requireContext(), com.example.associate.Activities.FeedbackActivity::class.java)
+                    val intent = android.content.Intent(
+                        requireContext(),
+                        com.example.associate.Activities.FeedbackActivity::class.java
+                    )
                     intent.putExtra("BOOKING_DATA", booking)
                     startActivity(intent)
                 }
@@ -94,7 +138,7 @@ class CallHistoryFragment : Fragment() {
             Toast.makeText(requireContext(), "Error: Advisor ID missing", Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         // Create minimal AdvisorDataClass to pass ID
         val advisorData = com.example.associate.DataClass.AdvisorDataClass(
             basicInfo = com.example.associate.DataClass.BasicInfo(
@@ -103,30 +147,23 @@ class CallHistoryFragment : Fragment() {
                 // We could pass more if available from UserData, but ID is critical
             )
         )
-        
-        val intent = android.content.Intent(requireContext(), com.example.associate.Activities.AdvisorProfileActivity::class.java)
+
+        val intent = android.content.Intent(
+            requireContext(),
+            com.example.associate.Activities.AdvisorProfileActivity::class.java
+        )
         intent.putExtra("ADVISOR_DATA", advisorData)
         startActivity(intent)
     }
 
-    private fun showReviewDialog(booking: com.example.associate.DataClass.SessionBookingDataClass) {
-        val ratingDialog = com.example.associate.Dialogs.RatingDialog { rating, review ->
-            viewModel.submitReview(booking, rating, review) { success ->
-                if (success) {
-                    com.example.associate.DataClass.DialogUtils.showStatusDialog(
-                        requireContext(), true, "Success", "Review Submitted Successfully"
-                    ) {}
-                }
-            }
-        }
-        ratingDialog.show(parentFragmentManager, "RatingDialog")
-    }
-    
+
     private fun setupTabs() {
-        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+        binding.tabLayout.addOnTabSelectedListener(object :
+            com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
                 tab?.let { viewModel.filterByTab(it.position) }
             }
+
             override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
             override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
         })

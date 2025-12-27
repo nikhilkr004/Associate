@@ -72,6 +72,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 showNotification(title, body, message.data)
                 return
             }
+            "chat_message" -> {
+                Log.d(TAG, "Handling chat message notification")
+                val title = message.data["title"] ?: "New Message"
+                val body = message.data["body"] ?: "You received a message"
+                showChatNotification(title, body, message.data)
+                return
+            }
         }
         
         // Fallback: Check if message contains notification payload
@@ -167,6 +174,49 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         notificationManager.notify(notificationId, notificationBuilder.build())
         
         Log.d(TAG, "Notification displayed: $title")
+    }
+
+    private fun showChatNotification(title: String, body: String, data: Map<String, String>) {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        
+        // Extract Chat Descriptors
+        val chatId = data["chatId"] ?: ""
+        val advisorId = data["senderId"] ?: data["advisorId"] ?: ""
+        val advisorName = data["senderName"] ?: data["advisorName"] ?: "Advisor"
+        val advisorAvatar = data["senderAvatar"] ?: data["advisorAvatar"] ?: ""
+        
+        val intent = Intent(this, com.example.associate.Activities.ChatActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("CHAT_ID", chatId)
+            putExtra("ROOM_ID", chatId) // Map chatId to ROOM_ID for direct lookup
+            putExtra("ADVISOR_ID", advisorId)
+            putExtra("ADVISOR_NAME", advisorName)
+            putExtra("ADVISOR_AVATAR", advisorAvatar)
+            // Determine booking ID if present?
+            if (data.containsKey("bookingId")) {
+                 putExtra("BOOKING_ID", data["bookingId"])
+            }
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            System.currentTimeMillis().toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.notification)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+
+        val notificationId = chatId.hashCode() // Group by chat
+        notificationManager.notify(notificationId, notificationBuilder.build())
     }
 
     /**

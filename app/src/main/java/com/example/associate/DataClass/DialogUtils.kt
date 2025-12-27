@@ -18,7 +18,8 @@ object DialogUtils {
         isSuccess: Boolean,
         title: String,
         message: String,
-        action: (() -> Unit)? = null
+        action: (() -> Unit)? = null,
+        buttonText: String = "Go to Home"
     ): Dialog {
         val dialog = Dialog(context)
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -40,7 +41,9 @@ object DialogUtils {
         }
 
         tvTitle.text = title
+        tvTitle.text = title
         tvMessage.text = message
+        btnAction.text = buttonText
 
         btnAction.setOnClickListener {
             dialog.dismiss()
@@ -113,4 +116,25 @@ object DialogUtils {
         return language != "Select Language" && getPreferredLanguages().drop(1).contains(language)
     }
 
+    fun showExitDialog(
+        context: Context,
+        onConfirm: () -> Unit
+    ) {
+        val dialog = Dialog(context)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_exit_chat)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        
+        val btnCancel = dialog.findViewById<Button>(R.id.btnCancel)
+        val btnEnd = dialog.findViewById<Button>(R.id.btnEndChat)
+        
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        btnEnd.setOnClickListener {
+            dialog.dismiss()
+            onConfirm()
+        }
+        
+        dialog.show()
+    }
 }

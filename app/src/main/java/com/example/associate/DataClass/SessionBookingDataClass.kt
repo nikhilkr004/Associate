@@ -30,7 +30,10 @@ data class SessionBookingDataClass(
     val studentPhone: String = "",
     val callDuration: Int = 0,
     val callStartedAt: Timestamp? = null,
-    val callEndedAt: Timestamp? = null
+
+    val callEndedAt: Timestamp? = null,
+    // 🔥 New Field for Direct Chat Access
+    var roomId: String = ""
 ) : Parcelable {
     // Constructor for Firestore
     constructor() : this(

@@ -13,6 +13,7 @@ import com.example.associate.databinding.ActivityIncomingCallBinding
 class IncomingCallActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityIncomingCallBinding
+    private var advisorId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,29 +52,26 @@ class IncomingCallActivity : AppCompatActivity() {
         val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
         val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
+        advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
         
         binding.tvCallerName.text = callerName
         
         // Update UI based on Call Type
-        if (callType == "AUDIO") {
-             binding.tvCallerName.text = "$callerName (Audio Call)"
-        }
-
-        // Load Avatar
-        if (advisorAvatar.isNotEmpty()) {
-            loadAvatar(advisorAvatar)
-        } else {
-            val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
-            if (advisorId.isNotEmpty()) {
-                fetchAdvisorAvatar(advisorId)
-            }
-        }
-
-        val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+        setupUIForType(callType, callerName)
 
         binding.btnAccept.setOnClickListener {
-            stopService()
             acceptCall(callId, channelName, callerName, advisorId, callType)
+        }
+        
+        // New Start Chat Button
+        binding.btnStartChat.setOnClickListener {
+            acceptCall(callId, channelName, callerName, advisorId, callType)
+        }
+        
+        // New Reject Text
+        binding.tvRejectChat.setOnClickListener {
+            stopService()
+            finish()
         }
 
         binding.btnDecline.setOnClickListener {
@@ -97,7 +95,7 @@ class IncomingCallActivity : AppCompatActivity() {
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
         val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
         
-        binding.tvCallerName.text = callerName
+        setupUIForType(callType, callerName)
         
         if (advisorAvatar.isNotEmpty()) {
             loadAvatar(advisorAvatar)
@@ -148,6 +146,52 @@ class IncomingCallActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupUIForType(callType: String, callerName: String) {
+        if (callType == "CHAT") {
+            // Hide standard Call elements
+            binding.tvCallerName.visibility = android.view.View.GONE
+            binding.tvCallType.visibility = android.view.View.GONE
+            binding.btnAccept.visibility = android.view.View.GONE
+            binding.btnDecline.visibility = android.view.View.GONE
+            // binding.tvAcceptLabel.visibility = android.view.View.GONE // If exists
+            
+            // Show Chat elements
+            binding.tvChatTitle.visibility = android.view.View.VISIBLE
+            binding.tvChatSubtitle.visibility = android.view.View.VISIBLE
+            binding.btnStartChat.visibility = android.view.View.VISIBLE
+            binding.tvRejectChat.visibility = android.view.View.VISIBLE
+            
+            // Adjust Background
+            binding.root.background = null
+            binding.root.setBackgroundColor(android.graphics.Color.WHITE)
+            
+            // Update Text
+            binding.tvChatTitle.text = "Incoming Chat Request"
+            binding.tvCallerName.text = callerName // Reusing TextView if needed, but we hid it.
+            // Update subtitle with name if desired: "$callerName has accepted..."
+            binding.tvChatSubtitle.text = "$callerName has accepted chat request.\nPlease accept to initiate the chat."
+
+            // Text Color tweaks for White BG
+            // binding.tvCallerName.setTextColor(...) // Already hidden
+            
+        } else {
+             // Standard Call UI
+            binding.tvCallerName.text = if (callType =="AUDIO") "$callerName (Audio Call)" else callerName
+            // Ensure visibility (in case of re-use)
+            binding.tvCallerName.visibility = android.view.View.VISIBLE
+            binding.tvCallType.visibility = android.view.View.VISIBLE
+            binding.btnAccept.visibility = android.view.View.VISIBLE
+            binding.btnDecline.visibility = android.view.View.VISIBLE
+            
+             binding.tvChatTitle.visibility = android.view.View.GONE
+            binding.tvChatSubtitle.visibility = android.view.View.GONE
+            binding.btnStartChat.visibility = android.view.View.GONE
+            binding.tvRejectChat.visibility = android.view.View.GONE
+            
+             binding.root.setBackgroundResource(R.drawable.gradient_bg)
+        }
+    }
+
     private fun stopService() {
         val intent = Intent(this, com.example.associate.NotificationFCM.CallNotificationService::class.java).apply {
             action = com.example.associate.NotificationFCM.CallNotificationService.ACTION_STOP_SERVICE
@@ -156,23 +200,28 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String, callType: String) {
-        android.widget.Toast.makeText(this, "Accepting ${if(callType=="AUDIO") "Audio" else "Video"} call...", android.widget.Toast.LENGTH_SHORT).show()
-        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: "" // Retrieve avatar
-        
         stopService()
-        val targetActivity = if (callType == "AUDIO") AudioCallActivity::class.java else VideoCallActivity::class.java
         
-        // 🔥 Capture from Activity Intent first!
-        val urgencyLevel = this.intent.getStringExtra("urgencyLevel") 
-        
+        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: "" 
+        val urgencyLevel = intent.getStringExtra("urgencyLevel")
+
+        val targetActivity = when (callType) {
+            "CHAT" -> ChatActivity::class.java
+            "AUDIO" -> AudioCallActivity::class.java
+            else -> VideoCallActivity::class.java
+        }
+
         val newIntent = Intent(this, targetActivity).apply {
             putExtra("CALL_ID", callId)
+            putExtra("ROOM_ID", callId) // Map callId to ROOM_ID for direct lookup
+            putExtra("BOOKING_ID", callId) // Pass callId as BOOKING_ID (Session)
+            putExtra("CHAT_ID", "")        // Empty to force persistent User-Advisor chat generation
             putExtra("CHANNEL_NAME", channelName)
             putExtra("ADVISOR_NAME", advisorName)
             putExtra("ADVISOR_ID", advisorId)
-            putExtra("CALL_TYPE", callType)
             putExtra("ADVISOR_AVATAR", advisorAvatar)
-            putExtra("urgencyLevel", urgencyLevel) // Pass captured value
+            putExtra("CALL_TYPE", callType)
+            putExtra("urgencyLevel", urgencyLevel)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(newIntent)
