@@ -33,7 +33,7 @@ data class SessionBookingDataClass(
 
     val callEndedAt: Timestamp? = null,
     // 🔥 New Field for Direct Chat Access
-    var roomId: String = ""
+    var channelName: String = ""
 ) : Parcelable {
     // Constructor for Firestore
     constructor() : this(

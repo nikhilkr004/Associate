@@ -83,8 +83,8 @@ class CallHistoryFragment : Fragment() {
                             intent.putExtra("ADVISOR_AVATAR", advisor?.profilePhotoUrl)
                             intent.putExtra("IS_HISTORY", true)
                             intent.putExtra("PAID_AMOUNT", booking.sessionAmount)
-                            intent.putExtra("ROOM_ID", booking.roomId) // Passing roomId as per requirement
-                            Toast.makeText(requireContext(), "History ID: ${booking.roomId}", Toast.LENGTH_LONG).show() // DEBUG
+                            intent.putExtra("CHANNEL_NAME", booking.channelName)
+                            Toast.makeText(requireContext(), "Channel: ${booking.channelName}", Toast.LENGTH_LONG).show() // DEBUG
                             startActivity(intent)
                         } else {
                             val intent = android.content.Intent(
@@ -108,7 +108,7 @@ class CallHistoryFragment : Fragment() {
                         intent.putExtra("ADVISOR_ID", booking.advisorId)
                         intent.putExtra("ADVISOR_NAME", booking.advisorName)
                         intent.putExtra("ADVISOR_AVATAR", advisor?.profilePhotoUrl)
-                        intent.putExtra("ROOM_ID", booking.roomId)
+                        intent.putExtra("CHANNEL_NAME", booking.channelName)
                         startActivity(intent)
                     } 
                     // 3. Default -> Advisor Profile

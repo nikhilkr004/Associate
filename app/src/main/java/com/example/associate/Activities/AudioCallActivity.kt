@@ -266,7 +266,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             updates["callStartTime"] = Timestamp.now()
         }
 
-        db.collection("videoCalls")
+        db.collection("audioCalls")
             .document(currentCallId)
             .update(updates)
             .addOnFailureListener { e ->
@@ -278,9 +278,10 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var forceScheduledMode = false // 🔥 Prevent Overwrites
 
     private fun fetchBookingDetailsAndStartService() {
-        val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: return
+        val channelName = intent.getStringExtra("CHANNEL_NAME") 
+        val bookingId = intent.getStringExtra("BOOKING_ID")?.takeIf { it.isNotEmpty() } ?: channelName ?: return
 
-        Log.w("AudioCall", "Step 1: Fetching details for bookingId/Channel: $bookingId")
+        Log.w("AudioCall", "Step 1: Fetching details for bookingId: $bookingId (Channel: $channelName)")
 
         // 🚨 CLIENT-SIDE RULE: Check Intent Extra from Notification for Immediate UI
         val intentUrgency = intent.getStringExtra("urgencyLevel")
@@ -613,7 +614,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             "callEndTime" to endTime,
             "duration" to elapsedSeconds
         )
-        db.collection("videoCalls").document(currentCallId).update(updates)
+        db.collection("audioCalls").document(currentCallId).update(updates)
     }
     
     // Kept for compatibility but logic moved to Transaction

@@ -23,7 +23,7 @@ class CallNotificationService : Service() {
     private var wakeLock: android.os.PowerManager.WakeLock? = null
     
     companion object {
-        const val CHANNEL_ID = "call_channel"
+        const val CHANNEL_ID = "call_channel_v3"
         const val ACTION_STOP_SERVICE = "ACTION_STOP_SERVICE"
     }
 
@@ -50,26 +50,26 @@ class CallNotificationService : Service() {
         }
 
         val callId = intent?.getStringExtra("CALL_ID") ?: ""
-        val channelName = intent?.getStringExtra("CHANNEL_NAME") ?: ""
+        // 🔥 Robust Extraction: ChannelName -> RoomID -> CallID
+        val channelName = intent?.getStringExtra("CHANNEL_NAME") ?: intent?.getStringExtra("ROOM_ID") ?: callId
         val callerName = intent?.getStringExtra("advisorName") ?: intent?.getStringExtra("title") ?: "Incoming Call"
         val advisorAvatar = intent?.getStringExtra("advisorAvatar") ?: ""
         val advisorId = intent?.getStringExtra("ADVISOR_ID") ?: ""
         val callType = intent?.getStringExtra("CALL_TYPE") ?: "VIDEO"
         val urgencyLevel = intent?.getStringExtra("urgencyLevel") ?: "Medium" // 🔥 Extraction
+        val bookingId = intent?.getStringExtra("BOOKING_ID") ?: callId // 🔥 Extraction with fallback
+        
+        android.util.Log.e("DEBUG_SERVICE", "Service Started. CallID=$callId, BookingID=$bookingId, Urgency=$urgencyLevel")
         
         createNotificationChannel()
-        showNotification(callId, channelName, callerName, advisorAvatar, advisorId, callType, urgencyLevel)
+        showNotification(callId, channelName, callerName, advisorAvatar, advisorId, callType, urgencyLevel, bookingId)
         playRingtone()
 
         return START_NOT_STICKY
     }
 
-    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String, callType: String, urgencyLevel: String) {
-        // Custom Layout
-        val customView = RemoteViews(packageName, R.layout.notification_call)
-        customView.setTextViewText(R.id.tv_caller_name, callerName)
-        customView.setImageViewResource(R.id.iv_caller_avatar, R.drawable.user) // Default placeholder
-
+    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String, callType: String, urgencyLevel: String, bookingId: String) {
+        
         // Determine Target Activity
         val targetClass = when (callType) {
             "CHAT" -> com.example.associate.Activities.ChatActivity::class.java
@@ -77,41 +77,10 @@ class CallNotificationService : Service() {
             else -> VideoCallActivity::class.java
         }
 
-        // Accept Intent
-        val acceptIntent = Intent(this, targetClass).apply {
-            putExtra("CALL_ID", callId)
-            putExtra("ROOM_ID", callId) // Map callId to ROOM_ID
-            putExtra("BOOKING_ID", callId) // For session reference
-            putExtra("CHANNEL_NAME", channelName)
-            putExtra("ADVISOR_NAME", callerName) 
-            putExtra("ADVISOR_ID", advisorId)
-            putExtra("CALL_TYPE", callType)
-            putExtra("urgencyLevel", urgencyLevel) 
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        val acceptPendingIntent = PendingIntent.getActivity(
-            this, 
-            0, 
-            acceptIntent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Decline Intent
-        val declineIntent = Intent(this, IncomingCallActivity::class.java).apply {
-            action = "ACTION_DECLINE"
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        val declinePendingIntent = PendingIntent.getActivity(
-            this, 
-            1, 
-            declineIntent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        
-        // Full Screen Intent (for Lock Screen)
+        // Full Screen Intent (IncomingCallActivity)
         val fullScreenIntent = Intent(this, IncomingCallActivity::class.java).apply {
             putExtra("CALL_ID", callId)
-            putExtra("ROOM_ID", callId) // Map callId to ROOM_ID
+            // putExtra("ROOM_ID", callId) // Removed implicit RoomID
             putExtra("CHANNEL_NAME", channelName)
             putExtra("title", callerName)
             putExtra("advisorAvatar", advisorAvatar)
@@ -119,69 +88,104 @@ class CallNotificationService : Service() {
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) 
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("urgencyLevel", urgencyLevel) 
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(
-            this, 
-            2, 
-            fullScreenIntent, 
+            this, callId.hashCode() + 2, fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Bind Buttons
-        customView.setOnClickPendingIntent(R.id.btn_accept, acceptPendingIntent)
-        customView.setOnClickPendingIntent(R.id.btn_decline, declinePendingIntent)
-
-        // Try to start activity directly if permission granted
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && android.provider.Settings.canDrawOverlays(this)) {
-            try {
-                startActivity(fullScreenIntent)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        // 🔥 PRIORITY LAUNCH: Attempt to start Activity directly
+        // We do this immediately to race against the notification tray
+        try {
+             android.util.Log.e("DEBUG_SERVICE", "FORCED LAUNCH: Attempting PendingIntent.send()")
+             // Use PendingIntent.send() as it often has higher privileges than startActivity()
+             // from the background.
+             fullScreenPendingIntent.send()
+             android.util.Log.e("DEBUG_SERVICE", "FORCED LAUNCH: Success (No Exception)")
+        } catch (e: Exception) {
+             android.util.Log.e("DEBUG_SERVICE", "FORCED LAUNCH: FAILED Exception", e)
+             // Fallback to standard start
+             try { 
+                  android.util.Log.e("DEBUG_SERVICE", "FALLBACK LAUNCH: Attempting startActivity()")
+                  startActivity(fullScreenIntent) 
+             } catch (z: Exception) {
+                  android.util.Log.e("DEBUG_SERVICE", "FALLBACK LAUNCH: FAILED Exception", z)
+             }
         }
 
+        // Accept Intent
+        val acceptIntent = Intent(this, targetClass).apply {
+            putExtra("CALL_ID", callId)
+            // putExtra("ROOM_ID", callId) // Removed implicit RoomID
+            putExtra("BOOKING_ID", bookingId)
+            putExtra("CHANNEL_NAME", channelName)
+            putExtra("ADVISOR_NAME", callerName) 
+            putExtra("ADVISOR_ID", advisorId)
+            putExtra("CALL_TYPE", callType)
+            putExtra("urgencyLevel", urgencyLevel) 
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val acceptPendingIntent = PendingIntent.getActivity(
+            this, callId.hashCode(), acceptIntent, // Unique Request Code
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Decline Intent
+        val declineIntent = Intent(this, IncomingCallActivity::class.java).apply {
+            action = "ACTION_DECLINE"
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val declinePendingIntent = PendingIntent.getActivity(
+            this, callId.hashCode() + 1, declineIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.notification)
-            .setPriority(NotificationCompat.PRIORITY_HIGH) // HIGH priority for background calls/heads-up
+            .setContentTitle("Incoming $callType Call")
+            .setContentText(callerName)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
-            .setCustomContentView(customView)
-            .setCustomBigContentView(customView)
-            .setFullScreenIntent(fullScreenPendingIntent, true) // Enable Full Screen Intent for background calls
+            .setFullScreenIntent(fullScreenPendingIntent, true) // Essential for Lock Screen
             .setOngoing(true)
             .setAutoCancel(false)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // Show on lock screen
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            // Add Actions
+            .addAction(R.drawable.call_end, "Decline", declinePendingIntent)
+            .addAction(R.drawable.call, "Accept", acceptPendingIntent)
+
+        // Android 12+ CallStyle (Highly Recommended for Background Starts)
+        /* 
+         * Note: CallStyle requires API 31+ and Person object. 
+         * For robustness, we stick to standard High Priority + FullScreenIntent unless requested.
+         * The key to background start is FullScreenIntent + High Priority Channel + Permission.
+         */
 
         val notification = notificationBuilder.build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(123, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
+            // Use microphone type for calls, requires permission but is better for priority
+            startForeground(123, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
         } else {
             startForeground(123, notification)
         }
-
-        // Load Avatar Asynchronously
-        if (advisorAvatar.isNotEmpty()) {
+        
+        // Asynchronous Avatar Load - Minimal impact on initial show
+         if (advisorAvatar.isNotEmpty()) {
             kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                 try {
                     val bitmap = com.bumptech.glide.Glide.with(applicationContext)
                         .asBitmap()
                         .load(advisorAvatar)
-                        .submit(100, 100)
+                        .submit()
                         .get()
                     
-                    // Update Notification
-                    customView.setImageViewBitmap(R.id.iv_caller_avatar, bitmap)
-                    val updatedNotification = notificationBuilder
-                        .setCustomContentView(customView)
-                        .setCustomBigContentView(customView)
-                        .build()
-                        
-                    val notificationManager = getSystemService(NotificationManager::class.java)
-                    notificationManager.notify(123, updatedNotification)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                    notificationBuilder.setLargeIcon(bitmap)
+                    val manager = getSystemService(NotificationManager::class.java)
+                    manager.notify(123, notificationBuilder.build())
+                } catch (e: Exception) { }
             }
         }
     }
@@ -231,7 +235,7 @@ class CallNotificationService : Service() {
             val serviceChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Incoming Calls",
-                NotificationManager.IMPORTANCE_HIGH // High importance for heads-up/full-screen
+                NotificationManager.IMPORTANCE_MAX // MAX importance for popup
             ).apply {
                 description = "Channel for incoming video calls"
                 setSound(null, null)

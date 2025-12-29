@@ -47,12 +47,21 @@ class IncomingCallActivity : AppCompatActivity() {
         }
 
         // Get call details from intent
+        // Get call details from intent (Refined Logic)
         val callId = intent.getStringExtra("CALL_ID") ?: ""
-        val channelName = intent.getStringExtra("CHANNEL_NAME") ?: ""
-        val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
+        // 🔥 Fix: If CHANNEL_NAME missing, use CALL_ID (which IS the Chat Doc ID)
+        val channelNameRaw = intent.getStringExtra("CHANNEL_NAME")
+        val channelName = if (!channelNameRaw.isNullOrEmpty()) channelNameRaw else callId
+        val callerName = intent.getStringExtra("title") ?: "Unknown Advisor"
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
         val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
-        advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+        val bookingId = intent.getStringExtra("BOOKING_ID") ?: callId // Fallback to callId if missing
+        val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
+        val urgencyLevel = intent.getStringExtra("urgencyLevel") ?: "Medium"
+        
+        this.advisorId = advisorId // Update local var
+        
+        android.util.Log.e("IncomingScreen", "Activity Launched. CallID=$callId Type=$callType BookingID=$bookingId")
         
         binding.tvCallerName.text = callerName
         
@@ -60,12 +69,12 @@ class IncomingCallActivity : AppCompatActivity() {
         setupUIForType(callType, callerName)
 
         binding.btnAccept.setOnClickListener {
-            acceptCall(callId, channelName, callerName, advisorId, callType)
+            acceptCall(callId, channelName, callerName, advisorId, callType, bookingId)
         }
         
         // New Start Chat Button
         binding.btnStartChat.setOnClickListener {
-            acceptCall(callId, channelName, callerName, advisorId, callType)
+            acceptCall(callId, channelName, callerName, advisorId, callType, bookingId)
         }
         
         // New Reject Text
@@ -147,7 +156,7 @@ class IncomingCallActivity : AppCompatActivity() {
     }
 
     private fun setupUIForType(callType: String, callerName: String) {
-        if (callType == "CHAT") {
+        if (callType.equals("CHAT", ignoreCase = true)) {
             // Hide standard Call elements
             binding.tvCallerName.visibility = android.view.View.GONE
             binding.tvCallType.visibility = android.view.View.GONE
@@ -199,32 +208,32 @@ class IncomingCallActivity : AppCompatActivity() {
         startService(intent)
     }
 
-    private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String, callType: String) {
+    private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String, callType: String, bookingId: String) {
         stopService()
         
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: "" 
-        val urgencyLevel = intent.getStringExtra("urgencyLevel")
+        val urgencyLevel = intent.getStringExtra("urgencyLevel") ?: "Medium"
 
-        val targetActivity = when (callType) {
+        val targetClass = when (callType) {
             "CHAT" -> ChatActivity::class.java
             "AUDIO" -> AudioCallActivity::class.java
             else -> VideoCallActivity::class.java
         }
 
-        val newIntent = Intent(this, targetActivity).apply {
+        val acceptIntent = Intent(this, targetClass).apply {
             putExtra("CALL_ID", callId)
-            putExtra("ROOM_ID", callId) // Map callId to ROOM_ID for direct lookup
-            putExtra("BOOKING_ID", callId) // Pass callId as BOOKING_ID (Session)
-            putExtra("CHAT_ID", "")        // Empty to force persistent User-Advisor chat generation
             putExtra("CHANNEL_NAME", channelName)
             putExtra("ADVISOR_NAME", advisorName)
             putExtra("ADVISOR_ID", advisorId)
             putExtra("ADVISOR_AVATAR", advisorAvatar)
+            putExtra("BOOKING_ID", bookingId) // Important for completion logic
+            putExtra("urgencyLevel", urgencyLevel) // Important for billing
             putExtra("CALL_TYPE", callType)
-            putExtra("urgencyLevel", urgencyLevel)
+            // 🔥 Fix: Pass the actual Call/Chat ID so ChatActivity doesn't create a NEW doc and trigger loop
+            putExtra("CHAT_ID", if (callType == "CHAT") callId else "") 
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
-        startActivity(newIntent)
+        startActivity(acceptIntent)
         finish()
     }
 

@@ -22,6 +22,10 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         private const val CHANNEL_ID = "user_calls_channel"
         private const val CHANNEL_NAME = "User Calls"
         private const val CHANNEL_DESCRIPTION = "Notifications for incoming calls and bookings"
+        
+        // Anti-Duplicate Logic
+        private var lastMessageId: String = ""
+        private var lastMessageTime: Long = 0
     }
 
     override fun onCreate() {
@@ -46,6 +50,19 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
      * Called when a message is received from Firebase
      */
     override fun onMessageReceived(message: RemoteMessage) {
+        
+        // 1. Anti-Duplicate Check
+        val msgId = message.messageId ?: ""
+        val currentTime = System.currentTimeMillis()
+        
+        if (msgId.isNotEmpty() && msgId == lastMessageId && (currentTime - lastMessageTime) < 2000) {
+            Log.w(TAG, "Duplicate Notification Ignored: $msgId")
+            return
+        }
+        
+        lastMessageId = msgId
+        lastMessageTime = currentTime
+        
         super.onMessageReceived(message)
         
         Log.d(TAG, "Message received from: ${message.from}")
@@ -58,7 +75,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         
         // Handle based on notification type
         when (notificationType) {
-            "video_call", "call_offer", "call" -> {
+            "video_call", "call_offer", "call", "call_invite" -> {
                 // Incoming video call - show full screen call notification
                 Log.d(TAG, "Handling incoming video call")
                 showIncomingCallNotification(message.data)
@@ -104,17 +121,20 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     private fun showIncomingCallNotification(data: Map<String, String>) {
-        val callId = data["callId"] ?: ""
-        val channelName = data["channelName"] ?: ""
-        val callerName = data["advisorName"] ?: data["title"] ?: "Incoming Call"
+        // 🔥 Robust Extraction based on User's New Payload
+        val callId = data["CALL_ID"] ?: data["callId"] ?: ""
+        val channelName = data["CHANNEL_NAME"] ?: data["channelName"] ?: ""
+        val callerName = data["title"] ?: data["advisorName"] ?: "Incoming Call"
         val callerAvatar = data["advisorAvatar"] ?: ""
+        val advisorId = data["ADVISOR_ID"] ?: data["advisorId"] ?: ""
+        val callType = data["CALL_TYPE"] ?: data["callType"] ?: "VIDEO"
+        val urgencyLevel = data["urgencyLevel"] ?: "Medium"
+        val bookingId = data["BOOKING_ID"] ?: data["bookingId"] ?: callId // Fallback
         
-        // Robust ID extraction
-        val advisorId = data["advisorId"] ?: data["senderId"] ?: data["advisorUid"] ?: data["uid"] ?: data["id"] ?: ""
-        val callType = data["callType"] ?: "VIDEO"
-        val urgencyLevel = data["urgencyLevel"] ?: "Medium" // 🔥 Default to Medium/Instant
+        Log.e("DEBUG_CALL", ">>> FCM RECEIVED PAYLOAD <<<")
+        data.forEach { (k, v) -> Log.e("DEBUG_CALL", "   $k : $v") }
+        Log.e("DEBUG_CALL", "Extracted: CallID=$callId, Channel=$channelName, BookingID=$bookingId, Urgency=$urgencyLevel")
         
-        Log.d(TAG, "Notification Payload Data Keys: ${data.keys}")
         Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName, Type: $callType, Urgency: $urgencyLevel")
         
         val serviceIntent = Intent(this, CallNotificationService::class.java).apply {
@@ -125,11 +145,14 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate to Service
+            putExtra("BOOKING_ID", bookingId) // Pass Booking ID
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.e("DEBUG_CALL", "Attempting startForegroundService")
             startForegroundService(serviceIntent)
         } else {
+            Log.e("DEBUG_CALL", "Attempting startService")
             startService(serviceIntent)
         }
     }
@@ -241,7 +264,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             
             // Channel 2: Call Channel (for incoming video calls)
             val callChannel = NotificationChannel(
-                "call_channel",
+                "call_channel_v2",
                 "Incoming Calls",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
@@ -257,7 +280,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 )
             }
             notificationManager.createNotificationChannel(callChannel)
-            Log.d(TAG, "Call notification channel created: call_channel")
+            Log.d(TAG, "Call notification channel created: call_channel_v2")
         }
     }
 

@@ -28,6 +28,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE" /> 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -105,11 +106,7 @@
             android:screenOrientation="portrait"
             android:exported="false" />
 
-        <!-- Advisor List Activity -->
-        <activity
-            android:name=".Activities.AdvisorListActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+
 
         <!-- Personal Screen Activity -->
         <activity
@@ -133,19 +130,19 @@
         <!-- Phone Number Activity -->
         <activity
             android:name=".Activities.PhoneNumberActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
         <!-- Incoming Call Activity -->
         <activity
             android:name=".Activities.IncomingCallActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait"
-            android:exported="false"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.NoActionBar"/>
 
         <!-- Chat Activity -->
         <activity
@@ -188,7 +185,7 @@
             android:name=".NotificationFCM.CallNotificationService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="shortService" />
+            android:foregroundServiceType="microphone" />
 
         <!-- Preloaded Fonts -->
         <meta-data
