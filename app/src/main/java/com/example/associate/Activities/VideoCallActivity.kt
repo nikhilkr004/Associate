@@ -75,7 +75,6 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var localUserID: String = ""
     private var localUserName: String = ""
     private var remoteAdvisorId: String = ""
-    private var storedAdvisorId: String = "" // 🔥 Added to persist ID
     private var callType: String = "VIDEO"
 
 
@@ -96,6 +95,8 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     private lateinit var bookingRepository: com.example.associate.Repositories.BookingRepository
     private var isInstantBooking = false
+    private var forceScheduledMode = false // 🔥 Added
+    private var storedAdvisorId = "" // 🔥 Restored
     private var ratePerMinute = 0.0
     private var userWalletBalance = 0.0
     private var visualTrackerHandler: Handler? = null
@@ -331,9 +332,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }, 30000, 30000) 
     }
 
-    private var isInstantBooking = false
-    private var forceScheduledMode = false
-    private var storedAdvisorId = ""
+
 
     private fun fetchBookingDetailsAndStartService() {
         val channelName = intent.getStringExtra("CHANNEL_NAME") 

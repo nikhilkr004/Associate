@@ -633,10 +633,13 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
                     val status = snapshot.getString("status")
                     if (status == "ended") {
                         val endReason = snapshot.getString("endReason")
-                        Log.w("ChatActivity", "Chat ended by other party. Status: $status")
+                        val completedBy = snapshot.getString("completedBy")
                         
-                        // Prevent double end call logic
-                        if (!isEnding) {
+                        Log.w("ChatActivity", "Chat ended by other party. Status: $status, CompletedBy: $completedBy")
+                        
+                        // Only finish if ADVISOR ended it (not us)
+                        // If we ended it (completedBy == "user_app"), waitForServerConfirmation will handle finish()
+                        if (completedBy != "user_app" && !isEnding) {
                             isEnding = true
                             billingTimer?.cancel()
                             heartbeatTimer?.cancel()

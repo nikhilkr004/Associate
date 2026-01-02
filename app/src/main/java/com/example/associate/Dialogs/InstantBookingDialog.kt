@@ -49,15 +49,41 @@ class InstantBookingDialog(
     }
     
     private var userWalletBalance = 0.0
+    private var isBalanceLoaded = false
 
     private fun fetchWalletBalance() {
         val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
         val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        
+        // Disable button while loading
+        binding.btnProcess.isEnabled = false
+        binding.btnProcess.text = "Loading..."
+        
         db.collection("wallets").document(userId).get()
             .addOnSuccessListener { document ->
+                android.util.Log.d("InstantBooking", "📄 Document exists: ${document.exists()}")
+                android.util.Log.d("InstantBooking", "📄 Document data: ${document.data}")
+                
                 if (document.exists()) {
-                    userWalletBalance = document.getDouble("walletBalance") ?: document.getDouble("balance") ?: 0.0
+                    // Try multiple field names - PRIORITIZE 'balance' (correct field)
+                    val balanceFromBalance = document.getDouble("balance")
+                    val balanceFromWalletBalance = document.getDouble("walletBalance")
+                    
+                    android.util.Log.d("InstantBooking", "💰 balance field: $balanceFromBalance")
+                    android.util.Log.d("InstantBooking", "💰 walletBalance field: $balanceFromWalletBalance")
+                    
+                    userWalletBalance = balanceFromBalance ?: balanceFromWalletBalance ?: 0.0
+                    android.util.Log.d("InstantBooking", "✅ Final Wallet Balance: ₹$userWalletBalance")
                 }
+                isBalanceLoaded = true
+                binding.btnProcess.isEnabled = true
+                binding.btnProcess.text = "Process"
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("InstantBooking", "❌ Failed to fetch balance: ${e.message}")
+                isBalanceLoaded = true
+                binding.btnProcess.isEnabled = true
+                binding.btnProcess.text = "Process"
             }
     }
     
