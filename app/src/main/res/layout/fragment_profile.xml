@@ -12,13 +12,13 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/double_bg">
+        android:background="@drawable/profile_header_bg">
 
         <TextView
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_15sdp"
+            android:layout_marginTop="@dimen/_5sdp"
             android:fontFamily="@font/orienta"
             android:text="Profile"
             android:textColor="@color/black"
@@ -33,8 +33,8 @@
             android:layout_width="@dimen/_70sdp"
             android:layout_height="@dimen/_70sdp"
             android:layout_marginStart="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_20sdp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginBottom="@dimen/_10sdp"
             android:src="@drawable/user"
             android:tint="@color/white"
             app:civ_border_color="@color/gray"
@@ -272,6 +272,122 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/helpSupportLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10sdp">
+
+        <ImageButton
+            android:id="@+id/helpSupportIcon"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/ic_warning_red" 
+            android:padding="@dimen/_8sdp"
+            android:tint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/helpSupportTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:text="Help &amp; Support"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/helpSupportArrow"
+            app:layout_constraintStart_toEndOf="@+id/helpSupportIcon"
+            app:layout_constraintTop_toTopOf="@+id/helpSupportIcon" />
+
+        <TextView
+            android:id="@+id/helpSupportSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Raise a complaint or get help"
+            app:layout_constraintEnd_toEndOf="@+id/helpSupportTitle"
+            app:layout_constraintStart_toStartOf="@+id/helpSupportTitle"
+            app:layout_constraintTop_toBottomOf="@+id/helpSupportTitle" />
+
+        <ImageButton
+            android:id="@+id/helpSupportArrow"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginRight="@dimen/_10sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/outline_arrow_forward_ios_24"
+            android:tint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/termandcondition"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+       >
+
+        <ImageButton
+            android:id="@+id/leavea"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/termsandconditions"
+            android:tint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textViewwew10"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:text="Term &amp; Condition"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/imageBuhttonn"
+            app:layout_constraintStart_toEndOf="@+id/leavea"
+            app:layout_constraintTop_toTopOf="@+id/leavea" />
+
+        <TextView
+            android:id="@+id/textViaeawa"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Click here to see term and condition"
+            app:layout_constraintEnd_toEndOf="@+id/textViewwew10"
+            app:layout_constraintStart_toStartOf="@+id/textViewwew10"
+            app:layout_constraintTop_toBottomOf="@+id/textViewwew10" />
+
+        <ImageButton
+            android:id="@+id/imageBuhttonn"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginRight="@dimen/_10sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/outline_arrow_forward_ios_24"
+            android:tint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/logoutLayout"

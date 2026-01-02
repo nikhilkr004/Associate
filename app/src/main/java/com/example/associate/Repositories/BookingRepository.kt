@@ -132,6 +132,14 @@ class BookingRepository {
         isInstant: Boolean
     ): Boolean {
         return try {
+            android.util.Log.e("BookingRepository", "=== TRANSACTION START ===")
+            android.util.Log.e("BookingRepository", "bookingId: $bookingId")
+            android.util.Log.e("BookingRepository", "userId: $userId")
+            android.util.Log.e("BookingRepository", "advisorId: $advisorId")
+            android.util.Log.e("BookingRepository", "duration: $callDurationSeconds seconds")
+            android.util.Log.e("BookingRepository", "ratePerMinute: $ratePerMinute")
+            android.util.Log.e("BookingRepository", "isInstant: $isInstant")
+            
             db.runTransaction { transaction ->
                 val userRef = db.collection("users").document(userId)
                 val advisorRef = db.collection("advisors").document(advisorId)
@@ -160,7 +168,7 @@ class BookingRepository {
                      // No snapshot to read from yet
                 } else if (bookingSnapshot.getString("bookingStatus") == "completed") {
                     android.util.Log.w("BookingRepository", "Booking ALREADY COMPLETED. Skipping.")
-                    return@runTransaction
+                    return@runTransaction true
                 }
 
                 // 3. Determine Payment Type
@@ -175,77 +183,140 @@ class BookingRepository {
                      ratePerMinute // Pre-paid Session Amount
                 }
                 val finalCost = java.math.BigDecimal(totalCost).setScale(2, java.math.RoundingMode.HALF_UP).toDouble()
+                
+                android.util.Log.e("BookingRepository", "Transaction Decision -> isReallyScheduled: $isReallyScheduled, shouldDeduct: $shouldDeductFromUser")
+                android.util.Log.e("BookingRepository", "Calculated Cost: $finalCost")
 
-                // 5. User Wallet Deduction (Only Instant/Ghost)
+                // 5. User Wallet Deduction & Logic
+                var isPaid = false
+                var paymentStatus = "pending"
+                
                 if (shouldDeductFromUser) {
                     val walletRef = db.collection("wallets").document(userId)
                     val walletSnapshot = transaction.get(walletRef)
-                    
                     val currentBalance = if (walletSnapshot.exists()) walletSnapshot.getDouble("balance") ?: 0.0 else 0.0
                     
-                    val newBalance = currentBalance - finalCost
-                    
-                    if (walletSnapshot.exists()) {
-                        transaction.update(walletRef, "balance", newBalance)
-                        transaction.update(walletRef, "totalSpent", (walletSnapshot.getDouble("totalSpent") ?: 0.0) + finalCost)
-                        transaction.update(walletRef, "transactionCount", (walletSnapshot.getLong("transactionCount") ?: 0) + 1)
-                    } else {
-                        val newWallet = hashMapOf(
-                            "userId" to userId, 
-                            "balance" to newBalance,
-                            "totalSpent" to finalCost,
-                            "transactionCount" to 1
+                    if (currentBalance >= finalCost) {
+                        // SUCCESSFUL PAYMENT
+                        isPaid = true
+                        paymentStatus = "paid"
+                        
+                        // Deduct
+                        val newBalance = currentBalance - finalCost
+                        if (walletSnapshot.exists()) {
+                            transaction.update(walletRef, "balance", newBalance)
+                            transaction.update(walletRef, "totalSpent", (walletSnapshot.getDouble("totalSpent") ?: 0.0) + finalCost)
+                            transaction.update(walletRef, "transactionCount", (walletSnapshot.getLong("transactionCount") ?: 0) + 1)
+                        } else {
+                             val newWallet = hashMapOf(
+                                "userId" to userId, "balance" to newBalance, "totalSpent" to finalCost, "transactionCount" to 1
+                            )
+                            transaction.set(walletRef, newWallet)
+                        }
+                        
+                        // User History (Success)
+                        val userTxRef = userRef.collection("transactions").document()
+                        val userTx = hashMapOf(
+                            "amount" to finalCost,
+                            "type" to "DEBIT",
+                            "status" to "success", // Added Status
+                            "description" to "Call Fee",
+                            "timestamp" to FieldValue.serverTimestamp(),
+                            "relatedBookingId" to bookingId
                         )
-                        transaction.set(walletRef, newWallet)
+                        transaction.set(userTxRef, userTx)
+                        
+                        // 6. Advisor Wallet Credit (Only if User Paid)
+                        val advisorSnapshot = transaction.get(advisorRef)
+                        if (advisorSnapshot.exists()) {
+                            val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
+                            val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
+                            val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
+                            val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
+                            
+                            transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + finalCost)
+                            transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
+                            transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost) // Or available? Keeping pending logic.
+                            
+                            // Advisor History
+                            val advisorTxRef = advisorRef.collection("transactions").document()
+                            val advisorTx = hashMapOf(
+                                "amount" to finalCost,
+                                "type" to "CREDIT",
+                                "status" to "success",
+                                "description" to "Session Earning",
+                                "timestamp" to FieldValue.serverTimestamp(),
+                                "relatedBookingId" to bookingId
+                            )
+                            transaction.set(advisorTxRef, advisorTx)
+                        }
+                        
+                    } else {
+                        // INSUFFICIENT BALANCE -> PENDING
+                        isPaid = false
+                        paymentStatus = "pending"
+                        android.util.Log.w("BookingRepository", "Insufficient Balance: $currentBalance < $finalCost")
+                        
+                        // User History (Pending) - To track the attempt
+                        val userTxRef = userRef.collection("transactions").document()
+                        val userTx = hashMapOf(
+                            "amount" to finalCost,
+                            "type" to "DEBIT",
+                            "status" to "pending", // Pending Status as requested
+                            "description" to "Call Fee - Insufficient Balance",
+                            "timestamp" to FieldValue.serverTimestamp(),
+                            "relatedBookingId" to bookingId
+                        )
+                        transaction.set(userTxRef, userTx)
+                        // Do NOT credit advisor yet
                     }
-
-                    // User History
-                    val userTxRef = userRef.collection("transactions").document()
-                    val userTx = hashMapOf(
-                        "amount" to finalCost,
-                        "type" to "DEBIT",
-                        "description" to "Call Fee",
-                        "timestamp" to FieldValue.serverTimestamp(),
-                        "relatedBookingId" to bookingId
-                    )
-                    transaction.set(userTxRef, userTx)
-                }
-
-                // 6. Advisor Wallet Credit
-                val advisorSnapshot = transaction.get(advisorRef)
-                if (advisorSnapshot.exists()) {
-                    val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
-                    val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
-                    val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
-                    val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
+                } else {
+                    // Pre-paid / Scheduled
+                    isPaid = true
+                    paymentStatus = "paid"
+                    // (Advisor credit logic for Scheduled calls might differ, but assuming already handled or handled here?)
+                    // Existing logic skipped user deduction but DID credit advisor (lines 232+ in original).
+                    // I removed the global advisor credit block. I need to put it back for "else" case?
+                    // Original Code credited Advisor unconditionally at step 6.
+                    // But if it's scheduled, user paid platform beforehand. So we SHOULD credit advisor here.
                     
-                    transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + finalCost)
-                    transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
-                    transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost)
-
-                    // Advisor History
-                    val advisorTxRef = advisorRef.collection("transactions").document()
-                    val advisorTx = hashMapOf(
-                        "amount" to finalCost,
-                        "type" to "CREDIT",
-                        "description" to "Session Earning",
-                        "timestamp" to FieldValue.serverTimestamp(),
-                        "relatedBookingId" to bookingId
-                    )
-                    transaction.set(advisorTxRef, advisorTx)
+                     // 6. Advisor Wallet Credit (Scheduled Case)
+                    val advisorSnapshot = transaction.get(advisorRef)
+                    if (advisorSnapshot.exists()) {
+                         val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
+                         val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
+                         val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
+                         val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
+                         
+                         transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + finalCost)
+                         transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
+                         transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost)
+                         
+                         val advisorTxRef = advisorRef.collection("transactions").document()
+                         val advisorTx = hashMapOf(
+                             "amount" to finalCost,
+                             "type" to "CREDIT",
+                             "status" to "success",
+                             "description" to "Session Earning (Scheduled)",
+                             "timestamp" to FieldValue.serverTimestamp(),
+                             "relatedBookingId" to bookingId
+                         )
+                         transaction.set(advisorTxRef, advisorTx)
+                    }
                 }
 
                 // 7. Finalize Booking Doc (Ghost or Real)
                 val bookingData: MutableMap<String, Any> = hashMapOf(
-                    "bookingStatus" to "completed",
-                    "paymentStatus" to "paid",
+                    "bookingStatus" to "completed", // Always mark session as completed? Or pending? User said "set status is pending"
+                    // If payment is pending, booking is technically "completed" (call ended) but payment is pending.
+                    // Let's keep bookingStatus completed, paymentStatus pending.
+                    "paymentStatus" to paymentStatus,
                     "sessionAmount" to finalCost,
                     "callDuration" to callDurationSeconds,
-                    "channelName" to "call_$bookingId" // Ensure searchable history
+                    "channelName" to "call_$bookingId" 
                 )
                 
                 if (isGhostBooking) {
-                    // Populate missing fields for Ghost
                     bookingData["userId"] = userId
                     bookingData["advisorId"] = advisorId
                     bookingData["type"] = "instant"
@@ -256,9 +327,9 @@ class BookingRepository {
                 } else {
                     transaction.update(bookingRef, bookingData)
                 }
-
+                
+                isPaid // Return the payment success state
             }.await()
-            true
         } catch (e: Exception) {
             android.util.Log.e("BookingRepository", "Transaction failed: ${e.message}", e)
             false
@@ -283,6 +354,24 @@ class BookingRepository {
         } catch (e: Exception) {
             android.util.Log.e("BookingRepository", "Error fetching booked slots", e)
             emptyList()
+        }
+    }
+
+    /**
+     * Updates the status of a booking document.
+     * Useful for enforcing "completed" status if Cloud Function doesn't update it effectively.
+     */
+    suspend fun updateBookingStatus(bookingId: String, status: String, isInstant: Boolean) {
+        try {
+            val collectionName = if (isInstant) "instant_bookings" else "scheduled_bookings"
+            val updates = mapOf(
+                "bookingStatus" to status,
+                "updatedAt" to FieldValue.serverTimestamp()
+            )
+            db.collection(collectionName).document(bookingId).update(updates).await()
+            android.util.Log.i("BookingRepository", "Forced booking status update: $bookingId -> $status")
+        } catch (e: Exception) {
+            android.util.Log.e("BookingRepository", "Failed to update booking status: ${e.message}")
         }
     }
 }

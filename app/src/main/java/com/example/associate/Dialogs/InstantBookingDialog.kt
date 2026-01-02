@@ -45,6 +45,20 @@ class InstantBookingDialog(
         setupObservers()
         setupClickListeners()
         setupCharCounter()
+        fetchWalletBalance()
+    }
+    
+    private var userWalletBalance = 0.0
+
+    private fun fetchWalletBalance() {
+        val userId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        db.collection("wallets").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    userWalletBalance = document.getDouble("walletBalance") ?: document.getDouble("balance") ?: 0.0
+                }
+            }
     }
     
     private fun setupPricing() {
@@ -138,6 +152,12 @@ class InstantBookingDialog(
         if (agenda.length > 250) {
             Toast.makeText(requireContext(), "Agenda is too long (max 250 chars)", Toast.LENGTH_SHORT).show()
             return
+        }
+        
+        // 🔥 STRICT RULE: Minimum Balance Check
+        if (userWalletBalance < 100) {
+             Toast.makeText(requireContext(), "Insufficient balance. Minimum ₹100 required.", Toast.LENGTH_LONG).show()
+             return
         }
         
         // Start Booking Process

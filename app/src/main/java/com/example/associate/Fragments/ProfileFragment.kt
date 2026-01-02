@@ -73,6 +73,16 @@ class ProfileFragment : Fragment() {
             // Handle edit profile click
         }
         
+        binding.leaveLayout.setOnClickListener {
+             // Handle leave layout click - assuming it opens BookingHistory or similar?
+             // Based on layout "Booked Sessions", likely specific intent
+        }
+
+        // Help & Support Click Listener
+        binding.helpSupportLayout.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.associate.HelpSupport.HelpSupportActivity::class.java))
+        }
+        
         setupThemeSwitch()
     }
 

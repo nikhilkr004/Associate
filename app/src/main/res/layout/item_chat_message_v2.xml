@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <!-- SENDER LAYOUT (Right Aligned) -->
+    <LinearLayout
+        android:id="@+id/layoutSender"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:visibility="gone">
+
+        <!-- Bubble Container -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_sender_bubble"
+                android:padding="12dp"
+                android:elevation="2dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="You"
+                    android:textColor="#000000"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvSenderMessage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Message Content"
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:visibility="gone"/>
+
+                 <!-- Image -->
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/ivSenderImage"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/RoundedImage"/>
+                
+                <!-- Helper style for rounded image? Or just use cardview -->
+
+                <!-- PDF -->
+                <LinearLayout
+                    android:id="@+id/layoutSenderDoc"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+                     <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/document"
+                        app:tint="#000000"/>
+                    <TextView
+                        android:id="@+id/tvSenderDocName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Document.pdf"
+                        android:textColor="#000000"
+                        android:layout_marginStart="8dp"
+                        android:singleLine="true"
+                        android:ellipsize="end"
+                        android:maxWidth="200dp"/>
+                </LinearLayout>
+
+                <!-- Voice Note -->
+                 <LinearLayout
+                    android:id="@+id/layoutSenderVoice"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:visibility="gone">
+                    
+                    <ImageView
+                        android:id="@+id/btnSenderPlay"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/play_circle"
+                        app:tint="#000000"/>
+                        
+                    <ImageView
+                        android:layout_width="0dp"
+                        android:layout_height="32dp"
+                        android:layout_weight="1"
+                        android:src="@drawable/waveform_placeholder"
+                        app:tint="#000000"
+                        android:layout_marginStart="8dp"
+                        android:scaleType="fitXY"/>
+                        
+                    <TextView
+                        android:id="@+id/tvSenderDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0:00"
+                        android:textColor="#000000"
+                        android:textSize="12sp"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSenderTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="10:00 AM"
+                    android:textColor="#555555"
+                    android:textSize="10sp"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="4dp"/>
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Use Margin to separate avatar from bubble -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivSenderAvatar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/user"
+            android:layout_marginStart="8dp"
+            android:layout_gravity="bottom"/> 
+
+    </LinearLayout>
+
+    <!-- RECEIVER LAYOUT (Left Aligned) -->
+    <LinearLayout
+        android:id="@+id/layoutReceiver"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start"
+        android:visibility="visible">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivReceiverAvatar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/user"
+            android:layout_marginEnd="8dp"
+            android:layout_gravity="bottom"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_receiver_bubble"
+            android:padding="12dp"
+            android:elevation="2dp"
+             android:layout_weight="1"
+             android:maxWidth="280dp"> <!-- Allow it to stretch but not full width -->
+
+            <TextView
+                android:id="@+id/tvReceiverName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Advisor"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvReceiverMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Message Content"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:visibility="gone"/>
+
+             <!-- Image -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivReceiverImage"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/RoundedImage"/>
+
+             <!-- PDF -->
+             <LinearLayout
+                android:id="@+id/layoutReceiverDoc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+                 <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/baseline_image_24"
+                    app:tint="#FFFFFF"/>
+                <TextView
+                    android:id="@+id/tvReceiverDocName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Document.pdf"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginStart="8dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:maxWidth="200dp"/>
+            </LinearLayout>
+
+            <!-- Voice Note -->
+             <LinearLayout
+                android:id="@+id/layoutReceiverVoice"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+                
+                <ImageView
+                    android:id="@+id/btnReceiverPlay"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/play"
+                    app:tint="#FFFFFF"/>
+                    
+                <ImageView
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/waveform_placeholder"
+                    app:tint="#FFFFFF"
+                    android:layout_marginStart="8dp"
+                    android:scaleType="fitXY"/>
+                    
+                <TextView
+                    android:id="@+id/tvReceiverDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0:00"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:layout_marginStart="8dp"/>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvReceiverTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="10:00 AM"
+                android:textColor="#AAAAAA"
+                android:textSize="10sp"
+                android:layout_gravity="end"
+                android:layout_marginTop="4dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

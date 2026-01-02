@@ -60,18 +60,53 @@ class StorageRepository {
 
     private fun compressImage(context: Context, imageUri: Uri): ByteArray? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(imageUri)
-            val originalBitmap = BitmapFactory.decodeStream(inputStream)
+            val contentResolver = context.contentResolver
+            
+            // 1. Calculate Scale Factor
+            val options = BitmapFactory.Options()
+            options.inJustDecodeBounds = true
+            var inputStream = contentResolver.openInputStream(imageUri)
+            BitmapFactory.decodeStream(inputStream, null, options)
             inputStream?.close()
 
+            // Calculate inSampleSize
+            options.inSampleSize = calculateInSampleSize(options, 1024, 1024)
+
+            // 2. Decode with inSampleSize
+            options.inJustDecodeBounds = false
+            inputStream = contentResolver.openInputStream(imageUri)
+            val scaledBitmap = BitmapFactory.decodeStream(inputStream, null, options)
+            inputStream?.close()
+
+            if (scaledBitmap == null) return null
+
+            // 3. Compress to JPEG
             val outputStream = ByteArrayOutputStream()
-            // Compress to JPEG with 60% quality
-            originalBitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+            scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+            
+            // Recycle bitmap to free memory
+            scaledBitmap.recycle()
+            
             outputStream.toByteArray()
         } catch (e: Exception) {
             Log.e("StorageRepository", "Compression error: ${e.message}")
             null
         }
+    }
+
+    private fun calculateInSampleSize(options: BitmapFactory.Options, reqWidth: Int, reqHeight: Int): Int {
+        val (height: Int, width: Int) = options.run { outHeight to outWidth }
+        var inSampleSize = 1
+
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight: Int = height / 2
+            val halfWidth: Int = width / 2
+
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
     
     fun deleteFile(fileUrl: String, callback: (Boolean) -> Unit) {

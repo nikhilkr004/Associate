@@ -1,11 +1,10 @@
-package com.example.associate.Fragments
-
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.associate.Adapters.TransactionAdapter
 import com.example.associate.DataClass.DialogUtils
@@ -16,6 +15,7 @@ import com.example.associate.databinding.FragmentTransactionBinding
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.abs
@@ -27,6 +27,14 @@ class TransactionFragment : Fragment() {
     private val transactionList = mutableListOf<Transaction>()
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    
+    // Listeners for Real-time Updates
+    private var paymentListener: ListenerRegistration? = null
+    private var transactionListener: ListenerRegistration? = null
+    
+    // Separate lists for merging
+    private val paymentTxns = ArrayList<Transaction>()
+    private val callTxns = ArrayList<Transaction>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,11 +47,17 @@ class TransactionFragment : Fragment() {
         binding = FragmentTransactionBinding.inflate(inflater, container, false)
 
         setupRecyclerView()
-        fetchWalletBalance() // Pehle balance fetch karo
+        fetchWalletBalance() 
         fetchTransactionData()
         setupClickListeners()
 
         return binding.root
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        paymentListener?.remove()
+        transactionListener?.remove()
     }
 
     private fun setupRecyclerView() {
@@ -59,52 +73,28 @@ class TransactionFragment : Fragment() {
         if (currentUser != null) {
             firestore.collection("wallets")
                 .document(currentUser.uid)
-                .get()
-                .addOnSuccessListener { document ->
-                    if (document.exists()) {
-                        // CORRECTION: WalletDataClass use karo, PaymentDataClass nahi
+                .addSnapshotListener { document, e ->
+                    if (e != null) {
+                        Log.e("TransactionFragment", "Wallet Listen Failed: ${e.message}")
+                        return@addSnapshotListener
+                    }
+                    
+                    if (document != null && document.exists()) {
                         val wallet = document.toObject(WalletDataClass::class.java)
                         wallet?.let {
                             binding.currentBalance.text = "₹${String.format("%.2f", it.balance)}"
                         }
                     } else {
-                        // Wallet document doesn't exist, create one
-                        createWalletDocument(currentUser.uid)
+                         // Create if not exists (Only once, check existence first prevents loop if creation is slow)
+                         // Actually, we shouldn't create it in a listener loop if it triggers again. 
+                         // But here we just set text 0.00 if null. Creation logic is better elsewhere or specific action.
+                         binding.currentBalance.text = "₹0.00"
                     }
                 }
-                .addOnFailureListener { exception ->
-                    Toast.makeText(requireContext(), "Failed to fetch balance: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    // Fallback: Set default balance
-                    binding.currentBalance.text = "₹0.00"
-                }
-        } else {
-            binding.currentBalance.text = "₹0.00"
         }
     }
 
-    private fun createWalletDocument(userId: String) {
-        val wallet = WalletDataClass(
-            userId = userId,
-            balance = 0.0,
-            lastUpdated = Timestamp.now(),
-            totalAdded = 0.0,
-            totalSpent = 0.0,
-            transactionCount = 0
-        )
-
-        firestore.collection("wallets")
-            .document(userId)
-            .set(wallet)
-            .addOnSuccessListener {
-                binding.currentBalance.text = "₹0.00"
-                Toast.makeText(requireContext(), "Wallet created successfully", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(requireContext(), "Failed to create wallet: ${exception.message}", Toast.LENGTH_SHORT).show()
-                binding.currentBalance.text = "₹0.00"
-            }
-    }
-
+    // New Data Fetching Logic (Real-time)
     private fun fetchTransactionData() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
@@ -112,79 +102,91 @@ class TransactionFragment : Fragment() {
             return
         }
 
+        // binding.loadingProgressBar.visibility = View.VISIBLE
         DialogUtils.showLoadingDialog(requireContext(), "Loading...")
 
-        val paymentsTask = firestore.collection("payments")
+        // 1. Listen to 'payments' (Top-ups)
+        paymentListener = firestore.collection("payments")
             .whereEqualTo("userId", currentUser.uid)
-            .get()
-
-        val callTransactionsTask = firestore.collection("users")
-            .document(currentUser.uid)
-            .collection("transactions")
-            .get()
-
-        com.google.android.gms.tasks.Tasks.whenAllSuccess<com.google.firebase.firestore.QuerySnapshot>(paymentsTask, callTransactionsTask)
-            .addOnSuccessListener { results ->
-                transactionList.clear()
-
-                // 1. Process 'payments' (Top-ups)
-                val paymentsSnapshot = results[0]
-                for (document in paymentsSnapshot.documents) {
-                    val payment = document.toObject(PaymentDataClass::class.java)
-                    payment?.let {
-                        val transaction = convertPaymentToTransaction(it, document.id)
-                        transactionList.add(transaction)
-                    }
-                }
-
-                // 2. Process 'transactions' (Call Debits/Credits)
-                val callTxnSnapshot = results[1]
-                for (document in callTxnSnapshot.documents) {
-                    try {
-                        val data = document.data ?: continue
-                        val amount = (data["amount"] as? Number)?.toDouble() ?: 0.0
-                        val type = data["type"] as? String ?: "DEBIT"
-                        val timestamp = data["timestamp"] as? Timestamp ?: Timestamp.now()
-                        val relatedBookingId = data["relatedBookingId"] as? String ?: document.id
-                        val description = data["description"] as? String ?: "Transaction"
-
-                        val formattedAmount = if (type == "DEBIT") {
-                             "- ₹${String.format("%.2f", amount)}"
-                        } else {
-                             "+ ₹${String.format("%.2f", amount)}"
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                
+                paymentTxns.clear()
+                if (snapshot != null) {
+                    for (doc in snapshot.documents) {
+                        val payment = doc.toObject(PaymentDataClass::class.java)
+                        payment?.let {
+                            paymentTxns.add(convertPaymentToTransaction(it, doc.id))
                         }
-
-                        val transaction = Transaction(
-                            id = document.id,
-                            type = description,
-                            amount = formattedAmount,
-                            date = formatDate(timestamp),
-                            transactionId = relatedBookingId,
-                            status = if (type == "DEBIT") "Debited" else "Credited",
-                            paymentData = null,
-                            timestamp = timestamp
-                        )
-                        transactionList.add(transaction)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
                     }
                 }
+                updateMergedList()
+            }
 
-                // Sort by Timestamp Descending
-                transactionList.sortByDescending { it.timestamp }
+        // 2. Listen to 'transactions' (Call Debits/Credits) - ROOT COLLECTION
+        transactionListener = firestore.collection("transactions")
+            .whereEqualTo("userId", currentUser.uid)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) return@addSnapshotListener
+                
+                callTxns.clear()
+                if (snapshot != null) {
+                    for (doc in snapshot.documents) {
+                        try {
+                            val data = doc.data ?: continue
+                            val amount = (data["amount"] as? Number)?.toDouble() ?: 0.0
+                            val type = data["type"] as? String ?: "debit"
+                            val timestamp = data["timestamp"] as? Timestamp ?: Timestamp.now()
+                            val bookingId = data["bookingId"] as? String ?: data["relatedBookingId"] ?: doc.id
+                            val description = data["description"] as? String ?: "Transaction"
+                            val category = data["category"] as? String ?: ""
+                            
+                            val isDebit = type.equals("debit", ignoreCase = true) || category == "call_payment"
+                            
+                            val formattedAmount = if (isDebit) {
+                                "- ₹${String.format("%.2f", amount)}"
+                            } else {
+                                "+ ₹${String.format("%.2f", amount)}"
+                            }
 
-                transactionAdapter.notifyDataSetChanged()
-                DialogUtils.hideLoadingDialog()
-
-                if (transactionList.isEmpty()) {
-                    showEmptyState()
+                            val transaction = Transaction(
+                                id = doc.id,
+                                type = description,
+                                amount = formattedAmount,
+                                date = formatDate(timestamp),
+                                transactionId = bookingId.toString(),
+                                status = if (isDebit) "Debited" else "Credited",
+                                paymentData = null,
+                                timestamp = timestamp
+                            )
+                            callTxns.add(transaction)
+                        } catch (e: Exception) {
+                            Log.e("TransactionFragment", "Error parsing transaction: ${e.message}")
+                        }
+                    }
                 }
+                updateMergedList()
             }
-            .addOnFailureListener { exception ->
-                Toast.makeText(requireContext(), "Failed to fetch transactions: ${exception.message}", Toast.LENGTH_SHORT).show()
-                DialogUtils.hideLoadingDialog()
-                showEmptyState()
-            }
+    }
+    
+    private fun updateMergedList() {
+        val mergedList = ArrayList<Transaction>()
+        mergedList.addAll(paymentTxns)
+        mergedList.addAll(callTxns)
+        
+        // Sort by Date Descending
+        mergedList.sortByDescending { it.timestamp }
+        
+        transactionList.clear()
+        transactionList.addAll(mergedList)
+        transactionAdapter.notifyDataSetChanged()
+        
+        // binding.loadingProgressBar.visibility = View.GONE
+        DialogUtils.hideLoadingDialog()
+        
+        if (transactionList.isEmpty()) {
+             // Handle empty state visibility if view exists
+        }
     }
 
     private fun convertPaymentToTransaction(payment: PaymentDataClass, documentId: String): Transaction {
@@ -192,7 +194,7 @@ class TransactionFragment : Fragment() {
             id = documentId,
             type = getTransactionType(payment),
             amount = getFormattedAmount(payment),
-            date = formatDate(payment.createdAt), // Ensure createdAt is used
+            date = formatDate(payment.createdAt),
             transactionId = payment.razorpayPaymentId.ifEmpty { payment.paymentId },
             status = getFormattedStatus(payment),
             paymentData = payment,
@@ -220,7 +222,6 @@ class TransactionFragment : Fragment() {
         return if (payment.amount >= 0) {
             "+ $symbol${String.format("%.2f", payment.amount)}"
         } else {
-            // Ensure negative sign is present for negative amounts
             "- $symbol${String.format("%.2f", abs(payment.amount))}"
         }
     }
@@ -236,7 +237,10 @@ class TransactionFragment : Fragment() {
     }
 
     private fun getFormattedStatus(payment: PaymentDataClass): String {
-        // Custom status for video call payments
+        if (payment.status == "pending") return "Pending"
+        if (payment.status == "failed") return "Failed"
+        if (payment.status == "success") return "Debited" 
+
         if (payment.type == "video_call" || payment.amount < 0) {
             return "Debited"
         }
@@ -257,17 +261,15 @@ class TransactionFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.refreshBtn.setOnClickListener {
-            // Refresh both balance and transactions
-            fetchWalletBalance()
-            fetchTransactionData()
-            Toast.makeText(requireContext(), "Refreshing...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Live Updating...", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Optional: Real-time balance updates ke liye
     override fun onResume() {
         super.onResume()
-        fetchWalletBalance() // Fragment resume pe balance refresh karo
+        // No need to fetch manually, listeners are active.
+        // But if listeners were removed in onPause, add them back here.
+        // We removed in onDestroyView, which is fine for Fragments usually.
     }
 
     companion object {

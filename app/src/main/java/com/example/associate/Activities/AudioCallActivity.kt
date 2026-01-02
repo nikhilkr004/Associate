@@ -38,6 +38,9 @@ import java.util.Timer
 import java.util.TimerTask
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import com.google.firebase.firestore.FieldValue
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 
 class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener {
 
@@ -59,6 +62,13 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var localUserName: String = ""
     private var remoteAdvisorId: String = ""
     private var storedAdvisorId: String = "" // 🔥 Added to persist ID
+    private var bookingId: String = "" // ✅ Added class member
+    private var isEnding = false // ✅ Added to prevent double execution
+
+    // ✅ Hybrid Payment System Variables
+    private var heartbeatTimer: Timer? = null
+    private var callId: String = ""
+    private val collectionName = "audioCalls"
 
     // Modern permission request
     private val requestPermissionLauncher = registerForActivityResult(
@@ -81,58 +91,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var userWalletBalance = 0.0
     private var visualTrackerHandler: Handler? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(binding.root)
-        
-        bookingRepository = com.example.associate.Repositories.BookingRepository()
 
-        // ... (keep existing window flags) ...
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
-        }
-        window.addFlags(
-            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
-            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-            android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-        )
-
-        // Initialize Firebase
-        db = FirebaseFirestore.getInstance()
-        auth = FirebaseAuth.getInstance()
-        
-        localUserID = auth.currentUser?.uid ?: "user_${System.currentTimeMillis()}"
-        localUserName = auth.currentUser?.displayName ?: "User"
-        
-        fetchWalletBalance()
-
-        currentCallId = intent.getStringExtra("CALL_ID") ?: ""
-        if (currentCallId.isEmpty()) {
-            Toast.makeText(this, "Call ID not found", Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
-
-        initializeUI()
-
-        // 🔥 Show Loading Dialog
-        val progressDialog = ProgressDialog(this)
-        progressDialog.setMessage("Connecting securely...")
-        progressDialog.setCancelable(false)
-        progressDialog.show()
-
-        // Delay slightly to confirm setup (User Request)
-        Handler(Looper.getMainLooper()).postDelayed({
-            progressDialog.dismiss()
-            android.widget.Toast.makeText(this, "Starting Audio Call...", android.widget.Toast.LENGTH_SHORT).show()
-            checkPermissionsAndInitialize()
-            setupCallControls()
-            registerBroadcastReceiver()
-            stopCallNotificationService()
-        }, 1500)
-    }
     
     private fun fetchWalletBalance() {
         val userId = auth.currentUser?.uid ?: return
@@ -291,7 +250,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
              Log.w("AudioCall", "Client-Side Rule: Intent says Scheduled. Forcing Scheduled Mode immediately.")
              isInstantBooking = false
              forceScheduledMode = true // 🔥 Lock mode
-             startVisualTracker()
+             onRateSet() // ✅ Changed from startVisualTracker
         }
 
         // 🚨 NEW LOGIC: Check 'urgencyLevel' field (Requested by User)
@@ -307,16 +266,17 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                         if (urgencyLevel.equals("Scheduled", ignoreCase = true)) {
                             isInstantBooking = false
                             ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
-                            startVisualTracker()
+                            onRateSet() // ✅ Changed
                         } else {
                              // Fallback
                              isInstantBooking = false 
                              ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
-                             startVisualTracker()
+                             onRateSet() // ✅ Changed
                         }
                     } else {
                          // Even if forced, update rate if available
                          ratePerMinute = document.getDouble("sessionAmount") ?: 100.0
+                         onRateSet() // ✅ Changed
                     }
                 } else {
                     Log.w("AudioCall", "Step 2B: NOT found in scheduled_bookings. Checking Instant...")
@@ -350,7 +310,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                         isInstantBooking = true
                         ratePerMinute = document.getDouble("sessionAmount") ?: 60.0
                     }
-                    startVisualTracker()
+                    onRateSet() // ✅ Changed
                 } else {
                     Log.e("AudioCall", "Step 3B: Booking not found. Defaulting to Instant Profile Rate.")
                     fetchAdvisorRateFromProfile()
@@ -369,7 +329,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     isInstantBooking = false
                     storedAdvisorId = document.getString("advisorId") ?: "" // 🔥 Save Advisor ID
                     ratePerMinute = document.getDouble("sessionAmount") ?: 100.0 // Fixed
-                    startVisualTracker()
+                    onRateSet() // ✅ Changed
                 } else {
                     Log.e("AudioCall", "Booking not found in Scheduled either. Fetching Advisor Rate.")
                     fetchAdvisorRateFromProfile()
@@ -381,6 +341,16 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     }
 
     private fun fetchAdvisorRateFromProfile() {
+        if (forceScheduledMode) {
+             Log.w("AudioCall", "Step 3C: Force Scheduled Mode active. Skipping Advisor Profile Rate fetch to prevent overwriting.")
+             // Might need to set default rate or minimal behavior, but definitely NOT Instant.
+             // Ensure loop continues or start tracker with current state?
+             // Since we forced it, we likely already called onRateSet in Step 1.
+             // If we are here, it means Step 2A/B failed/not found. 
+             // If Step 1 called onRateSet, we are good.
+             return
+        }
+
         val advisorId = intent.getStringExtra("ADVISOR_ID")
         val repository = com.example.associate.Repositories.AdvisorRepository()
         
@@ -388,8 +358,153 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             Log.d("AudioCall", "Fetched dynamic rate from Advisor Profile: $rate")
             isInstantBooking = true
             ratePerMinute = rate
-            startVisualTracker()
+            onRateSet() // ✅ Changed
         }
+    }
+
+    private fun onRateSet() {
+        Log.e("AudioPayment", "=== onRateSet CALLED ===")
+        Log.e("AudioPayment", "ratePerMinute: $ratePerMinute")
+        Log.e("AudioPayment", "isInstantBooking: $isInstantBooking")
+        Log.e("AudioPayment", "callStartTime: $callStartTime")
+        Log.e("AudioPayment", "storedAdvisorId: $storedAdvisorId")
+        
+        // Initialize call document for Cloud Function
+        initializeCall()
+        
+        // Start UI updates
+        startVisualTracker()
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(binding.root)
+        
+        bookingRepository = com.example.associate.Repositories.BookingRepository()
+
+        // ... (keep existing window flags) ...
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
+        window.addFlags(
+            android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+            android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+            android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        )
+
+        // Initialize Firebase
+        db = FirebaseFirestore.getInstance()
+        auth = FirebaseAuth.getInstance()
+        
+        localUserID = auth.currentUser?.uid ?: "user_${System.currentTimeMillis()}"
+        localUserName = auth.currentUser?.displayName ?: "User"
+
+        // 🔥 FIX: Fetch wallet balance immediately to prevent "Insufficient Balance" errors on incoming calls
+        fetchWalletBalance()
+
+        // 🔥 SPEC COMPLIANCE: "Document ID: passed as CALL_ID intent extra."
+        val explicitCallId = intent.getStringExtra("CALL_ID")
+        if (!explicitCallId.isNullOrEmpty()) {
+            callId = explicitCallId
+            currentCallId = explicitCallId 
+            bookingId = bookingId.ifEmpty { explicitCallId.replace("call_", "") } 
+        } else {
+            // Fallback if not provided
+            callId = "call_${System.currentTimeMillis()}"
+            currentCallId = callId
+        }
+        
+        // 🔥 CRITICAL: Capture Advisor ID explicitly from Intent first
+        storedAdvisorId = intent.getStringExtra("ADVISOR_ID") ?: intent.getStringExtra("advisorId") ?: ""
+        if (storedAdvisorId.isEmpty()) {
+             Log.w("AudioCall", "⚠️ Advisor ID missing in Intent. Will attempt to fetch from Booking.")
+        } else {
+             Log.d("AudioCall", "✅ Advisor ID captured from Intent: $storedAdvisorId")
+        }
+
+        initializeUI()
+        
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Connecting securely...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            progressDialog.dismiss()
+            android.widget.Toast.makeText(this, "Starting Audio Call...", android.widget.Toast.LENGTH_SHORT).show()
+            checkPermissionsAndInitialize()
+            setupCallControls()
+            registerBroadcastReceiver()
+            stopCallNotificationService()
+        }, 1500)
+    }
+    
+    private fun startHeartbeat() {
+        heartbeatTimer?.cancel()
+        heartbeatTimer = Timer()
+        heartbeatTimer?.scheduleAtFixedRate(object : TimerTask() {
+            override fun run() {
+                if (callId.isNotEmpty()) {
+                    db.collection(collectionName).document(callId)
+                        .update("lastHeartbeat", FieldValue.serverTimestamp())
+                        .addOnFailureListener { e ->
+                            Log.e("AudioCall", "Heartbeat failed: ${e.message}")
+                        }
+                }
+            }
+        }, 30000, 30000) // Update every 30 seconds
+    }
+    
+    private fun initializeCall() {
+        if (callId.isEmpty()) callId = "call_${System.currentTimeMillis()}"
+        
+        val currentUserId = auth.currentUser?.uid ?: ""
+        
+        val callData = hashMapOf<String, Any>(
+            "callId" to callId,
+            "status" to "ongoing",
+            // "advisorJoined" -> Do NOT touch this field (User App doesn't set it true)
+            "userJoined" to true, 
+            "startTime" to FieldValue.serverTimestamp(),
+            "lastHeartbeat" to FieldValue.serverTimestamp(),
+            "ratePerMinute" to ratePerMinute,
+            "callType" to "AUDIO"
+        )
+        
+        // ID SAFETY: Only set if value exists
+        if (currentUserId.isNotEmpty()) {
+            callData["userId"] = currentUserId
+        }
+        
+        if (storedAdvisorId.isNotEmpty()) {
+            callData["advisorId"] = storedAdvisorId
+        }
+        
+        if (bookingId.isNotEmpty()) {
+            callData["bookingId"] = bookingId
+        }
+        
+        // Try to update first (advisor may have created it)
+        db.collection(collectionName).document(callId)
+            .update(callData)
+            .addOnSuccessListener {
+                Log.i("AudioCall", "Call document updated: $callId")
+                startHeartbeat()
+            }
+            .addOnFailureListener { e ->
+                // Only create if update fails
+                db.collection(collectionName).document(callId)
+                    .set(callData)
+                    .addOnSuccessListener {
+                        Log.i("AudioCall", "Call document created: $callId")
+                        startHeartbeat()
+                    }
+                    .addOnFailureListener { err ->
+                        Log.e("AudioCall", "Failed to initialize call: ${err.message}")
+                    }
+            }
     }
 
     // 🔥 NEW: Visual Cost Tracker (UI Only)
@@ -535,7 +650,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
     }
 
-    // 🔥 UPDATE: End Call with Secure Transaction
+    // 🔥 UPDATE: End Call with Secure Transaction (HYBRID)
     private fun endCall() {
         if (!isCallActive) {
             finish()
@@ -544,42 +659,123 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         
         isCallActive = false
         visualTrackerHandler?.removeCallbacksAndMessages(null)
+        callTimer?.cancel()
 
         val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
-        try {
-            zegoManager.leaveRoom(roomID)
-        } catch (e: Exception) {}
-
-        updateCallEndStatus() // Updates videoCalls doc
-
-        // 🔥 ATOMIC TRANSACTION
-        val callDurationSeconds = (System.currentTimeMillis() - callStartTime) / 1000
-        val bookingId = intent.getStringExtra("CHANNEL_NAME") ?: ""
-        // 🔥 PRIORITY: Intent -> Remote (Joined) -> Stored (Booking Doc)
-        val advisorId = intent.getStringExtra("ADVISOR_ID") 
-            ?: if (remoteAdvisorId.isNotEmpty()) remoteAdvisorId 
-            else storedAdvisorId
-        val userId = localUserID
         
-        if (bookingId.isNotEmpty() && advisorId.isNotEmpty()) {
-            Toast.makeText(this, "Processing Secure Payment...", Toast.LENGTH_SHORT).show()
+        // 1. Stop Zego Publishing first (Stop Streams)
+        try {
+            if (::zegoManager.isInitialized) {
+                 zegoManager.muteMicrophone(true)
+            }
+        } catch (e: Exception) { Log.e("AudioCall", "Error stopping streams: $e") }
+
+        val durationSeconds = if (callStartTime > 0) {
+            (System.currentTimeMillis() - callStartTime) / 1000
+        } else {
+            0
+        }
+        
+        if (durationSeconds < 5) {
+             Log.e("AudioPayment", "Duration too short: $durationSeconds seconds - skipping payment")
+             // Only navigate if UI is still valid
+             if (!isFinishing && !isDestroyed) navigationAfterEnd()
+             return
+        }
+        
+        Log.e("AudioPayment", "Duration: $durationSeconds seconds")
+        
+        var progressDialog: ProgressDialog? = null
+        if (!isFinishing && !isDestroyed) {
+             progressDialog = ProgressDialog(this)
+             progressDialog.setMessage("Processing payment...")
+             progressDialog.setCancelable(false)
+             progressDialog.show()
+        }
+
+        // ✅ STEP 1: Update Firestore (triggers Cloud Function)
+        val updates = hashMapOf<String, Any>(
+            "status" to "ended",
+            "endTime" to FieldValue.serverTimestamp(),
+            "callEndTime" to FieldValue.serverTimestamp(), // Redundancy
+            "duration" to durationSeconds,
+            "endReason" to "user_ended",
+            "completedBy" to "user_app",
+            "bookingId" to bookingId,
+            "advisorId" to (storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" }),
+            "userId" to (auth.currentUser?.uid ?: ""),
+            "studentId" to (auth.currentUser?.uid ?: "") // Redundancy
+        )
+        
+        if (bookingId.isEmpty()) {
+             Log.e("AudioPayment", "bookingId is EMPTY - skipping payment")
+             progressDialog?.dismiss()
+             navigationAfterEnd()
+             return
+        }
+        
+        if (callId.isNotEmpty()) {
+            db.collection(collectionName).document(callId)
+                .update(updates)
+                .addOnSuccessListener {
+                    Log.i("AudioPayment", "Firestore updated. Waiting for Cloud Function...")
+                    // ✅ UPDATE: Wait for Server Confirmation
+                    waitForServerConfirmation(bookingId, progressDialog)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("AudioPayment", "Firestore update failed: ${e.message}")
+                    // Fallback to ensure document exists if update failed
+                     db.collection(collectionName).document(callId).set(updates, com.google.firebase.firestore.SetOptions.merge())
+                        .addOnSuccessListener {
+                            waitForServerConfirmation(bookingId, progressDialog)
+                        }
+                        .addOnFailureListener {
+                            progressDialog?.dismiss()
+                            Toast.makeText(this@AudioCallActivity, "Error ending call", Toast.LENGTH_SHORT).show()
+                            finish()
+                        }
+                }
+        } else {
+            // No callId, cannot update. Just finish
+             Log.e("AudioPayment", "No callId, cannot trigger payment.")
+             progressDialog?.dismiss()
+             finish()
+        }
+    }
+
+    private fun waitForServerConfirmation(bookingId: String, pd: ProgressDialog?) {
+        val completionRef = db.collection("processed_transactions").document("${bookingId}_completion")
+        
+        // Timeout Handler
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        val timeoutRunnable = Runnable {
+            if (!isFinishing && !isDestroyed) {
+                pd?.dismiss()
+                Toast.makeText(this, "Call Ended. Payment processing in background.", Toast.LENGTH_LONG).show()
+                navigationAfterEnd()
+            }
+        }
+        handler.postDelayed(timeoutRunnable, 8000)
+
+        // Listen for completion
+        completionRef.addSnapshotListener { snapshot, e ->
+            if (e != null) return@addSnapshotListener
             
-            // Invoke Repository
-            lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-                val success = bookingRepository.completeBookingWithTransaction(
-                    bookingId, userId, advisorId, callDurationSeconds, ratePerMinute, isInstantBooking
-                )
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    if (success) {
-                        Toast.makeText(this@AudioCallActivity, "Payment Successful!", Toast.LENGTH_SHORT).show()
+            if (snapshot != null && snapshot.exists()) {
+                handler.removeCallbacks(timeoutRunnable) // Cancel timeout
+                val status = snapshot.getString("status")
+                
+                if (!isFinishing && !isDestroyed) {
+                    pd?.dismiss()
+                    if (status == "paid") {
+                        Toast.makeText(this, "Payment Successful!", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(this@AudioCallActivity, "Payment Processing Failed. Please contact support.", Toast.LENGTH_LONG).show()
+                        val reason = snapshot.getString("failureReason") ?: "Unknown"
+                        Toast.makeText(this, "Payment Failed: $reason", Toast.LENGTH_LONG).show()
                     }
                     navigationAfterEnd()
                 }
             }
-        } else {
-             navigationAfterEnd()
         }
     }
 
@@ -607,14 +803,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     }
 
     private fun updateCallEndStatus() {
-        val endTime = Timestamp.now()
-        val elapsedSeconds = (System.currentTimeMillis() - callStartTime) / 1000
-        val updates = hashMapOf<String, Any>(
-            "status" to "ended",
-            "callEndTime" to endTime,
-            "duration" to elapsedSeconds
-        )
-        db.collection("audioCalls").document(currentCallId).update(updates)
+        // Logic moved to endCall
     }
     
     // Kept for compatibility but logic moved to Transaction
@@ -628,6 +817,11 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 Handler(Looper.getMainLooper()).postDelayed({
                     binding.tvConnectionStatus.visibility = View.INVISIBLE
                 }, 2000)
+                
+                // ✅ Start Timer Logic
+                if (callStartTime == 0L) {
+                    callStartTime = System.currentTimeMillis()
+                }
             } else {
                 showError("Connection error: $errorCode")
             }
@@ -683,6 +877,11 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         } catch (e: Exception) {}
         try { unregisterReceiver(balanceReceiver) } catch (e: Exception) {}
         stopPaymentService()
+
+        // ✅ IMPORTANT: Attempt to process payment if getting destroyed unexpectedly (and not already ending)
+        if (!isEnding) {
+            endCall()
+        }
     }
     // PIP Mode Implementation
     override fun onUserLeaveHint() {

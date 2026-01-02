@@ -18,6 +18,7 @@ import com.example.associate.Repositories.RatingRepository
 import com.example.associate.databinding.ActivityAdvisorProfileBinding
 import com.example.associate.Dialogs.AppointmentTypeDialog
 import com.example.associate.Dialogs.ScheduleBookingDialog
+import com.example.associate.MainActivity
 
 class AdvisorProfileActivity : AppCompatActivity() {
 
@@ -199,27 +200,11 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
     private fun showInstantBookingDialog() {
         val dialog = InstantBookingDialog(advisor) { bookingId ->
-            // Booking success callback
-            Toast.makeText(this, "Session booked! Starting chat...", Toast.LENGTH_SHORT).show()
-            // Check if it was Chat type. Since Instant Booking dialog handles multiple types (Audio/Video/Chat),
-            // we should ideally know which one.
-            // But usually InstantBookingDialog only calls this on success.
-            // If it's Audio/Video, we might want to go to AudioCallActivity?
-            // User requested "Chat load nhi ho raha", implies Chat flow.
-            // For now, let's assume if it returns, we try to go to Chat or handle generically.
-            // But wait, if they booked VIDEO, starting ChatActivity might be wrong?
-            // Actually ChatActivity handles Zego Audio/Chat. Video is separate?
-            // Re-reading InstantBookingDialog... it calls createInstantBooking.
-            // If type is CHAT, we go to ChatActivity.
-            // If type is AUDIO/VIDEO, we might need different handling?
-            // However, the current user issue is CHAT history.
-            // Let's pass the ID. ChatActivity can handle "Chat" type.
-            // If it's pure Audio/Video, we might need to check type.
-            // But 'InstantBookingDialog' doesn't return type in callback, only ID.
-            // For now, simply launching ChatActivity is better than nothing, as ChatActivity supports Audio too.
-            // And if it was video, we might need to update InstantBookingDialog to pass type too.
-            // Leaving as ChatActivity start for now to fix the reported bug.
-            startChatActivity(bookingId) 
+            // User requested to go to Home Fragment
+            val intent = android.content.Intent(this, MainActivity::class.java)
+            intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
         }
         dialog.show(supportFragmentManager, "InstantBookingDialog")
     }

@@ -152,6 +152,11 @@ class ScheduleBookingViewModel : ViewModel() {
 
             val now = Calendar.getInstance()
             
+            // ✅ Compare Dates Properly (Year + Month + Day)
+            val isToday = date.get(Calendar.YEAR) == now.get(Calendar.YEAR) &&
+                         date.get(Calendar.MONTH) == now.get(Calendar.MONTH) &&
+                         date.get(Calendar.DAY_OF_MONTH) == now.get(Calendar.DAY_OF_MONTH)
+            
             while (startCal.before(endCal)) {
                 val slotStart = displayFormat.format(startCal.time)
                 
@@ -162,8 +167,16 @@ class ScheduleBookingViewModel : ViewModel() {
                 
                 val slotEnd = displayFormat.format(tempCal.time)
                 
-                // Filter past slots if today
-                if (date.get(Calendar.DAY_OF_YEAR) != now.get(Calendar.DAY_OF_YEAR) || startCal.after(now)) {
+                // ✅ Filter Past Slots: Only include slots that are in the future
+                val shouldIncludeSlot = if (isToday) {
+                    // For today: Slot start time must be AFTER current time
+                    startCal.after(now)
+                } else {
+                    // For future dates: Include all slots
+                    true
+                }
+                
+                if (shouldIncludeSlot) {
                      val fullSlot = "$slotStart - $slotEnd"
                      if (!bookedSlots.contains(fullSlot)) {
                         slots.add(fullSlot)

@@ -164,6 +164,18 @@
             android:screenOrientation="portrait"
             android:exported="false" />
 
+        <!-- Help & Support Activities -->
+        <activity
+            android:name=".HelpSupport.HelpSupportActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+        <activity
+            android:name=".HelpSupport.MyTicketsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
         <!-- Video Call Service -->
         <service
             android:name=".Repositories.VideoCallService"

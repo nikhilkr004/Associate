@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:fitsSystemWindows="true"
+    tools:context=".Activities.ChatActivity">
+
+    <!-- Header / Toolbar -->
+    <RelativeLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#1E1E1E"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:elevation="0dp">
+
+
+        <!-- Timer Pill (Replaces 3-dot menu or logo) -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivAdvisorAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:src="@drawable/user" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerInParent="true" 
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tvAdvisorName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Advisor Name"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Online"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"/>
+        </LinearLayout>
+
+        <!-- Right Side Icons -->
+         <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:orientation="horizontal">
+            
+             <ImageView
+                android:id="@+id/btnAudioMute"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/mic"
+                app:tint="@color/white"
+                android:padding="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+             
+            <!-- Menu Button (Dots) - User asked to replace with 'Chat Timeing' in the END, 
+                 but reference shows dots. 
+                 Wait, "replace this image to chat timeing". If image is 3 dots, replace it with Timer. 
+                 But I put Timer on Left? 
+                 Reference image has: Left Arrow, "12" (Pill), Center Title, Right "..." 
+                 User says: "in this image we have 3 dot in top right corner so reolace this image to chat timeing"
+                 So User wants Timer in Top Right, replacing the "...". 
+                 Okay. I will move Timer to Top Right. 
+            -->
+        </LinearLayout>
+        
+        <TextView
+            android:id="@+id/tvTimerRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/rounded_white_pill" 
+            android:backgroundTint="#333333" 
+            android:text="00:00"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+
+    </RelativeLayout>
+    
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333"
+        android:layout_below="@id/headerLayout"/>
+
+    <!-- Bottom Input Area -->
+    <LinearLayout
+        android:id="@+id/bottomLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        android:background="#1E1E1E">
+        
+        <!-- Input Cointainer Rounded -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_chat_input_rounded"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+            
+            <ImageView
+                android:id="@+id/btnAttach"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/link" 
+                app:tint="#AAAAAA"/>
+            
+            <View
+                android:layout_width="1dp"
+                android:layout_height="20dp"
+                android:background="#555555"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"/>
+
+            <EditText
+                android:id="@+id/etMessage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="Type your message..."
+                android:textColor="@color/white"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp"
+                android:maxLines="4"
+                android:inputType="textCapSentences|textMultiLine"/>
+                
+
+                
+            <!-- Dynamic Send/Mic -->
+             <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp">
+                
+                <ImageView
+                    android:id="@+id/btnMic"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/mic"
+                    app:tint="#AAAAAA"/>
+
+                 <ImageView
+                    android:id="@+id/btnSend"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/send"
+                    app:tint="#AAAAAA"
+                    android:visibility="gone"/>
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Messages List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChatMessages"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerLayout"
+        android:layout_above="@id/bottomLayout"
+        android:background="#121212"
+        android:paddingTop="16dp"
+        android:clipToPadding="false"/>
+
+</RelativeLayout>
