@@ -2,8 +2,10 @@ package com.example.associate.DataClass
 
 import android.os.Parcelable
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
 
+@IgnoreExtraProperties
 @Parcelize
 data class SessionBookingDataClass(
     var bookingId: String = "",

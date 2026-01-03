@@ -1,7 +1,10 @@
 package com.example.associate.DataClass
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.IgnoreExtraProperties
+import com.google.firebase.firestore.PropertyName
 
+@IgnoreExtraProperties
 data class PaymentDataClass(
     val paymentId: String = "",
     val userId: String = "",
@@ -19,7 +22,13 @@ data class PaymentDataClass(
     val deviceInfo: String = "",
     val ipAddress: String = "",
     val appVersion: String = "",
-    val type: String = "" // "topup", "video_call", etc.
+    val type: String = "", // "topup", "video_call", etc.
+
+    // 🔥 Added to match Firestore Transaction Records
+    val callId: String = "",
+    val bookingId: String = "",
+    val errorMessage: String = "",
+    val userRole: String = ""
 ) {
     companion object {
         const val STATUS_PENDING = "pending"
@@ -28,15 +37,29 @@ data class PaymentDataClass(
     }
 }
 
+@IgnoreExtraProperties
 data class WalletDataClass(
     val userId: String = "",
+    // Firestore stores "walletBalance" (or sometimes "balance"). 
+    // We map "balance" property to "walletBalance" field.
+    // However, if Firestore has BOTH, we need to be careful.
+    // The warning says "No setter/field for walletBalance". 
+    // This usually happens when the framework tries to write "walletBalance" into a property but finds "balance".
+    // Or when reading.
+    // Best practice: Use @PropertyName on the property itself.
+    @get:PropertyName("walletBalance")
+    @set:PropertyName("walletBalance")
     var balance: Double = 0.0,
     val lastUpdated: Timestamp = Timestamp.now(),
+    @get:PropertyName("lastTransactionTime")
+    @set:PropertyName("lastTransactionTime")
+    var lastTransactionTime: Timestamp? = null,
     val totalAdded: Double = 0.0,
     val totalSpent: Double = 0.0,
     val transactionCount: Long = 0
 )
 
+@IgnoreExtraProperties
 data class RazorpayOrderResponse(
     val id: String = "",
     val amount: Int = 0,
@@ -45,6 +68,7 @@ data class RazorpayOrderResponse(
     val status: String = ""
 )
 
+@IgnoreExtraProperties
 data class Transaction(
     val id: String,
     val type: String,

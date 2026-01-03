@@ -80,7 +80,9 @@ class HomeFragment : Fragment() {
         binding.swipeRefreshLayout.setOnRefreshListener {
             viewModel.loadData()
             Handler(Looper.getMainLooper()).postDelayed({
-                binding.swipeRefreshLayout.isRefreshing = false
+                if (_binding != null) {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                }
             }, 2000)
         }
 

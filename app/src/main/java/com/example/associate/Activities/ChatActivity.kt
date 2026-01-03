@@ -524,11 +524,12 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
         db.collection("wallets").document(currentUserId).get().addOnSuccessListener {
             userWalletBalance = it.getDouble("balance") ?: 0.0
             
-            // Step 2: Fetch Rate/Session Amount based on Booking ID if exists, else Advisor Profile
-            if (bookingId.isNotEmpty()) {
-                fetchBookingDetails()
+            // 🚨 RECOVERY CHECK: If BookingID is empty, try to recover it
+            if (bookingId.isEmpty()) {
+                 Log.w("ChatActivity", "⚠️ Booking ID is empty. Attempting Recovery...")
+                 recoverBookingId()
             } else {
-                fetchAdvisorChatRate()
+                 fetchBookingDetails()
             }
         }
     }
@@ -578,6 +579,68 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
     }
     
     
+    // 🔍 RECOVERY FUNCTION: Find active booking for this user/advisor
+    private fun recoverBookingId() {
+        val userId = auth.currentUser?.uid ?: return
+        val advisorId = advisorId.takeIf { it.isNotEmpty() } ?: intent.getStringExtra("ADVISOR_ID") ?: ""
+        
+        if (advisorId.isEmpty()) {
+            Log.e("ChatActivity", "Recovery Failed: No Advisor ID available.")
+            fetchAdvisorChatRate()
+            return
+        }
+
+        Log.d("ChatActivity", "Recovery: Looking for accepted bookings for User $userId with Advisor $advisorId")
+
+        // 1. Check Scheduled First
+        db.collection("scheduled_bookings")
+            .whereEqualTo("studentId", userId)
+            .whereEqualTo("advisorId", advisorId)
+            .whereIn("bookingStatus", listOf("accepted", "pending"))
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val doc = documents.documents.first()
+                    bookingId = doc.id
+                    Log.i("ChatActivity", "✅ RECOVERY SUCCESS: Found Scheduled Booking ID: $bookingId")
+                    isInstantBooking = false
+                    
+                    // Resume Normal Flow
+                    fetchBookingDetails()
+                } else {
+                    // 2. Check Instant Bookings
+                    Log.d("ChatActivity", "Recovery: No Scheduled found. Checking Instant...")
+                    db.collection("instant_bookings")
+                        .whereEqualTo("studentId", userId)
+                        .whereEqualTo("advisorId", advisorId)
+                        .whereIn("bookingStatus", listOf("accepted", "pending"))
+                        .get()
+                        .addOnSuccessListener { instantDocs ->
+                             if (!instantDocs.isEmpty) {
+                                val doc = instantDocs.documents.first()
+                                bookingId = doc.id
+                                Log.i("ChatActivity", "✅ RECOVERY SUCCESS: Found Instant Booking ID: $bookingId")
+                                isInstantBooking = true
+                                
+                                // Resume Normal Flow
+                                fetchBookingDetails()
+                             } else {
+                                Log.e("ChatActivity", "❌ Recovery Failed: No active bookings found.")
+                                fetchAdvisorChatRate()
+                             }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("ChatActivity", "Recovery Error (Instant): ${e.message}")
+                            fetchAdvisorChatRate()
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChatActivity", "Recovery Error (Scheduled): ${e.message}")
+                fetchAdvisorChatRate()
+            }
+    }
+
     private fun onRateSet() {
         Log.e("ChatPayment", "=== onRateSet CALLED ===")
         Log.e("ChatPayment", "ratePerMinute: $ratePerMinute")
@@ -1133,6 +1196,24 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
                 .update(updates)
                 .addOnSuccessListener {
                     Log.i("ChatPayment", "Firestore updated. Cloud Function will process payment.")
+                    
+                    // ✅ SAFETY NET: Explicitly update Booking Status with Fallback
+                    if (bookingId.isNotEmpty()) {
+                        val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
+                        val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
+
+                        db.collection(primaryCollection).document(bookingId)
+                            .update("bookingStatus", "ended")
+                            .addOnSuccessListener { Log.d("ChatPayment", "Booking status set to ended in $primaryCollection") }
+                            .addOnFailureListener { e ->
+                                Log.w("ChatPayment", "Failed in $primaryCollection, trying $secondaryCollection. Error: ${e.message}")
+                                db.collection(secondaryCollection).document(bookingId)
+                                    .update("bookingStatus", "ended")
+                                    .addOnSuccessListener { Log.d("ChatPayment", "Booking status set to ended in fallback $secondaryCollection") }
+                                    .addOnFailureListener { Log.e("ChatPayment", "Failed to update booking status in ANY collection") }
+                            }
+                    }
+
                     // ✅ UPDATE: Wait for Server Confirmation
                     waitForServerConfirmation(bookingId, pd)
                 }
@@ -1141,6 +1222,15 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
                     // Fallback: Ensure document exists
                      db.collection(collectionName).document(callId).set(updates, com.google.firebase.firestore.SetOptions.merge())
                         .addOnSuccessListener {
+                         if (bookingId.isNotEmpty()) {
+                                 val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
+                                 val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
+                                 
+                                 db.collection(primaryCollection).document(bookingId).update("bookingStatus", "ended")
+                                    .addOnFailureListener {
+                                        db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
+                                    }
+                             }
                             waitForServerConfirmation(bookingId, pd)
                         }
                         .addOnFailureListener {

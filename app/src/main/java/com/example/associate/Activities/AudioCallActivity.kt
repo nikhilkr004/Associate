@@ -249,8 +249,16 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         if (intentUrgency != null && intentUrgency.equals("Scheduled", ignoreCase = true)) {
              Log.w("AudioCall", "Client-Side Rule: Intent says Scheduled. Forcing Scheduled Mode immediately.")
              isInstantBooking = false
-             forceScheduledMode = true // 🔥 Lock mode
-             onRateSet() // ✅ Changed from startVisualTracker
+             forceScheduledMode = true 
+             onRateSet() 
+        }
+
+        // 🚨 RECOVERY: If Booking ID matches Channel Name, it's likely a FALLBACK from missing intent data.
+        // We must attempt to find the REAL booking ID from Firestore.
+        if (bookingId == channelName && !forceScheduledMode) {
+             Log.w("AudioCall", "⚠️ Suspicious Booking ID (Matches Channel/Call ID). Attempting Recovery...")
+             recoverBookingId()
+             return // Stop valid flow until recovery completes
         }
 
         // 🚨 NEW LOGIC: Check 'urgencyLevel' field (Requested by User)
@@ -318,6 +326,75 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             }
             .addOnFailureListener {
                 Log.e("AudioCall", "Step 3 Error: Failed to check instant booking: ${it.message}. Falling back to profile.")
+                fetchAdvisorRateFromProfile()
+            }
+    }
+
+    // 🔍 RECOVERY FUNCTION: Find active booking for this user/advisor
+    private fun recoverBookingId() {
+        val userId = auth.currentUser?.uid ?: return
+        val advisorId = storedAdvisorId.takeIf { it.isNotEmpty() } ?: intent.getStringExtra("ADVISOR_ID") ?: ""
+        
+        if (advisorId.isEmpty()) {
+            Log.e("AudioCall", "Recovery Failed: No Advisor ID available.")
+            fetchAdvisorRateFromProfile()
+            return
+        }
+
+        Log.d("AudioCall", "Recovery: Looking for accepted bookings for User $userId with Advisor $advisorId")
+
+        // 1. Check Scheduled First (Higher Priority in general)
+        db.collection("scheduled_bookings")
+            .whereEqualTo("studentId", userId)
+            .whereEqualTo("advisorId", advisorId)
+            .whereIn("bookingStatus", listOf("accepted", "pending")) // 'accepted' is most likely
+            // .whereGreaterThan("timestamp", ...) // Could optimize by date
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val doc = documents.documents.first()
+                    bookingId = doc.id
+                    Log.i("AudioCall", "✅ RECOVERY SUCCESS: Found Scheduled Booking ID: $bookingId")
+                    isInstantBooking = false
+                    forceScheduledMode = true
+                    storedAdvisorId = advisorId // Ensure stored
+                    
+                    // Resume Normal Flow
+                    ratePerMinute = doc.getDouble("sessionAmount") ?: 100.0
+                    onRateSet()
+                } else {
+                    // 2. Check Instant Bookings
+                    Log.d("AudioCall", "Recovery: No Scheduled found. Checking Instant...")
+                    db.collection("instant_bookings")
+                        .whereEqualTo("studentId", userId)
+                        .whereEqualTo("advisorId", advisorId)
+                        .whereIn("bookingStatus", listOf("accepted", "pending"))
+                        .get()
+                        .addOnSuccessListener { instantDocs ->
+                             if (!instantDocs.isEmpty) {
+                                val doc = instantDocs.documents.first()
+                                bookingId = doc.id
+                                Log.i("AudioCall", "✅ RECOVERY SUCCESS: Found Instant Booking ID: $bookingId")
+                                isInstantBooking = true
+                                storedAdvisorId = advisorId
+                                
+                                // Resume Normal Flow
+                                ratePerMinute = doc.getDouble("sessionAmount") ?: 60.0
+                                onRateSet()
+                             } else {
+                                Log.e("AudioCall", "❌ Recovery Failed: No active bookings found in either collection.")
+                                // Fallback to profile rate (orphan call)
+                                fetchAdvisorRateFromProfile()
+                             }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("AudioCall", "Recovery Error (Instant): ${e.message}")
+                            fetchAdvisorRateFromProfile()
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("AudioCall", "Recovery Error (Scheduled): ${e.message}")
                 fetchAdvisorRateFromProfile()
             }
     }
@@ -718,15 +795,43 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             db.collection(collectionName).document(callId)
                 .update(updates)
                 .addOnSuccessListener {
-                    Log.i("AudioPayment", "Firestore updated. Waiting for Cloud Function...")
-                    // ✅ UPDATE: Wait for Server Confirmation
+                    Log.i("AudioCall", "Firestore updated. Waiting for Cloud Function...")
+
+                    // ✅ SAFETY NET: Explicitly update Booking Status
+                    if (bookingId.isNotEmpty()) {
+                        val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
+                        val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
+                        
+                        db.collection(primaryCollection).document(bookingId)
+                            .update("bookingStatus", "ended")
+                            .addOnSuccessListener { Log.d("AudioCall", "Booking status set to ended in $primaryCollection") }
+                            .addOnFailureListener { e ->
+                                Log.w("AudioCall", "Failed in $primaryCollection, trying $secondaryCollection. Error: ${e.message}")
+                                // Fallback: Try the other collection
+                                db.collection(secondaryCollection).document(bookingId)
+                                    .update("bookingStatus", "ended")
+                                    .addOnSuccessListener { Log.d("AudioCall", "Booking status set to ended in fallback $secondaryCollection") }
+                                    .addOnFailureListener { Log.e("AudioCall", "Failed to update booking status in ANY collection") }
+                            }
+                    }
+
+                    // ✅ UPDATE: Wait for Server Confirmation for "Instant" feel
                     waitForServerConfirmation(bookingId, progressDialog)
                 }
                 .addOnFailureListener { e ->
-                    Log.e("AudioPayment", "Firestore update failed: ${e.message}")
+                    Log.e("AudioCall", "Firestore update failed: ${e.message}")
                     // Fallback to ensure document exists if update failed
                      db.collection(collectionName).document(callId).set(updates, com.google.firebase.firestore.SetOptions.merge())
                         .addOnSuccessListener {
+                         if (bookingId.isNotEmpty()) {
+                                 val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
+                                 val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
+                                 
+                                 db.collection(primaryCollection).document(bookingId).update("bookingStatus", "ended")
+                                    .addOnFailureListener {
+                                        db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
+                                    }
+                             }
                             waitForServerConfirmation(bookingId, progressDialog)
                         }
                         .addOnFailureListener {

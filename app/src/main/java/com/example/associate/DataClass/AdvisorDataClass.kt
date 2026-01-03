@@ -5,8 +5,11 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
+import com.google.firebase.firestore.IgnoreExtraProperties
+
 // 🔹 1. Basic Info
 @Parcelize
+@IgnoreExtraProperties
 data class BasicInfo(
     val id: String = "",
     val name: String = "",
@@ -21,6 +24,7 @@ data class BasicInfo(
 
 // 🔹 2. Professional Info
 @Parcelize
+@IgnoreExtraProperties
 data class ProfessionalInfo(
     val designation: String = "",
     val department: String = "",
@@ -38,6 +42,7 @@ data class ProfessionalInfo(
 
 // 🔹 3. Education
 @Parcelize
+@IgnoreExtraProperties
 data class EducationInfo(
     val highestQualification: String = "",
     val qualificationField: String = "",
@@ -48,6 +53,7 @@ data class EducationInfo(
 
 // 🔹 4. Availability & Scheduling
 @Parcelize
+@IgnoreExtraProperties
 data class AvailabilitySchedule(
     val startTime: String = "",
     val endTime: String = "",
@@ -57,6 +63,7 @@ data class AvailabilitySchedule(
 ) : Parcelable
 
 @Parcelize
+@IgnoreExtraProperties
 data class AvailabilityInfo(
     val workingDays: List<String> = emptyList(),
     val workingHoursStart: String = "",
@@ -71,6 +78,7 @@ data class AvailabilityInfo(
 
 // 🔹 5. Pricing Information
 @Parcelize
+@IgnoreExtraProperties
 data class PricingInfo(
     // Instant (Per Minute)
     val instantChatFee: Int = 0,
@@ -86,6 +94,7 @@ data class PricingInfo(
 
 // 🔹 6. Communication Preferences
 @Parcelize
+@IgnoreExtraProperties
 data class ContactPreferences(
     val preferredContactMethod: String = "",
     val responseTime: String = ""
@@ -93,6 +102,7 @@ data class ContactPreferences(
 
 // 🔹 7. System & Permissions
 @Parcelize
+@IgnoreExtraProperties
 data class SystemInfo(
     val userRole: String = "advisor",
     val accessLevel: String = "basic",
@@ -102,6 +112,7 @@ data class SystemInfo(
 
 // 🔹 8. Performance & Reviews
 @Parcelize
+@IgnoreExtraProperties
 data class PerformanceInfo(
     val totalStudentsAdvised: Int = 0,
     val rating: Double = 0.0,
@@ -110,6 +121,7 @@ data class PerformanceInfo(
 
 // 🔹 9. Links & Documents
 @Parcelize
+@IgnoreExtraProperties
 data class Resources(
     val linkedinProfile: String = "",
     val website: String = "",
@@ -118,6 +130,7 @@ data class Resources(
 
 // 🔹 10. Timestamps
 @Parcelize
+@IgnoreExtraProperties
 data class TimeInfo(
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now(),
@@ -126,6 +139,7 @@ data class TimeInfo(
 
 // 🚀 Final Advisor Data Class (MINIMUM NODES)
 @Parcelize
+@IgnoreExtraProperties
 data class AdvisorDataClass(
     val basicInfo: BasicInfo = BasicInfo(),
     val professionalInfo: ProfessionalInfo = ProfessionalInfo(),

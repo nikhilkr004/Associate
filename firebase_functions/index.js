@@ -145,6 +145,7 @@ const handleIncomingCallNotification = async (event) => {
         advisorAvatar: advisorAvatar,
         advisorId: advisorId,
         callType: callType,
+        bookingId: callData.bookingId || "", // 🔥 Added bookingId
         click_action: "FLUTTER_NOTIFICATION_CLICK"
       },
       android: { priority: "high", ttl: 0, notification: { channelId: "incoming_calls", priority: "high", sound: "default" } },
@@ -244,8 +245,23 @@ const handlePaymentProcessing = async (event, collectionName) => {
   const after = event.data.after.data();
   const callId = event.params.callId || event.params.docId;
 
+  console.log(`🔔 ${collectionName} Payment Function TRIGGERED`);
+  console.log(`📊 Status Update: '${before?.status}' -> '${after?.status}'`);
+  console.log(`🆔 CallId: ${callId}, BookingId: ${after.bookingId}, Duration: ${after.duration}`);
+
   // 1. Only Trigger on End (When status changes TO "ended")
-  if (before.status === "ended" || after.status !== "ended") {
+  // 🔥 FIX: Check if after.status IS 'ended', regardless of before status (to catch all end cases)
+  if (after.status !== "ended") {
+    // If it's NOT ended, ignore it.
+    return null;
+  }
+
+  // If it IS ended, but it was ALREADY ended before, check if payment was processed
+  if (before.status === "ended") {
+    // Check if we need to re-process (idempotency check would be good here)
+    // For now, let's skip to avoid infinite loops, BUT we must ensure payment happened.
+    // Better to return null to avoid loops.
+    console.log("⏭️ Status was already ended. Skipping to prevent loops.");
     return null;
   }
 
@@ -253,6 +269,7 @@ const handlePaymentProcessing = async (event, collectionName) => {
   // (Optional but good practice)
 
   console.log(`💰 [${collectionName}] Processing Payment for Call: ${callId}`);
+  console.log(`📊 Status Logic Check: Passed (New status is 'ended')`);
 
   const bookingId = after.bookingId;
   const duration = after.duration || 0;
@@ -280,11 +297,32 @@ const handlePaymentProcessing = async (event, collectionName) => {
         isInstant = true;
 
         if (!bookingDoc.exists) {
-          console.error("❌ Booking Doc not found in either collection for ID:", bookingId);
-          // Fallback: If no booking found, we can't deduct correctly without Rate. 
-          // Abort or try to use Call Data?
-          // Let's try to use Call Data if strictly needed, but it's risky.
-          return;
+          console.warn("⚠️ Booking Doc not found. Attempting to use Call Data as fallback.");
+          // Fallback: Construct a "fake" booking data object from Call Data
+          // We need: userId, advisorId, ratePerMinute (for instant)
+          const fallbackUserId = after.userId || after.studentId;
+          const fallbackAdvisorId = after.advisorId;
+          const fallbackRate = after.ratePerMinute || 0; // The client MUST send this
+
+          if (fallbackUserId && fallbackAdvisorId && fallbackRate > 0) {
+            console.log("✅ Fallback Data Found. Proceeding with Instant Payment.");
+            // Mock the bookingData for downstream logic
+            bookingDoc = {
+              exists: true,
+              data: () => ({
+                userId: fallbackUserId,
+                advisorId: fallbackAdvisorId,
+                ratePerMinute: fallbackRate,
+                paymentStatus: "pending",
+                bookingStatus: "accepted", // Assume accepted if call happened
+                bookingId: bookingId
+              })
+            };
+            isInstant = true; // Force instant mode in fallback
+          } else {
+            console.error("❌ Critical: Booking not found AND Call Data missing required fields (userId, advisorId, rate).");
+            return;
+          }
         }
       }
 
