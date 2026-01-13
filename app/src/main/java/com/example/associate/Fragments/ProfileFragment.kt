@@ -82,6 +82,10 @@ class ProfileFragment : Fragment() {
         binding.helpSupportLayout.setOnClickListener {
             startActivity(Intent(requireContext(), com.example.associate.HelpSupport.HelpSupportActivity::class.java))
         }
+
+        binding.termandcondition.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.associate.Activities.TermsAndConditionsActivity::class.java))
+        }
         
         setupThemeSwitch()
     }

@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/gradient_bg"
+    android:fitsSystemWindows="true"
     tools:context=".HelpSupport.MyTicketsActivity">
 
     <!-- Header -->

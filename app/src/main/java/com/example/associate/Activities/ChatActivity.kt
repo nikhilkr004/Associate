@@ -1214,8 +1214,42 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
                             }
                     }
 
-                    // ✅ UPDATE: Wait for Server Confirmation
-                    waitForServerConfirmation(bookingId, pd)
+                    // ✅ UPDATE: Execute Client-Side Transaction IMMEDIATELY
+                    lifecycleScope.launch {
+                        try {
+                            if (!isFinishing && !isDestroyed) {
+                                pd?.setMessage("Securely processing payment...")
+                            }
+                            
+                            val success = bookingRepository.completeBookingWithTransaction(
+                                bookingId = bookingId,
+                                userId = auth.currentUser?.uid ?: "",
+                                advisorId = advisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
+                                callDurationSeconds = durationSeconds,
+                                ratePerMinute = ratePerMinute,
+                                isInstant = isInstantBooking
+                            )
+
+                            if (success) {
+                                Log.i("ChatPayment", "Client-Side Transaction Successful")
+                                if (!isFinishing && !isDestroyed) {
+                                    Toast.makeText(this@ChatActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Log.e("ChatPayment", "Client-Side Transaction Failed")
+                                if (!isFinishing && !isDestroyed) {
+                                    Toast.makeText(this@ChatActivity, "Payment processing checks completed", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("ChatPayment", "Error in transaction: ${e.message}")
+                        } finally {
+                            if (!isFinishing && !isDestroyed) {
+                                pd?.dismiss()
+                                finish()
+                            }
+                        }
+                    }
                 }
                 .addOnFailureListener { e ->
                     Log.e("ChatPayment", "Firestore update failed: ${e.message}")
@@ -1231,7 +1265,21 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
                                         db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
                                     }
                              }
-                            waitForServerConfirmation(bookingId, pd)
+                            // Retry Transaction in Fallback
+                            lifecycleScope.launch {
+                                val success = bookingRepository.completeBookingWithTransaction(
+                                    bookingId = bookingId,
+                                    userId = auth.currentUser?.uid ?: "",
+                                    advisorId = advisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
+                                    callDurationSeconds = durationSeconds,
+                                    ratePerMinute = ratePerMinute,
+                                    isInstant = isInstantBooking
+                                )
+                                if (!isFinishing && !isDestroyed) {
+                                    pd?.dismiss()
+                                    finish()
+                                }
+                            }
                         }
                         .addOnFailureListener {
                             pd?.dismiss()

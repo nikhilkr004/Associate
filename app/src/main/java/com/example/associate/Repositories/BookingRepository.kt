@@ -192,6 +192,7 @@ class BookingRepository {
                 var paymentStatus = "pending"
                 
                 if (shouldDeductFromUser) {
+                    // --- INSTANT CALL LOGIC (User pays now) ---
                     val walletRef = db.collection("wallets").document(userId)
                     val walletSnapshot = transaction.get(walletRef)
                     val currentBalance = if (walletSnapshot.exists()) walletSnapshot.getDouble("balance") ?: 0.0 else 0.0
@@ -219,37 +220,15 @@ class BookingRepository {
                         val userTx = hashMapOf(
                             "amount" to finalCost,
                             "type" to "DEBIT",
-                            "status" to "success", // Added Status
+                            "status" to "success",
                             "description" to "Call Fee",
                             "timestamp" to FieldValue.serverTimestamp(),
                             "relatedBookingId" to bookingId
                         )
                         transaction.set(userTxRef, userTx)
                         
-                        // 6. Advisor Wallet Credit (Only if User Paid)
-                        val advisorSnapshot = transaction.get(advisorRef)
-                        if (advisorSnapshot.exists()) {
-                            val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
-                            val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
-                            val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
-                            val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
-                            
-                            transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + finalCost)
-                            transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
-                            transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost) // Or available? Keeping pending logic.
-                            
-                            // Advisor History
-                            val advisorTxRef = advisorRef.collection("transactions").document()
-                            val advisorTx = hashMapOf(
-                                "amount" to finalCost,
-                                "type" to "CREDIT",
-                                "status" to "success",
-                                "description" to "Session Earning",
-                                "timestamp" to FieldValue.serverTimestamp(),
-                                "relatedBookingId" to bookingId
-                            )
-                            transaction.set(advisorTxRef, advisorTx)
-                        }
+                        // Credit Advisor
+                        creditAdvisor(transaction, advisorRef, finalCost, bookingId, "Session Earning")
                         
                     } else {
                         // INSUFFICIENT BALANCE -> PENDING
@@ -262,7 +241,7 @@ class BookingRepository {
                         val userTx = hashMapOf(
                             "amount" to finalCost,
                             "type" to "DEBIT",
-                            "status" to "pending", // Pending Status as requested
+                            "status" to "pending",
                             "description" to "Call Fee - Insufficient Balance",
                             "timestamp" to FieldValue.serverTimestamp(),
                             "relatedBookingId" to bookingId
@@ -271,38 +250,15 @@ class BookingRepository {
                         // Do NOT credit advisor yet
                     }
                 } else {
-                    // Pre-paid / Scheduled
-                    isPaid = true
-                    paymentStatus = "paid"
-                    // (Advisor credit logic for Scheduled calls might differ, but assuming already handled or handled here?)
-                    // Existing logic skipped user deduction but DID credit advisor (lines 232+ in original).
-                    // I removed the global advisor credit block. I need to put it back for "else" case?
-                    // Original Code credited Advisor unconditionally at step 6.
-                    // But if it's scheduled, user paid platform beforehand. So we SHOULD credit advisor here.
+                    // --- SCHEDULED CALL LOGIC (Pre-paid) ---
+                    // User already paid. Skip deduction.
+                    // Important: Confirmed by user plan: "Credits Advisor (moves from Pending Balance to Earnings...)"
                     
-                     // 6. Advisor Wallet Credit (Scheduled Case)
-                    val advisorSnapshot = transaction.get(advisorRef)
-                    if (advisorSnapshot.exists()) {
-                         val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
-                         val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
-                         val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
-                         val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
-                         
-                         transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + finalCost)
-                         transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + finalCost)
-                         transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + finalCost)
-                         
-                         val advisorTxRef = advisorRef.collection("transactions").document()
-                         val advisorTx = hashMapOf(
-                             "amount" to finalCost,
-                             "type" to "CREDIT",
-                             "status" to "success",
-                             "description" to "Session Earning (Scheduled)",
-                             "timestamp" to FieldValue.serverTimestamp(),
-                             "relatedBookingId" to bookingId
-                         )
-                         transaction.set(advisorTxRef, advisorTx)
-                    }
+                    isPaid = true
+                    paymentStatus = "paid" // It was pre-paid
+                    
+                    // Credit Advisor (Funds move from Platform to Advisor)
+                    creditAdvisor(transaction, advisorRef, finalCost, bookingId, "Session Earning (Scheduled)")
                 }
 
                 // 7. Finalize Booking Doc (Ghost or Real)
@@ -372,6 +328,39 @@ class BookingRepository {
             android.util.Log.i("BookingRepository", "Forced booking status update: $bookingId -> $status")
         } catch (e: Exception) {
             android.util.Log.e("BookingRepository", "Failed to update booking status: ${e.message}")
+        }
+    }
+
+    // Helper to credit advisor wallet
+    private fun creditAdvisor(
+        transaction: com.google.firebase.firestore.Transaction,
+        advisorRef: com.google.firebase.firestore.DocumentReference,
+        amount: Double,
+        bookingId: String,
+        description: String
+    ) {
+        val advisorSnapshot = transaction.get(advisorRef)
+        if (advisorSnapshot.exists()) {
+            val earningsInfo = advisorSnapshot.get("earningsInfo") as? Map<String, Any> ?: emptyMap()
+            val currentLifetime = (earningsInfo["totalLifetimeEarnings"] as? Number)?.toDouble() ?: 0.0
+            val currentToday = (earningsInfo["todayEarnings"] as? Number)?.toDouble() ?: 0.0
+            val currentPending = (earningsInfo["pendingBalance"] as? Number)?.toDouble() ?: 0.0
+            
+            // Assuming we update pendingBalance; change logic if it should go directly to available.
+            transaction.update(advisorRef, "earningsInfo.totalLifetimeEarnings", currentLifetime + amount)
+            transaction.update(advisorRef, "earningsInfo.todayEarnings", currentToday + amount)
+            transaction.update(advisorRef, "earningsInfo.pendingBalance", currentPending + amount)
+            
+            val advisorTxRef = advisorRef.collection("transactions").document()
+            val advisorTx = hashMapOf(
+                "amount" to amount,
+                "type" to "CREDIT",
+                "status" to "success",
+                "description" to description,
+                "timestamp" to FieldValue.serverTimestamp(),
+                "relatedBookingId" to bookingId
+            )
+            transaction.set(advisorTxRef, advisorTx)
         }
     }
 }

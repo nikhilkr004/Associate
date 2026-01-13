@@ -124,7 +124,12 @@ class HelpSupportActivity : AppCompatActivity() {
         )
 
         android.util.Log.d("HelpSupport", "Submitting ticket: $ticket")
-        viewModel.submitTicket(ticket, selectedUris)
+        try {
+            viewModel.submitTicket(ticket, selectedUris)
+        } catch (e: Exception) {
+            android.util.Log.e("HelpSupport", "Crash during submission call: ${e.message}", e)
+            Toast.makeText(this, "Error initiating submission: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun observeViewModel() {
@@ -138,10 +143,17 @@ class HelpSupportActivity : AppCompatActivity() {
 
         viewModel.submitStatus.observe(this) { result ->
             result.onSuccess {
-                DialogUtils.showStatusDialog(this, true,"Ticket Success", "Ticket Raised Successfully! We will contact you soon.")
-                     // Navigate to My Tickets or Finish
-                     startActivity(Intent(this, MyTicketsActivity::class.java))
-                     finish()
+                DialogUtils.showStatusDialog(
+                    context = this,
+                    isSuccess = true,
+                    title = "Ticket Success",
+                    message = "Ticket Raised Successfully! We will contact you soon.",
+                    action = {
+                        // Navigate to My Tickets or Finish
+                        startActivity(Intent(this, MyTicketsActivity::class.java))
+                        finish()
+                    }
+                )
 
             }.onFailure { e ->
 

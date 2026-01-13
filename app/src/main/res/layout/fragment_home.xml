@@ -292,6 +292,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <ImageView
+                android:id="@+id/btn_close_card"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/close_icon_"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="#777777"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <TextView
                 android:id="@+id/booking_advisor_name"
                 android:layout_width="wrap_content"

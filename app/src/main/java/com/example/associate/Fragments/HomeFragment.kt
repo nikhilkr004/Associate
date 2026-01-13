@@ -151,6 +151,14 @@ class HomeFragment : Fragment() {
 
     private fun showActiveBookingCard(booking: SessionBookingDataClass) {
         binding.currentBookingCard.visibility = View.VISIBLE
+        // Close Button Logic
+        binding.btnCloseCard.setOnClickListener {
+            hideActiveBookingCard()
+            // Optional: You might want to update ViewModel to clear activeBooking or just hide UI
+            // viewModel.clearActiveBooking() if exists, or just hide.
+            // For now just hide as requested.
+        }
+
         binding.bookingAdvisorName.text = "Advisor: ${booking.advisorName}"
         binding.bookingId.text = "ID: #${booking.bookingId}"
         binding.bookingPurpose.text = "Purpose: ${booking.purpose}"

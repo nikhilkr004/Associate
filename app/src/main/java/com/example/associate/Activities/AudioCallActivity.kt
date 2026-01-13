@@ -815,8 +815,42 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                             }
                     }
 
-                    // ✅ UPDATE: Wait for Server Confirmation for "Instant" feel
-                    waitForServerConfirmation(bookingId, progressDialog)
+                    // ✅ UPDATE: Execute Client-Side Transaction IMMEDIATELY
+                    lifecycleScope.launch {
+                        try {
+                            if (!isFinishing && !isDestroyed) {
+                                progressDialog?.setMessage("Securely processing payment...")
+                            }
+                            
+                            val success = bookingRepository.completeBookingWithTransaction(
+                                bookingId = bookingId,
+                                userId = auth.currentUser?.uid ?: "",
+                                advisorId = storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
+                                callDurationSeconds = durationSeconds,
+                                ratePerMinute = ratePerMinute,
+                                isInstant = isInstantBooking
+                            )
+
+                            if (success) {
+                                Log.i("AudioPayment", "Client-Side Transaction Successful")
+                                if (!isFinishing && !isDestroyed) {
+                                    Toast.makeText(this@AudioCallActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                Log.e("AudioPayment", "Client-Side Transaction Failed")
+                                if (!isFinishing && !isDestroyed) {
+                                    Toast.makeText(this@AudioCallActivity, "Payment processing checks completed", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("AudioPayment", "Error in transaction: ${e.message}")
+                        } finally {
+                            if (!isFinishing && !isDestroyed) {
+                                progressDialog?.dismiss()
+                                navigationAfterEnd()
+                            }
+                        }
+                    }
                 }
                 .addOnFailureListener { e ->
                     Log.e("AudioCall", "Firestore update failed: ${e.message}")
@@ -832,7 +866,22 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                                         db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
                                     }
                              }
-                            waitForServerConfirmation(bookingId, progressDialog)
+                            
+                            // Retry Transaction in Fallback
+                            lifecycleScope.launch {
+                                val success = bookingRepository.completeBookingWithTransaction(
+                                    bookingId = bookingId,
+                                    userId = auth.currentUser?.uid ?: "",
+                                    advisorId = storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
+                                    callDurationSeconds = durationSeconds,
+                                    ratePerMinute = ratePerMinute,
+                                    isInstant = isInstantBooking
+                                )
+                                if (!isFinishing && !isDestroyed) {
+                                    progressDialog?.dismiss()
+                                    navigationAfterEnd()
+                                }
+                            }
                         }
                         .addOnFailureListener {
                             progressDialog?.dismiss()

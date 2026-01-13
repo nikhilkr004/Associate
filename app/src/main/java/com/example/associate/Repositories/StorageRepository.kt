@@ -88,7 +88,7 @@ class StorageRepository {
             scaledBitmap.recycle()
             
             outputStream.toByteArray()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.e("StorageRepository", "Compression error: ${e.message}")
             null
         }

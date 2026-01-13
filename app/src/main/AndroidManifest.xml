@@ -152,6 +152,10 @@
             android:theme="@style/Theme.AppCompat.NoActionBar"
             android:windowSoftInputMode="adjustResize"/>
 
+        <activity
+            android:name=".Activities.TermsAndConditionsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <!-- Notification Activity -->
         <activity
             android:name=".Activities.NotificationActivity"
