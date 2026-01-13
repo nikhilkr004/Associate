@@ -63,6 +63,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var callStartTime: Long = 0
     private var bookingId: String = "" // ✅ Added class member
     private var isEnding = false // ✅ Added to prevent double execution
+    private var callEndListener: com.google.firebase.firestore.ListenerRegistration? = null // Listener cleanup
     
     // ✅ Hybrid Payment System Variables
     private var heartbeatTimer: Timer? = null
@@ -728,30 +729,31 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     // 🔥 UPDATE: End Call with Secure Transaction (HYBRID)
     private fun endCall() {
-        if (!isCallActive) {
+        if (!isCallActive && !isEnding) {
             finish()
             return
         }
 
-        Log.d("VideoCall", "Ending call (HYBRID)...")
+        // Prevent double execution
+        if (isEnding) return
+        isEnding = true
+
+        Log.d("VideoCall", "Ending call (Server-Side Logic)...")
         isCallActive = false
         visualTrackerHandler?.removeCallbacksAndMessages(null)
-        callTimer?.cancel() // Stop UI timer
+        callTimer?.cancel()
 
         val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
         
-        // 1. Stop Zego Publishing first (Stop Streams via Mute/Disable)
+        // 1. Stop Zego Publishing first
         try {
             if (::zegoManager.isInitialized) {
                 zegoManager.muteMicrophone(true)
                 zegoManager.enableCamera(false)
+                zegoManager.leaveRoom(roomID)
             }
         } catch (e: Exception) { Log.e("VideoCall", "Error stopping streams: $e") }
 
-        isCallActive = false
-        visualTrackerHandler?.removeCallbacksAndMessages(null)
-        callTimer?.cancel() // Stop UI timer
-        
         // Calculate duration
         val durationSeconds = if (callStartTime > 0) {
             (System.currentTimeMillis() - callStartTime) / 1000
@@ -759,212 +761,110 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             0
         }
         
-        if (durationSeconds < 5) {
-             Log.e("VideoPayment", "Duration too short: $durationSeconds seconds - skipping payment")
-             // Only navigate if UI is still valid
-             if (!isFinishing && !isDestroyed) navigationAfterEnd()
-             return
-        }
-        
-        Log.e("VideoPayment", "Duration: $durationSeconds seconds")
-        
         var progressDialog: ProgressDialog? = null
         if (!isFinishing && !isDestroyed) {
              progressDialog = ProgressDialog(this)
-             progressDialog.setMessage("Processing payment...")
+             progressDialog.setMessage("Ending call...")
              progressDialog.setCancelable(false)
              progressDialog.show()
         }
 
-        // ✅ STEP 1: Update Firestore (triggers Cloud Function)
+        // ✅ STEP 1: Update Firestore only. Server handles the rest.
         val updates = hashMapOf<String, Any>(
             "status" to "ended",
             "endTime" to FieldValue.serverTimestamp(),
             "callEndTime" to FieldValue.serverTimestamp(), // Redundancy
             "duration" to durationSeconds,
             "endReason" to "user_ended",
-            "completedBy" to "user_app",
-            "bookingId" to bookingId,
-            "advisorId" to (storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" }),
-            "userId" to (auth.currentUser?.uid ?: ""),
-            "studentId" to (auth.currentUser?.uid ?: "") // Redundancy
+            "completedBy" to "user_app"
         )
         
-        if (bookingId.isEmpty()) {
-             Log.e("VideoPayment", "bookingId is EMPTY - skipping payment")
-             progressDialog?.dismiss()
-             navigationAfterEnd()
-             return
-        }
-
         if (callId.isNotEmpty()) {
             db.collection(collectionName).document(callId)
                 .update(updates)
                 .addOnSuccessListener {
-                    Log.i("VideoPayment", "Firestore updated. Waiting for Cloud Function...")
-                    
-                    // ✅ SAFETY NET: Explicitly update Booking Status with Fallback
-                    if (bookingId.isNotEmpty()) {
-                        val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
-                        val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
-
-                        db.collection(primaryCollection).document(bookingId)
-                            .update("bookingStatus", "ended")
-                            .addOnSuccessListener { Log.d("VideoPayment", "Booking status set to ended in $primaryCollection") }
-                            .addOnFailureListener { e ->
-                                Log.w("VideoPayment", "Failed in $primaryCollection, trying $secondaryCollection. Error: ${e.message}")
-                                db.collection(secondaryCollection).document(bookingId)
-                                    .update("bookingStatus", "ended")
-                                    .addOnSuccessListener { Log.d("VideoPayment", "Booking status set to ended in fallback $secondaryCollection") }
-                                    .addOnFailureListener { Log.e("VideoPayment", "Failed to update booking status in ANY collection") }
-                            }
-                    }
-
-                    // ✅ UPDATE: Execute Client-Side Transaction IMMEDIATELY
-                    lifecycleScope.launch {
-                        try {
-                            if (!isFinishing && !isDestroyed) {
-                                progressDialog?.setMessage("Securely processing payment...")
-                            }
-                            
-                            val success = bookingRepository.completeBookingWithTransaction(
-                                bookingId = bookingId,
-                                userId = auth.currentUser?.uid ?: "",
-                                advisorId = storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
-                                callDurationSeconds = durationSeconds,
-                                ratePerMinute = ratePerMinute,
-                                isInstant = isInstantBooking
-                            )
-
-                            if (success) {
-                                Log.i("VideoPayment", "Client-Side Transaction Successful")
-                                if (!isFinishing && !isDestroyed) {
-                                    Toast.makeText(this@VideoCallActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                Log.e("VideoPayment", "Client-Side Transaction Failed")
-                                if (!isFinishing && !isDestroyed) {
-                                    Toast.makeText(this@VideoCallActivity, "Payment processing checks completed", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Log.e("VideoPayment", "Error in transaction: ${e.message}")
-                        } finally {
-                            if (!isFinishing && !isDestroyed) {
-                                progressDialog?.dismiss()
-                                navigationAfterEnd()
-                            }
-                        }
-                    }
+                    Log.i("VideoCall", "Call status updated to 'ended'. Waiting for listener to close.")
+                     // The listener in registerBroadcastReceiver or snapshot listener should close the activity
+                     // But for robustness, we can wait a specific amount or check manually.
+                     // The requirement says "Listen: Observe the call document... Reaction: show Summary screen"
+                     // So we should rely on the listener. 
+                     
+                     // However, trigger explicit navigation if listener takes too long? 
+                     // Let's rely on the common logic: Update Status -> Server triggers -> Listener picks up -> Navigation.
+                     
+                     // For 'user_ended', we can probably navigate immediately to Summary ACTIVITY if we trust the server.
+                     // BUT requirement says: "Reaction: When status changes to ended, show the 'Call Ended' summary screen immediately."
+                     // This usually refers to the passive case (Advisor ended), but applies to active too for consistency.
+                     
+                     // Let's add the listener logic in 'initializeCall' or 'onCreate' to handle this.
+                     // For now, we just update and ensure we don't crash.
                 }
                 .addOnFailureListener { e ->
-                    Log.e("VideoPayment", "Firestore update failed: ${e.message}")
-                    // Fallback to ensure document exists if update failed
-                     db.collection(collectionName).document(callId).set(updates, com.google.firebase.firestore.SetOptions.merge())
-                        .addOnSuccessListener {
-                         if (bookingId.isNotEmpty()) {
-                                 val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
-                                 val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
-                                 
-                                 db.collection(primaryCollection).document(bookingId).update("bookingStatus", "ended")
-                                    .addOnFailureListener {
-                                        db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
-                                    }
-                             }
-                            // Retry Transaction in Fallback
-                            lifecycleScope.launch {
-                                val success = bookingRepository.completeBookingWithTransaction(
-                                    bookingId = bookingId,
-                                    userId = auth.currentUser?.uid ?: "",
-                                    advisorId = storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
-                                    callDurationSeconds = durationSeconds,
-                                    ratePerMinute = ratePerMinute,
-                                    isInstant = isInstantBooking
-                                )
-                                if (!isFinishing && !isDestroyed) {
-                                    progressDialog?.dismiss()
-                                    navigationAfterEnd()
-                                }
-                            }
-                        }
-                        .addOnFailureListener {
-                            progressDialog?.dismiss()
-                            Toast.makeText(this@VideoCallActivity, "Error ending call", Toast.LENGTH_SHORT).show()
-                            finish()
-                        }
+                    Log.e("VideoCall", "Firestore update failed: ${e.message}")
+                    // Fallback: Force navigation if update fails?
+                    if (!isFinishing) {
+                        progressDialog?.dismiss()
+                        Toast.makeText(this, "Call Ended Locally", Toast.LENGTH_SHORT).show()
+                        navigationAfterEnd()
+                    }
                 }
         } else {
-            // No callId, cannot update. Just finish
-             Log.e("VideoPayment", "No callId, cannot trigger payment.")
-             progressDialog?.dismiss()
-             finish()
+             if (!isFinishing) {
+                 progressDialog?.dismiss()
+                 navigationAfterEnd()
+             }
         }
     }
 
-    private fun waitForServerConfirmation(bookingId: String, pd: ProgressDialog?) {
-        val completionRef = db.collection("processed_transactions").document("${bookingId}_completion")
-        
-        // Timeout Handler (e.g. 5 seconds for "Instant" feel without blocking too long)
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        val timeoutRunnable = Runnable {
-            if (!isFinishing && !isDestroyed) {
-                pd?.dismiss()
-                Toast.makeText(this, "Call Ended. Payment processing in background.", Toast.LENGTH_LONG).show()
-                navigationAfterEnd()
-            }
-        }
-        handler.postDelayed(timeoutRunnable, 8000)
+    private fun listenForCallEnd() {
+         if (callId.isEmpty()) return
+         
+         callEndListener?.remove()
+         callEndListener = db.collection(collectionName).document(callId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("VideoCall", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
 
-        // Listen for completion
-        completionRef.addSnapshotListener { snapshot, e ->
-            if (e != null) return@addSnapshotListener
-            
-            if (snapshot != null && snapshot.exists()) {
-                handler.removeCallbacks(timeoutRunnable) // Cancel timeout
-                val status = snapshot.getString("status")
-                
-                if (!isFinishing && !isDestroyed) {
-                    pd?.dismiss()
-                    if (status == "paid") {
-                        Toast.makeText(this, "Payment Successful!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        val reason = snapshot.getString("failureReason") ?: "Unknown"
-                        Toast.makeText(this, "Payment Failed: $reason", Toast.LENGTH_LONG).show()
+                if (snapshot != null && snapshot.exists()) {
+                    val status = snapshot.getString("status")
+                    if (status == "ended") {
+                        Log.d("VideoCall", "Call Ended detected from Firestore.")
+                        if (!isFinishing && !isDestroyed) {
+                            navigationAfterEnd()
+                        }
                     }
-                    navigationAfterEnd()
                 }
             }
-        }
     }
     
+    // Call this in onCreate or after callId is set
+    
     private fun navigationAfterEnd() {
-        navigateToHome()
+        val intent = Intent(this, BookingSummaryActivity::class.java)
+        intent.putExtra("BOOKING_ID", bookingId)
+        intent.putExtra("ADVISOR_ID", storedAdvisorId)
+         // Pass basic data for immediate display if needed, but BookingSummary should fetch fresh data
+        startActivity(intent)
+        finish()
     }
     
     private fun endCallWithNavigation() {
         endCall()
-        // navigateToHome is called inside endCall -> transaction scope
     }
 
     private fun saveRatingToBackend(ratingValue: Float, review: String) {}
 
     private fun navigateToHome() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        finish()
+        // Replaced by navigationAfterEnd to Summary
+        navigationAfterEnd()
     }
 
-    private fun stopPaymentService() {
-        // No-op
-    }
+    private fun stopPaymentService() {}
 
-    private fun updateCallEndStatus() {
-        // Logic moved to endCall
-    }
+    private fun updateCallEndStatus() {}
     
-    // Kept for compatibility but logic moved to Transaction
     private fun updateBookingStatusToEnded() {}
 
     // ... (Keep Zego Listeners) ...
@@ -974,10 +874,13 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 updateCallStatus("Connected to room: $roomID")
                 binding.tvConnectionStatus.visibility = View.GONE
                 
-                // ✅ Start Timer Logic
                 if (callStartTime == 0L) {
                     callStartTime = System.currentTimeMillis()
                 }
+                
+                // 🔥 Start Listening for End Event (Advisor or Self)
+                listenForCallEnd()
+                
             } else {
                 showError("Room state changed error: $errorCode")
             }
@@ -1004,9 +907,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                  for (user in userList) {
                     Log.d("VideoCall", "User left: ${user.userID}")
                     updateCallStatus("Advisor left the call")
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        endCallWithNavigation()
-                    }, 2000)
+                    // Don't auto-end immediately, wait for their status update or local timeout?
+                    // Requirement says: "If Advisor ends... When status changes to ended... show summary"
+                    // So we wait for the listener.
+                    Toast.makeText(this, "Advisor left. Ending...", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -1041,7 +945,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         AlertDialog.Builder(this)
             .setTitle("End Call")
             .setMessage("Are you sure you want to end the call?")
-            .setPositiveButton("End Call") { dialog, which -> endCallWithNavigation() }
+            .setPositiveButton("End Call") { dialog, which -> endCall() }
             .setNegativeButton("Cancel", null)
             .show()
     }
@@ -1100,7 +1004,8 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         isCallActive = false
         visualTrackerHandler?.removeCallbacksAndMessages(null)
         callTimer?.cancel()
-        heartbeatTimer?.cancel() // ✅ ADD THIS
+        heartbeatTimer?.cancel()
+        callEndListener?.remove() // Cleanup listener 
         
         try {
             if (::zegoManager.isInitialized) {
@@ -1109,12 +1014,18 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             }
         } catch (e: Exception) { }
         
-        // Unregister receivers if any?
-        // unregisterReceiver(balanceReceiver)
-
-        // ✅ IMPORTANT: Attempt to process payment if getting destroyed unexpectedly (and not already ending)
+        // Ensure call is marked ended if destroyed
         if (!isEnding) {
-            endCall()
+            // endCall() // Careful, this might trigger loops if onDestroy is called by finish()
+            // Just let it be, the server handles disconnects usually? 
+            // Or better:
+             val updates = hashMapOf<String, Any>(
+                "status" to "ended",
+                "endReason" to "user_disconnected"
+            )
+            if (callId.isNotEmpty()) {
+                 db.collection(collectionName).document(callId).update(updates)
+            }
         }
     }
 }

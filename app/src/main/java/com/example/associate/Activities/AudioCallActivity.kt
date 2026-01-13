@@ -64,6 +64,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private var storedAdvisorId: String = "" // 🔥 Added to persist ID
     private var bookingId: String = "" // ✅ Added class member
     private var isEnding = false // ✅ Added to prevent double execution
+    private var callEndListener: com.google.firebase.firestore.ListenerRegistration? = null // Listener cleanup
 
     // ✅ Hybrid Payment System Variables
     private var heartbeatTimer: Timer? = null
@@ -729,10 +730,13 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     // 🔥 UPDATE: End Call with Secure Transaction (HYBRID)
     private fun endCall() {
-        if (!isCallActive) {
+        if (!isCallActive && !isEnding) {
             finish()
             return
         }
+        
+        if (isEnding) return
+        isEnding = true
         
         isCallActive = false
         visualTrackerHandler?.removeCallbacksAndMessages(null)
@@ -744,6 +748,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         try {
             if (::zegoManager.isInitialized) {
                  zegoManager.muteMicrophone(true)
+                 zegoManager.leaveRoom(roomID)
             }
         } catch (e: Exception) { Log.e("AudioCall", "Error stopping streams: $e") }
 
@@ -753,214 +758,87 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             0
         }
         
-        if (durationSeconds < 5) {
-             Log.e("AudioPayment", "Duration too short: $durationSeconds seconds - skipping payment")
-             // Only navigate if UI is still valid
-             if (!isFinishing && !isDestroyed) navigationAfterEnd()
-             return
-        }
-        
-        Log.e("AudioPayment", "Duration: $durationSeconds seconds")
-        
         var progressDialog: ProgressDialog? = null
         if (!isFinishing && !isDestroyed) {
              progressDialog = ProgressDialog(this)
-             progressDialog.setMessage("Processing payment...")
+             progressDialog.setMessage("Ending call...")
              progressDialog.setCancelable(false)
              progressDialog.show()
         }
 
-        // ✅ STEP 1: Update Firestore (triggers Cloud Function)
+        // ✅ STEP 1: Update Firestore only
         val updates = hashMapOf<String, Any>(
             "status" to "ended",
             "endTime" to FieldValue.serverTimestamp(),
             "callEndTime" to FieldValue.serverTimestamp(), // Redundancy
             "duration" to durationSeconds,
             "endReason" to "user_ended",
-            "completedBy" to "user_app",
-            "bookingId" to bookingId,
-            "advisorId" to (storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" }),
-            "userId" to (auth.currentUser?.uid ?: ""),
-            "studentId" to (auth.currentUser?.uid ?: "") // Redundancy
+            "completedBy" to "user_app"
         )
-        
-        if (bookingId.isEmpty()) {
-             Log.e("AudioPayment", "bookingId is EMPTY - skipping payment")
-             progressDialog?.dismiss()
-             navigationAfterEnd()
-             return
-        }
         
         if (callId.isNotEmpty()) {
             db.collection(collectionName).document(callId)
                 .update(updates)
                 .addOnSuccessListener {
-                    Log.i("AudioCall", "Firestore updated. Waiting for Cloud Function...")
-
-                    // ✅ SAFETY NET: Explicitly update Booking Status
-                    if (bookingId.isNotEmpty()) {
-                        val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
-                        val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
-                        
-                        db.collection(primaryCollection).document(bookingId)
-                            .update("bookingStatus", "ended")
-                            .addOnSuccessListener { Log.d("AudioCall", "Booking status set to ended in $primaryCollection") }
-                            .addOnFailureListener { e ->
-                                Log.w("AudioCall", "Failed in $primaryCollection, trying $secondaryCollection. Error: ${e.message}")
-                                // Fallback: Try the other collection
-                                db.collection(secondaryCollection).document(bookingId)
-                                    .update("bookingStatus", "ended")
-                                    .addOnSuccessListener { Log.d("AudioCall", "Booking status set to ended in fallback $secondaryCollection") }
-                                    .addOnFailureListener { Log.e("AudioCall", "Failed to update booking status in ANY collection") }
-                            }
-                    }
-
-                    // ✅ UPDATE: Execute Client-Side Transaction IMMEDIATELY
-                    lifecycleScope.launch {
-                        try {
-                            if (!isFinishing && !isDestroyed) {
-                                progressDialog?.setMessage("Securely processing payment...")
-                            }
-                            
-                            val success = bookingRepository.completeBookingWithTransaction(
-                                bookingId = bookingId,
-                                userId = auth.currentUser?.uid ?: "",
-                                advisorId = storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
-                                callDurationSeconds = durationSeconds,
-                                ratePerMinute = ratePerMinute,
-                                isInstant = isInstantBooking
-                            )
-
-                            if (success) {
-                                Log.i("AudioPayment", "Client-Side Transaction Successful")
-                                if (!isFinishing && !isDestroyed) {
-                                    Toast.makeText(this@AudioCallActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                Log.e("AudioPayment", "Client-Side Transaction Failed")
-                                if (!isFinishing && !isDestroyed) {
-                                    Toast.makeText(this@AudioCallActivity, "Payment processing checks completed", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Log.e("AudioPayment", "Error in transaction: ${e.message}")
-                        } finally {
-                            if (!isFinishing && !isDestroyed) {
-                                progressDialog?.dismiss()
-                                navigationAfterEnd()
-                            }
-                        }
-                    }
+                    Log.i("AudioCall", "Call status updated to 'ended'. Waiting for listener.")
+                    // Listener logic handles the rest
                 }
                 .addOnFailureListener { e ->
                     Log.e("AudioCall", "Firestore update failed: ${e.message}")
-                    // Fallback to ensure document exists if update failed
-                     db.collection(collectionName).document(callId).set(updates, com.google.firebase.firestore.SetOptions.merge())
-                        .addOnSuccessListener {
-                         if (bookingId.isNotEmpty()) {
-                                 val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
-                                 val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
-                                 
-                                 db.collection(primaryCollection).document(bookingId).update("bookingStatus", "ended")
-                                    .addOnFailureListener {
-                                        db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
-                                    }
-                             }
-                            
-                            // Retry Transaction in Fallback
-                            lifecycleScope.launch {
-                                val success = bookingRepository.completeBookingWithTransaction(
-                                    bookingId = bookingId,
-                                    userId = auth.currentUser?.uid ?: "",
-                                    advisorId = storedAdvisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
-                                    callDurationSeconds = durationSeconds,
-                                    ratePerMinute = ratePerMinute,
-                                    isInstant = isInstantBooking
-                                )
-                                if (!isFinishing && !isDestroyed) {
-                                    progressDialog?.dismiss()
-                                    navigationAfterEnd()
-                                }
-                            }
-                        }
-                        .addOnFailureListener {
-                            progressDialog?.dismiss()
-                            Toast.makeText(this@AudioCallActivity, "Error ending call", Toast.LENGTH_SHORT).show()
-                            finish()
-                        }
+                    if (!isFinishing) {
+                         progressDialog?.dismiss()
+                         navigationAfterEnd()
+                    }
                 }
         } else {
-            // No callId, cannot update. Just finish
-             Log.e("AudioPayment", "No callId, cannot trigger payment.")
-             progressDialog?.dismiss()
-             finish()
+             if (!isFinishing) {
+                 progressDialog?.dismiss()
+                 navigationAfterEnd()
+             }
         }
     }
+    
+    private fun listenForCallEnd() {
+         if (callId.isEmpty()) return
+         
+         callEndListener?.remove()
+         callEndListener = db.collection(collectionName).document(callId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) { return@addSnapshotListener }
 
-    private fun waitForServerConfirmation(bookingId: String, pd: ProgressDialog?) {
-        val completionRef = db.collection("processed_transactions").document("${bookingId}_completion")
-        
-        // Timeout Handler
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        val timeoutRunnable = Runnable {
-            if (!isFinishing && !isDestroyed) {
-                pd?.dismiss()
-                Toast.makeText(this, "Call Ended. Payment processing in background.", Toast.LENGTH_LONG).show()
-                navigationAfterEnd()
-            }
-        }
-        handler.postDelayed(timeoutRunnable, 8000)
-
-        // Listen for completion
-        completionRef.addSnapshotListener { snapshot, e ->
-            if (e != null) return@addSnapshotListener
-            
-            if (snapshot != null && snapshot.exists()) {
-                handler.removeCallbacks(timeoutRunnable) // Cancel timeout
-                val status = snapshot.getString("status")
-                
-                if (!isFinishing && !isDestroyed) {
-                    pd?.dismiss()
-                    if (status == "paid") {
-                        Toast.makeText(this, "Payment Successful!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        val reason = snapshot.getString("failureReason") ?: "Unknown"
-                        Toast.makeText(this, "Payment Failed: $reason", Toast.LENGTH_LONG).show()
+                if (snapshot != null && snapshot.exists()) {
+                    val status = snapshot.getString("status")
+                    if (status == "ended") {
+                        if (!isFinishing && !isDestroyed) {
+                            navigationAfterEnd()
+                        }
                     }
-                    navigationAfterEnd()
                 }
             }
-        }
     }
 
     private fun navigationAfterEnd() {
-        navigateToHome()
+        val intent = Intent(this, BookingSummaryActivity::class.java)
+        intent.putExtra("BOOKING_ID", bookingId)
+        intent.putExtra("ADVISOR_ID", storedAdvisorId)
+        startActivity(intent)
+        finish()
     }
     
     private fun endCallWithNavigation() {
         endCall()
-        // navigateToHome is called inside endCall -> transaction scope
     }
 
     private fun saveRatingToBackend(ratingValue: Float, review: String) {}
 
     private fun navigateToHome() {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(intent)
-        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        finish()
+        navigationAfterEnd()
     }
 
-    private fun stopPaymentService() {
-        // No-op
-    }
+    private fun stopPaymentService() {}
 
-    private fun updateCallEndStatus() {
-        // Logic moved to endCall
-    }
+    private fun updateCallEndStatus() {}
     
-    // Kept for compatibility but logic moved to Transaction
     private fun updateBookingStatusToEnded() {}
 
     // ... (Keep Zego Listeners) ...
@@ -972,10 +850,13 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     binding.tvConnectionStatus.visibility = View.INVISIBLE
                 }, 2000)
                 
-                // ✅ Start Timer Logic
                 if (callStartTime == 0L) {
                     callStartTime = System.currentTimeMillis()
                 }
+                
+                // 🔥 Start Listener
+                listenForCallEnd()
+                
             } else {
                 showError("Connection error: $errorCode")
             }
@@ -994,9 +875,10 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 }
             } else if (updateType == ZegoUpdateType.DELETE) {
                 Toast.makeText(this, "Advisor left the call", Toast.LENGTH_SHORT).show()
-                Handler(Looper.getMainLooper()).postDelayed({
-                    endCallWithNavigation()
-                }, 2000)
+                 // Wait for listener or end locally?
+                 // Requirement: Reaction: When status changes to ended...
+                 // If advisor ended it, they updated status. Listener triggers. 
+                 // If they just left (network), we might want to allow user to end.
             }
         }
     }
@@ -1013,7 +895,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         AlertDialog.Builder(this)
             .setTitle("End Call")
             .setMessage("Are you sure you want to end the call?")
-            .setPositiveButton("End Call") { dialog, which -> endCallWithNavigation() }
+            .setPositiveButton("End Call") { dialog, which -> endCall() }
             .setNegativeButton("Cancel", null)
             .show()
     }
@@ -1031,10 +913,17 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         } catch (e: Exception) {}
         try { unregisterReceiver(balanceReceiver) } catch (e: Exception) {}
         stopPaymentService()
+        callEndListener?.remove()
 
-        // ✅ IMPORTANT: Attempt to process payment if getting destroyed unexpectedly (and not already ending)
         if (!isEnding) {
-            endCall()
+            // Disconnect safely
+             val updates = hashMapOf<String, Any>(
+                "status" to "ended",
+                "endReason" to "user_disconnected"
+            )
+            if (callId.isNotEmpty()) {
+                 db.collection(collectionName).document(callId).update(updates)
+            }
         }
     }
     // PIP Mode Implementation
@@ -1065,10 +954,6 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             binding.tvAdvisorName.visibility = View.GONE
             binding.tvConnectionStatus.visibility = View.GONE
             
-            // Adjust Avatar to fill/center
-            // Assuming constraint layout, we might just let it be. 
-            // If it's the only thing visible, it should look okay.
-            
         } else {
             // Restore Controls
             binding.btnEndCall.visibility = View.VISIBLE
@@ -1080,7 +965,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             binding.tvPaymentInfo.visibility = View.VISIBLE
             binding.tvSpentAmount.visibility = View.VISIBLE
             binding.tvAdvisorName.visibility = View.VISIBLE
-            binding.tvConnectionStatus.visibility = View.GONE // Usually gone unless connecting
+            binding.tvConnectionStatus.visibility = View.GONE 
         }
     }
 }
