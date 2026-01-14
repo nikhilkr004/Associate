@@ -249,3 +249,5 @@ If notifications still don't appear after following this guide:
 3. **Verify Firestore document structure** - Share screenshot
 
 4. **Check FCM token** - Verify it exists in Firestore
+
+<!-- Updated for repository activity -->

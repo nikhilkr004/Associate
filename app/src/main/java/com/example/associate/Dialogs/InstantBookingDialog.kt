@@ -180,9 +180,10 @@ class InstantBookingDialog(
             return
         }
         
-        // 🔥 STRICT RULE: Minimum Balance Check
-        if (userWalletBalance < 100) {
-             Toast.makeText(requireContext(), "Insufficient balance. Minimum ₹100 required.", Toast.LENGTH_LONG).show()
+        // 🔥 STRICT RULE: Balance Check against Dynamic Price
+        val requiredAmount = viewModel.totalPrice.value?.toDouble() ?: 0.0
+        if (userWalletBalance < requiredAmount) {
+             Toast.makeText(requireContext(), "Insufficient balance. Required: ₹$requiredAmount", Toast.LENGTH_LONG).show()
              return
         }
         
@@ -258,3 +259,4 @@ class InstantBookingDialog(
         return R.style.CustomBottomSheetDialogTheme
     }
 }
+// Updated for repository activity

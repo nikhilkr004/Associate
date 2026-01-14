@@ -47,8 +47,7 @@ data class WalletDataClass(
     // This usually happens when the framework tries to write "walletBalance" into a property but finds "balance".
     // Or when reading.
     // Best practice: Use @PropertyName on the property itself.
-    @get:PropertyName("walletBalance")
-    @set:PropertyName("walletBalance")
+    // Best practice: Use @PropertyName on the property itself.
     var balance: Double = 0.0,
     val lastUpdated: Timestamp = Timestamp.now(),
     @get:PropertyName("lastTransactionTime")
@@ -79,3 +78,4 @@ data class Transaction(
     val paymentData: PaymentDataClass? = null,
     val timestamp: Timestamp = Timestamp.now()
 )
+// Updated for repository activity

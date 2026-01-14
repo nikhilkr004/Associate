@@ -241,3 +241,4 @@ class PersonalScreenActivity : AppCompatActivity() {
         Log.e("PersonalScreen", "Error saving data", exception)
     }
 }
+// Updated for repository activity

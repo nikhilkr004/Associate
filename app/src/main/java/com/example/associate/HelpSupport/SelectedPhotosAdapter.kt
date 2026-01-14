@@ -45,3 +45,5 @@ class SelectedPhotosAdapter(
         }
     }
 }
+
+// Updated for repository activity

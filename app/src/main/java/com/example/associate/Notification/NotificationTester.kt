@@ -150,3 +150,5 @@ class NotificationTester(private val context: Context) {
  *     Toast.makeText(this, "Notification setup issue - check logs", Toast.LENGTH_LONG).show()
  * }
  */
+
+// Updated for repository activity

@@ -345,3 +345,4 @@ class SessionBookingManager(private val context: Context) {
             }
     }
 }
+// Updated for repository activity

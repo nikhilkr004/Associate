@@ -198,3 +198,5 @@
         android:clipToPadding="false"/>
 
 </RelativeLayout>
+
+<!-- Updated for repository activity -->

@@ -10,3 +10,4 @@ object AppConstants {
     const val PAYMENT_INTERVAL_MS = 10000L // 10 seconds
 
 }
+// Updated for repository activity

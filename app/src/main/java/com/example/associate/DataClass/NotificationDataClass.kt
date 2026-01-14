@@ -12,3 +12,5 @@ data class NotificationDataClass(
     val isRead: Boolean = false,
     val iconUrl: String = "" // Optional URL (fallback to default user icon)
 )
+
+// Updated for repository activity

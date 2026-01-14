@@ -37,3 +37,4 @@ class SplashScreenActivity : AppCompatActivity() {
         }, 2000) // 2 seconds delay
     }
 }
+// Updated for repository activity

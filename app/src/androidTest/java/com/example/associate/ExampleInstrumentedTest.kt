@@ -22,3 +22,4 @@ class ExampleInstrumentedTest {
         assertEquals("com.example.associate", appContext.packageName)
     }
 }
+// Updated for repository activity

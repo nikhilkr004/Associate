@@ -239,7 +239,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     private fun fetchBookingDetailsAndStartService() {
         val channelName = intent.getStringExtra("CHANNEL_NAME") 
-        val bookingId = intent.getStringExtra("BOOKING_ID")?.takeIf { it.isNotEmpty() } ?: channelName ?: return
+        bookingId = intent.getStringExtra("BOOKING_ID")?.takeIf { it.isNotEmpty() } ?: channelName ?: return
 
         Log.w("AudioCall", "Step 1: Fetching details for bookingId: $bookingId (Channel: $channelName)")
 
@@ -735,66 +735,54 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             return
         }
         
-        if (isEnding) return
         isEnding = true
-        
         isCallActive = false
         visualTrackerHandler?.removeCallbacksAndMessages(null)
         callTimer?.cancel()
 
-        val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
+        Log.d("PaymentDebug", "=== AudioCall endCall Triggered ===")
+        val endTime = Timestamp.now()
+        val duration = if (callStartTime > 0) (System.currentTimeMillis() - callStartTime) / 1000 else 0
+        Log.d("PaymentDebug", "CallID: $currentCallId, Duration: $duration")
         
-        // 1. Stop Zego Publishing first (Stop Streams)
-        try {
-            if (::zegoManager.isInitialized) {
-                 zegoManager.muteMicrophone(true)
-                 zegoManager.leaveRoom(roomID)
-            }
-        } catch (e: Exception) { Log.e("AudioCall", "Error stopping streams: $e") }
-
-        val durationSeconds = if (callStartTime > 0) {
-            (System.currentTimeMillis() - callStartTime) / 1000
-        } else {
-            0
-        }
-        
-        var progressDialog: ProgressDialog? = null
-        if (!isFinishing && !isDestroyed) {
-             progressDialog = ProgressDialog(this)
-             progressDialog.setMessage("Ending call...")
-             progressDialog.setCancelable(false)
-             progressDialog.show()
-        }
-
-        // ✅ STEP 1: Update Firestore only
+        // Only update status. The CLOUD FUNCTION handles the money.
         val updates = hashMapOf<String, Any>(
             "status" to "ended",
-            "endTime" to FieldValue.serverTimestamp(),
-            "callEndTime" to FieldValue.serverTimestamp(), // Redundancy
-            "duration" to durationSeconds,
+            "endTime" to endTime,
+            "duration" to duration,
             "endReason" to "user_ended",
-            "completedBy" to "user_app"
+            "completedBy" to "user_app",
+            "bookingId" to bookingId, // ✅ Added to ensure Cloud Function finds it
+            "advisorId" to storedAdvisorId,
+            "userId" to localUserID
         )
+        Log.d("PaymentDebug", "Payload to Update: $updates")
         
-        if (callId.isNotEmpty()) {
-            db.collection(collectionName).document(callId)
-                .update(updates)
-                .addOnSuccessListener {
-                    Log.i("AudioCall", "Call status updated to 'ended'. Waiting for listener.")
-                    // Listener logic handles the rest
-                }
-                .addOnFailureListener { e ->
-                    Log.e("AudioCall", "Firestore update failed: ${e.message}")
-                    if (!isFinishing) {
-                         progressDialog?.dismiss()
-                         navigationAfterEnd()
-                    }
-                }
-        } else {
-             if (!isFinishing) {
-                 progressDialog?.dismiss()
-                 navigationAfterEnd()
-             }
+        db.collection("audioCalls").document(currentCallId)
+            .update(updates)
+            .addOnSuccessListener {
+                Log.d("AudioCall", "Call ended. Server will process payment.")
+                Log.d("PaymentDebug", "✅ Success: AudioCall Doc Updated") 
+                finish()
+            }
+            .addOnFailureListener { e ->
+                Log.e("AudioCall", "Error ending call", e)
+                Log.e("PaymentDebug", "❌ Error Updating AudioCall Doc: ${e.message}")
+                finish()
+            }
+        
+        leaveZegoRoom()
+    }
+
+    private fun leaveZegoRoom() {
+        try {
+            val roomID = intent.getStringExtra("CHANNEL_NAME") ?: AppConstants.DEFAULT_CHANNEL_NAME
+            if (::zegoManager.isInitialized) {
+                zegoManager.muteMicrophone(true)
+                zegoManager.leaveRoom(roomID)
+            }
+        } catch (e: Exception) {
+            Log.e("AudioCall", "Error leaving room: $e")
         }
     }
     
@@ -969,3 +957,5 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
     }
 }
+
+// Updated for repository activity

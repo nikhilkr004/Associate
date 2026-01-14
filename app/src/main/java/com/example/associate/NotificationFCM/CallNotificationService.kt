@@ -57,7 +57,7 @@ class CallNotificationService : Service() {
         val advisorId = intent?.getStringExtra("ADVISOR_ID") ?: ""
         val callType = intent?.getStringExtra("CALL_TYPE") ?: "VIDEO"
         val urgencyLevel = intent?.getStringExtra("urgencyLevel") ?: "Medium" // 🔥 Extraction
-        val bookingId = intent?.getStringExtra("BOOKING_ID") ?: callId // 🔥 Extraction with fallback
+        val bookingId = intent?.getStringExtra("BOOKING_ID") ?: "" // 🔥 No fallback to callId
         
         android.util.Log.e("DEBUG_SERVICE", "Service Started. CallID=$callId, BookingID=$bookingId, Urgency=$urgencyLevel")
         
@@ -88,8 +88,7 @@ class CallNotificationService : Service() {
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) 
-            putExtra("urgencyLevel", urgencyLevel) 
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("BOOKING_ID", bookingId) // 🔥 PROPAGE BOOKING ID to Activity
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(
             this, callId.hashCode() + 2, fullScreenIntent,
@@ -165,10 +164,11 @@ class CallNotificationService : Service() {
 
         val notification = notificationBuilder.build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Use microphone type for calls, requires permission but is better for priority
-            startForeground(123, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+        if (Build.VERSION.SDK_INT >= 34) {
+            // Android 14+ requires SHORT_SERVICE for background starts
+            startForeground(123, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE)
         } else {
+            // Older versions: rely on manifest or default behavior
             startForeground(123, notification)
         }
         
@@ -247,3 +247,5 @@ class CallNotificationService : Service() {
         }
     }
 }
+
+// Updated for repository activity

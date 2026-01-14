@@ -91,3 +91,5 @@ class NotificationAdapter(
         }
     }
 }
+
+// Updated for repository activity

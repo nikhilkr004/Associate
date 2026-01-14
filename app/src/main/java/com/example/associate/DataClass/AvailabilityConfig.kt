@@ -19,3 +19,5 @@ data class ScheduledAvailabilityConfig(
     @get:PropertyName("inPersonEnabled") @set:PropertyName("inPersonEnabled") var isInPersonEnabled: Boolean = false,
     @get:PropertyName("officeVisitEnabled") @set:PropertyName("officeVisitEnabled") var isOfficeVisitEnabled: Boolean = false
 ) : Parcelable
+
+// Updated for repository activity

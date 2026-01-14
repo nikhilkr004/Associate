@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Associate"
 include(":app")
+// Updated for repository activity

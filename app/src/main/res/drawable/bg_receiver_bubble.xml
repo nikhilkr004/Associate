@@ -7,3 +7,5 @@
         android:bottomLeftRadius="4dp"
         android:bottomRightRadius="16dp"/>
 </shape>
+
+<!-- Updated for repository activity -->

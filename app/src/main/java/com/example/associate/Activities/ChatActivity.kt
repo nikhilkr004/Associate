@@ -364,21 +364,26 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
 
     private fun fetchAdvisorAvatar() {
         db.collection("advisors").document(advisorId).get().addOnSuccessListener { 
-            val url = it.getString("profileImage")
-            if (!url.isNullOrEmpty()) {
+            val url = it.getString("profileImage") ?: ""
+            if (url.isNotEmpty()) {
+                // Update Local Variable
+                advisorAvatar = url
                 Glide.with(this).load(url).placeholder(R.drawable.user).into(binding.ivAdvisorAvatar)
+                
+                // Update Adapter if initialized
+                if (::chatAdapter.isInitialized) {
+                    chatAdapter.updateAvatars("", advisorAvatar)
+                }
             }
         }
     }
 
     private fun setupRecyclerView() {
-        // We need user avatar before init adapter if possible, or update it later.
-        // Let's create specific method to setup adapter once user data fetched or pass empty first.
-        
+        // Init with whatever data we currently have
         chatAdapter = ChatActivityAdapter(
             currentUserId,
-            "", // User Avatar (Placeholder)
-            advisorAvatar, // Advisor Avatar
+            "", // User Avatar (Placeholder initially)
+            advisorAvatar, // Advisor Avatar (Might be empty or from Intent)
             chatMessages,
             onItemClick = { content, type ->
                 when(type) {
@@ -392,8 +397,7 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
         binding.rvChatMessages.layoutManager = layoutManager
         binding.rvChatMessages.adapter = chatAdapter
         
-        // Fetch User Data and Re-init Adapter or (better) add setter in Adapter?
-        // Simpler to just re-set adapter or fetch before.
+        // Fetch User Data to update adapter
         fetchCurrentUserProfile()
     }
 
@@ -401,31 +405,11 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
        Log.e("ChatDebug", "Fetching User Profile...")
        db.collection("users").document(currentUserId).get().addOnSuccessListener {
            val userAvatar = it.getString("profileImage") ?: ""
-           
-           // 🔥 FIX: Do not overwrite adapter. Just update avatar if possible, or re-create safely.
-           // Better: We should have initialized adapter in setupRecyclerView already.
-           // If we re-create, we lose the previous reference if anyone held it (listener doesn't hold ref, it accesses property).
-           // But 'chatMessages' is shared.
-           
            Log.e("ChatDebug", "UserProfile fetched. Avatar: $userAvatar")
            
-           // Re-create adapter to apply avatar
-           chatAdapter = ChatActivityAdapter(
-               currentUserId,
-               userAvatar,
-               advisorAvatar,
-               chatMessages, 
-               onItemClick = { content, type ->
-                   when(type) {
-                       "image", "document" -> openFile(content, type)
-                       "audio" -> playAudio(content)
-                   }
-               }
-           )
-           // Re-bind to RV
-           binding.rvChatMessages.adapter = chatAdapter
-           // Force refresh list to ensure view matches data
-           chatAdapter.notifyDataSetChanged()
+           if (::chatAdapter.isInitialized) {
+               chatAdapter.updateAvatars(userAvatar, "")
+           }
        }
 
 
@@ -1145,20 +1129,21 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
         if (isEnding) return
         isEnding = true
         
-        Log.e("ChatPayment", "=== endChatSession CALLED (HYBRID) ===")
+        Log.d("PaymentDebug", "=== endChatSession Triggered ===")
+        Log.d("PaymentDebug", "CallID: $callId, BookingID: $bookingId")
         
         if (bookingId.isEmpty()) {
-            Log.e("ChatPayment", "bookingId is EMPTY - skipping payment")
+            Log.e("PaymentDebug", "ERROR: bookingId is EMPTY - cannot trigger payment.")
             return
         }
         
-        // Show progress only if activity is valid
+        // Show progress 
         var pd: ProgressDialog? = null
         if (!isFinishing && !isDestroyed) {
-            pd = ProgressDialog(this)
-            pd.setMessage("Processing payment...")
-            pd.setCancelable(false)
-            pd.show()
+             pd = ProgressDialog(this)
+             pd.setMessage("Ending session...")
+             pd.setCancelable(false)
+             pd.show()
         }
         
         // Calculate duration
@@ -1168,128 +1153,55 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
             0
         }
         
+        Log.d("PaymentDebug", "Calculated Duration: $durationSeconds seconds")
+
         if (durationSeconds < 5) {
-            Log.e("ChatPayment", "Duration too short: $durationSeconds - skipping")
+            Log.w("PaymentDebug", "Duration too short (<5s). Ending without payment trigger.")
             pd?.dismiss()
             finish()
             return
         }
         
-        Log.e("ChatPayment", "Duration: $durationSeconds seconds")
-        
         // ✅ STEP 1: Update Firestore (triggers Cloud Function)
+        // STRICT: No client-side wallet deduction.
         val updates = hashMapOf<String, Any>(
             "status" to "ended",
             "endTime" to FieldValue.serverTimestamp(),
-            "callEndTime" to FieldValue.serverTimestamp(), // Redundancy
             "duration" to durationSeconds,
             "endReason" to "user_ended",
             "completedBy" to "user_app",
-            "bookingId" to bookingId,
-            "advisorId" to advisorId,
-            "userId" to currentUserId,
-            "studentId" to currentUserId // Redundancy
+            "bookingId" to bookingId, // Redundancy
+            "advisorId" to advisorId, // Redundancy
+            "userId" to currentUserId // Redundancy
         )
         
         if (callId.isNotEmpty()) {
+            Log.d("PaymentDebug", "Updating Call/Chat Doc: $callId with status=ended")
             db.collection(collectionName).document(callId)
                 .update(updates)
                 .addOnSuccessListener {
-                    Log.i("ChatPayment", "Firestore updated. Cloud Function will process payment.")
+                    Log.d("PaymentDebug", "✅ Success: Call Doc Updated to 'ended'. Server should process payment now.")
                     
-                    // ✅ SAFETY NET: Explicitly update Booking Status with Fallback
+                    // Also update Booking Status for UI consistency
                     if (bookingId.isNotEmpty()) {
-                        val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
-                        val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
-
-                        db.collection(primaryCollection).document(bookingId)
-                            .update("bookingStatus", "ended")
-                            .addOnSuccessListener { Log.d("ChatPayment", "Booking status set to ended in $primaryCollection") }
-                            .addOnFailureListener { e ->
-                                Log.w("ChatPayment", "Failed in $primaryCollection, trying $secondaryCollection. Error: ${e.message}")
-                                db.collection(secondaryCollection).document(bookingId)
-                                    .update("bookingStatus", "ended")
-                                    .addOnSuccessListener { Log.d("ChatPayment", "Booking status set to ended in fallback $secondaryCollection") }
-                                    .addOnFailureListener { Log.e("ChatPayment", "Failed to update booking status in ANY collection") }
-                            }
+                       val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
+                       Log.d("PaymentDebug", "Updating Booking Doc: $bookingId in $primaryCollection to status=ended")
+                       db.collection(primaryCollection).document(bookingId).update("bookingStatus", "ended")
                     }
 
-                    // ✅ UPDATE: Execute Client-Side Transaction IMMEDIATELY
-                    lifecycleScope.launch {
-                        try {
-                            if (!isFinishing && !isDestroyed) {
-                                pd?.setMessage("Securely processing payment...")
-                            }
-                            
-                            val success = bookingRepository.completeBookingWithTransaction(
-                                bookingId = bookingId,
-                                userId = auth.currentUser?.uid ?: "",
-                                advisorId = advisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
-                                callDurationSeconds = durationSeconds,
-                                ratePerMinute = ratePerMinute,
-                                isInstant = isInstantBooking
-                            )
-
-                            if (success) {
-                                Log.i("ChatPayment", "Client-Side Transaction Successful")
-                                if (!isFinishing && !isDestroyed) {
-                                    Toast.makeText(this@ChatActivity, "Payment Successful", Toast.LENGTH_SHORT).show()
-                                }
-                            } else {
-                                Log.e("ChatPayment", "Client-Side Transaction Failed")
-                                if (!isFinishing && !isDestroyed) {
-                                    Toast.makeText(this@ChatActivity, "Payment processing checks completed", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        } catch (e: Exception) {
-                            Log.e("ChatPayment", "Error in transaction: ${e.message}")
-                        } finally {
-                            if (!isFinishing && !isDestroyed) {
-                                pd?.dismiss()
-                                finish()
-                            }
-                        }
+                    if (!isFinishing && !isDestroyed) {
+                        pd?.dismiss()
+                        Toast.makeText(this@ChatActivity, "Session Ended", Toast.LENGTH_SHORT).show()
+                        finish()
                     }
                 }
                 .addOnFailureListener { e ->
-                    Log.e("ChatPayment", "Firestore update failed: ${e.message}")
-                    // Fallback: Ensure document exists
-                     db.collection(collectionName).document(callId).set(updates, com.google.firebase.firestore.SetOptions.merge())
-                        .addOnSuccessListener {
-                         if (bookingId.isNotEmpty()) {
-                                 val primaryCollection = if (isInstantBooking) "instant_bookings" else "scheduled_bookings"
-                                 val secondaryCollection = if (isInstantBooking) "scheduled_bookings" else "instant_bookings"
-                                 
-                                 db.collection(primaryCollection).document(bookingId).update("bookingStatus", "ended")
-                                    .addOnFailureListener {
-                                        db.collection(secondaryCollection).document(bookingId).update("bookingStatus", "ended")
-                                    }
-                             }
-                            // Retry Transaction in Fallback
-                            lifecycleScope.launch {
-                                val success = bookingRepository.completeBookingWithTransaction(
-                                    bookingId = bookingId,
-                                    userId = auth.currentUser?.uid ?: "",
-                                    advisorId = advisorId.ifEmpty { intent.getStringExtra("ADVISOR_ID") ?: "" },
-                                    callDurationSeconds = durationSeconds,
-                                    ratePerMinute = ratePerMinute,
-                                    isInstant = isInstantBooking
-                                )
-                                if (!isFinishing && !isDestroyed) {
-                                    pd?.dismiss()
-                                    finish()
-                                }
-                            }
-                        }
-                        .addOnFailureListener {
-                            pd?.dismiss()
-                            Toast.makeText(this@ChatActivity, "Error ending session", Toast.LENGTH_SHORT).show()
-                            finish()
-                        }
+                    Log.e("PaymentDebug", "❌ Error Updating Call Doc: ${e.message}")
+                    pd?.dismiss()
+                    finish()
                 }
         } else {
-            // No callId, cannot update. Just finish
-            Log.e("ChatPayment", "No callId, cannot trigger payment.")
+            Log.e("PaymentDebug", "No CallID found. Cannot update status.")
             pd?.dismiss()
             finish()
         }
@@ -1355,3 +1267,5 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
 
     override fun onRemoteCameraStateUpdate(streamID: String, state: Int) { }
 }
+
+// Updated for repository activity

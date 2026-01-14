@@ -16,3 +16,4 @@ data class VideoCall(
     val lastPaymentTime: Timestamp? = null,
     val totalAmount: Double = 0.0
 )
+// Updated for repository activity

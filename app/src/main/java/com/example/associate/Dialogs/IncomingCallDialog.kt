@@ -281,3 +281,4 @@ open class OnSwipeTouchListener(ctx: Context) : View.OnTouchListener {
     open fun onSwipeUp() {}
     open fun onSwipeDown() {}
 }
+// Updated for repository activity

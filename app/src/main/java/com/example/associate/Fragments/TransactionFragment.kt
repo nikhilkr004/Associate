@@ -276,3 +276,4 @@ class TransactionFragment : Fragment() {
         fun newInstance() = TransactionFragment()
     }
 }
+// Updated for repository activity

@@ -247,3 +247,4 @@
         android:textColor="@color/white"
         app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
+<!-- Updated for repository activity -->

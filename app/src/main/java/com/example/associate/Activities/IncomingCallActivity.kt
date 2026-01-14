@@ -55,7 +55,7 @@ class IncomingCallActivity : AppCompatActivity() {
         val callerName = intent.getStringExtra("title") ?: "Unknown Advisor"
         val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
         val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
-        val bookingId = intent.getStringExtra("BOOKING_ID") ?: callId // Fallback to callId if missing
+        val bookingId = intent.getStringExtra("BOOKING_ID") ?: "" // No fallback to callId
         val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
         val urgencyLevel = intent.getStringExtra("urgencyLevel") ?: "Medium"
         
@@ -241,3 +241,5 @@ class IncomingCallActivity : AppCompatActivity() {
         super.onDestroy()
     }
 }
+
+// Updated for repository activity

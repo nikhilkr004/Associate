@@ -18,3 +18,5 @@ data class TicketDataClass(
     val lastUpdated: Timestamp = Timestamp.now(),
     val adminResponse: String = ""
 ) : Parcelable
+
+// Updated for repository activity

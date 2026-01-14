@@ -25,3 +25,5 @@ object ThemeManager {
         return prefs.getInt(KEY_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
     }
 }
+
+// Updated for repository activity

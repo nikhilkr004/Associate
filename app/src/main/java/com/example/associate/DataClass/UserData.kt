@@ -20,3 +20,4 @@ data class UserData(
     val fcmToken: String = ""
 ) : android.os.Parcelable
 // Kotlin automatically creates no-arg constructor when all parameters have default values
+// Updated for repository activity

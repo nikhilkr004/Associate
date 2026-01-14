@@ -15,7 +15,7 @@
         android:layout_marginTop="@dimen/_15sdp"
         android:fontFamily="@font/archivo_black"
         android:text="Wallet"
-        android:layout_marginBottom="@dimen/_30sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
         android:textAlignment="center"
         android:textSize="@dimen/_18sdp" />
 
@@ -86,3 +86,4 @@
 
 
 </LinearLayout>
+<!-- Updated for repository activity -->

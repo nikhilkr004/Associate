@@ -96,3 +96,5 @@ class WalletViewModel : ViewModel() {
         data class Error(val message: String) : PaymentState()
     }
 }
+
+// Updated for repository activity

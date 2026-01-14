@@ -87,3 +87,5 @@ class RatingRepository {
             }
     }
 }
+
+// Updated for repository activity

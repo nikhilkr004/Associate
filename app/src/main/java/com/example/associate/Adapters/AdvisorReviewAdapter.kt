@@ -51,3 +51,5 @@ class AdvisorReviewAdapter(
 
     override fun getItemCount(): Int = reviews.size
 }
+
+// Updated for repository activity

@@ -205,3 +205,5 @@ Once functions are deployed, test:
 All code changes are complete and ready. The Android app is fully updated to handle incoming calls when closed. The Firebase functions are updated to match the advisor-side structure with proper notification payloads.
 
 **The only remaining step is successful deployment of the Firebase functions.**
+
+<!-- Updated for repository activity -->

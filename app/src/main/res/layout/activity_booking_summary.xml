@@ -348,3 +348,5 @@
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!-- Updated for repository activity -->

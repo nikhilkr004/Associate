@@ -53,3 +53,4 @@ class UserNotificationHelper {
             }
     }
 }
+// Updated for repository activity

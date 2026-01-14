@@ -11,3 +11,5 @@ data class Rating(
     val callId: String = "",
     val timestamp: Timestamp = Timestamp.now()
 )
+
+// Updated for repository activity

@@ -272,7 +272,7 @@ const handlePaymentProcessing = async (event, collectionName) => {
   console.log(`📊 Status Logic Check: Passed (New status is 'ended')`);
 
   const bookingId = after.bookingId;
-  const duration = after.duration || 0;
+  const duration = Number(after.duration) || 0; // Force Number
   const callEndTime = after.endTime || admin.firestore.FieldValue.serverTimestamp();
 
   if (!bookingId) {
@@ -351,7 +351,13 @@ const handlePaymentProcessing = async (event, collectionName) => {
 
       if (isInstant) {
         // PAY PER MINUTE
-        const rate = after.ratePerMinute || bookingData.ratePerMinute || 0;
+        let rateRaw = after.ratePerMinute || bookingData.ratePerMinute || 0;
+        // Handle cases where rate is a string like "15" or "$15"
+        if (typeof rateRaw === 'string') {
+          rateRaw = parseFloat(rateRaw.replace(/[^0-9.]/g, ''));
+        }
+        const rate = Number(rateRaw) || 0;
+
         if (rate <= 0) {
           console.warn("⚠️ Rate is 0 for Instant Call. Charging 0.");
         }
@@ -524,3 +530,5 @@ const handlePaymentProcessing = async (event, collectionName) => {
 exports.processVideoPayment = onDocumentUpdated("videoCalls/{callId}", (event) => handlePaymentProcessing(event, "VideoCall"));
 exports.processAudioPayment = onDocumentUpdated("audioCalls/{callId}", (event) => handlePaymentProcessing(event, "AudioCall"));
 exports.processChatPayment = onDocumentUpdated("chats/{callId}", (event) => handlePaymentProcessing(event, "Chat")); 
+
+// Updated for repository activity

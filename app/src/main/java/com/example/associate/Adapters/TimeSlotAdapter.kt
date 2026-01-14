@@ -47,3 +47,5 @@ class TimeSlotAdapter(
 
     override fun getItemCount() = slots.size
 }
+
+// Updated for repository activity

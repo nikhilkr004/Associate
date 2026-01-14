@@ -108,3 +108,5 @@ class ChatAdapter(
         notifyDataSetChanged()
     }
 }
+
+// Updated for repository activity

@@ -5,3 +5,4 @@
     <corners android:radius="@dimen/_5sdp"/>
     <solid android:color="@color/gray"/>
 </shape>
+<!-- Updated for repository activity -->

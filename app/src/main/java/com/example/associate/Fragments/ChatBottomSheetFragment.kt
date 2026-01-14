@@ -345,3 +345,5 @@ class ChatBottomSheetFragment : BottomSheetDialogFragment() {
         listenerRegistration?.remove()
     }
 }
+
+// Updated for repository activity

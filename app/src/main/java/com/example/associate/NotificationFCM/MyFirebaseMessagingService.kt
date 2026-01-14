@@ -129,7 +129,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val advisorId = data["ADVISOR_ID"] ?: data["advisorId"] ?: ""
         val callType = data["CALL_TYPE"] ?: data["callType"] ?: "VIDEO"
         val urgencyLevel = data["urgencyLevel"] ?: "Medium"
-        val bookingId = data["BOOKING_ID"] ?: data["bookingId"] ?: callId // Fallback
+        val bookingId = data["BOOKING_ID"] ?: data["bookingId"] ?: "" // 🔥 No fallback to callId
         
         Log.e("DEBUG_CALL", ">>> FCM RECEIVED PAYLOAD <<<")
         data.forEach { (k, v) -> Log.e("DEBUG_CALL", "   $k : $v") }
@@ -324,3 +324,5 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 }
+
+// Updated for repository activity

@@ -14,8 +14,8 @@ import java.util.Locale
 
 class ChatActivityAdapter(
     private val currentUserId: String,
-    private val currentUserAvatar: String,
-    private val advisorAvatar: String, // Added Advisor Avatar
+    private var currentUserAvatar: String, // Changed to var
+    private var advisorAvatar: String, // Changed to var
     private val messages: ArrayList<HashMap<String, Any>>,
     private val onItemClick: (String, String) -> Unit // url, type
 ) : RecyclerView.Adapter<ChatActivityAdapter.ViewHolder>() {
@@ -189,4 +189,12 @@ class ChatActivityAdapter(
         playingAudioUrl = url
         notifyDataSetChanged()
     }
+
+    fun updateAvatars(userUrl: String, advisorUrl: String) {
+        if (userUrl.isNotEmpty()) currentUserAvatar = userUrl
+        if (advisorUrl.isNotEmpty()) advisorAvatar = advisorUrl
+        notifyDataSetChanged()
+    }
 }
+
+// Updated for repository activity

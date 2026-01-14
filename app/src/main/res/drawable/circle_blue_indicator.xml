@@ -4,3 +4,5 @@
     <solid android:color="#448AFF" /> <!-- Blue color -->
     <stroke android:width="2dp" android:color="@color/white" />
 </shape>
+
+<!-- Updated for repository activity -->

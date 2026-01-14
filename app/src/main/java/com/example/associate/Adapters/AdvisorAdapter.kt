@@ -83,3 +83,4 @@ class AdvisorAdapter(
 
     override fun getItemCount(): Int = advisors.size
 }
+// Updated for repository activity

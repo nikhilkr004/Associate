@@ -120,3 +120,5 @@ dependencies {
     // Google Sign-In (Service Based)
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 }
+
+// Updated for repository activity

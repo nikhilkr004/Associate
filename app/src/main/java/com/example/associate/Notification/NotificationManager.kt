@@ -60,3 +60,4 @@ class NotificationManager {
             }
     }
 }   
+// Updated for repository activity

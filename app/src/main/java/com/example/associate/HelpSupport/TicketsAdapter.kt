@@ -61,3 +61,5 @@ class TicketsAdapter : RecyclerView.Adapter<TicketsAdapter.TicketViewHolder>() {
         }
     }
 }
+
+// Updated for repository activity

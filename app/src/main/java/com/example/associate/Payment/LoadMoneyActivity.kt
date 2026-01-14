@@ -190,3 +190,4 @@ class LoadMoneyActivity : AppCompatActivity(), PaymentResultListener {
     private fun hideLoading() { /* Hide Dialog */ }
     private fun showToast(msg: String) { Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
 }
+// Updated for repository activity

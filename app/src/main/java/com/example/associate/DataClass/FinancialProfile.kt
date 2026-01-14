@@ -7,3 +7,4 @@ data class FinancialProfile (
     val existingInvestments: List<String>, // e.g., ["Stocks", "Mutual Funds"]
     val riskAppetite: String // e.g., "Low", "Medium", "High"
 )
+// Updated for repository activity

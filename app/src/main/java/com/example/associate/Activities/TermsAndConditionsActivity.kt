@@ -18,3 +18,5 @@ class TermsAndConditionsActivity : AppCompatActivity() {
         }
     }
 }
+
+// Updated for repository activity

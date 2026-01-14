@@ -201,7 +201,7 @@
             android:name=".NotificationFCM.CallNotificationService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="microphone" />
+            android:foregroundServiceType="shortService" />
 
         <!-- Preloaded Fonts -->
         <meta-data
@@ -235,3 +235,4 @@
     </application>
 
 </manifest>
+<!-- Updated for repository activity -->

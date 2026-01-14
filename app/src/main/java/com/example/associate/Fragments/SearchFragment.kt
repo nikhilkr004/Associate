@@ -36,6 +36,9 @@ class SearchFragment : Fragment() {
     
     private lateinit var searchAdapter: SearchAdapter
 
+    private var selectedCategory: String = "All"
+    private val categories = arrayOf("All", "Mutual Funds", "Equity", "Debt", "Hybrid", "Insurance", "Stocks", "Commodity")
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,6 +52,7 @@ class SearchFragment : Fragment() {
 
         setupRecyclerView()
         setupSearch()
+        setupFilter()
         loadFavorites() // Load favorites first, then advisors
     }
 
@@ -74,6 +78,29 @@ class SearchFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun setupFilter() {
+        binding.btnFilter.setOnClickListener {
+            showFilterDialog()
+        }
+    }
+
+    private fun showFilterDialog() {
+        val builder = android.app.AlertDialog.Builder(requireContext())
+        builder.setTitle("Filter by Category")
+        
+        builder.setSingleChoiceItems(categories, categories.indexOf(selectedCategory)) { dialog, which ->
+            selectedCategory = categories[which]
+            performSearch(binding.etSearch.text.toString())
+            dialog.dismiss()
+        }
+        
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+        
+        builder.show()
     }
 
     private fun setupRecyclerView() {
@@ -173,20 +200,27 @@ class SearchFragment : Fragment() {
         val lowerCaseQuery = query.toLowerCase().trim()
         
         searchList.clear()
-        if (lowerCaseQuery.isEmpty()) {
-            searchList.addAll(allAdvisorsList)
-        } else {
-            val filtered = allAdvisorsList.filter { advisor ->
+        
+        val filtered = allAdvisorsList.filter { advisor ->
+            val matchesSearch = if (lowerCaseQuery.isEmpty()) true else {
                 advisor.basicInfo.name.toLowerCase().contains(lowerCaseQuery) ||
                 advisor.professionalInfo.specializations.any { it.toLowerCase().contains(lowerCaseQuery) } ||
-                 advisor.professionalInfo.designation.toLowerCase().contains(lowerCaseQuery)
+                advisor.professionalInfo.designation.toLowerCase().contains(lowerCaseQuery)
             }
-            searchList.addAll(filtered)
+            
+            val matchesCategory = if (selectedCategory == "All") true else {
+                advisor.professionalInfo.department.equals(selectedCategory, ignoreCase = true) ||
+                advisor.professionalInfo.specializations.any { it.equals(selectedCategory, ignoreCase = true) }
+            }
+            
+            matchesSearch && matchesCategory
         }
+        
+        searchList.addAll(filtered)
         searchAdapter.notifyDataSetChanged()
 
         if (searchList.isEmpty()) {
-            binding.tvEmptyState.text = "No advisors found"
+            binding.tvEmptyState.text = if (selectedCategory != "All") "No advisors found in $selectedCategory" else "No advisors found"
             binding.tvEmptyState.visibility = View.VISIBLE
         } else {
             binding.tvEmptyState.visibility = View.GONE
@@ -216,12 +250,27 @@ class SearchFragment : Fragment() {
 
             fun bind(advisor: AdvisorDataClass, isFavorite: Boolean) {
                 name.text = advisor.basicInfo.name
-                val spec = if(advisor.professionalInfo.specializations.isNotEmpty()) 
-                             advisor.professionalInfo.specializations[0] 
-                           else advisor.professionalInfo.department
-                special.text = spec.ifEmpty { "Advisor" }
-                price.text = "${advisor.pricingInfo.scheduledVideoFee}$ Session"
-                rating.text = advisor.performanceInfo.rating.toString()
+                
+                // Enhanced Data Display
+                val designation = advisor.professionalInfo.designation.ifEmpty { "Advisor" }
+                val department = advisor.professionalInfo.department
+                
+                // Logic: Show Designation • Department
+                val subText = if (department.isNotEmpty()) {
+                    "$designation • $department"
+                } else if (advisor.professionalInfo.specializations.isNotEmpty()) {
+                    "$designation • ${advisor.professionalInfo.specializations[0]}"
+                } else {
+                    designation
+                }
+                
+                special.text = subText
+                
+                val fee = advisor.pricingInfo.scheduledVideoFee
+                // Format Price nicely
+                price.text = "$$fee / Session"
+                
+                rating.text = String.format("%.1f", advisor.performanceInfo.rating)
 
                 if (advisor.basicInfo.profileImage.isNotEmpty()) {
                     com.bumptech.glide.Glide.with(itemView.context)
@@ -262,3 +311,5 @@ class SearchFragment : Fragment() {
         fun newInstance() = SearchFragment()
     }
 }
+
+// Updated for repository activity

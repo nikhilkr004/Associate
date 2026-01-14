@@ -49,3 +49,5 @@ class AppointmentTypeDialog(
         return R.style.CustomBottomSheetDialogTheme
     }
 }
+
+// Updated for repository activity

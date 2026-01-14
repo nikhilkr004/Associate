@@ -3,3 +3,5 @@
     <item android:drawable="@drawable/card_bg_selected" android:state_selected="true" />
     <item android:drawable="@drawable/card_bg_unselected" />
 </selector>
+
+<!-- Updated for repository activity -->

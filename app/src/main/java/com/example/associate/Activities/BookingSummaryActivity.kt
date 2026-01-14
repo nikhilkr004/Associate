@@ -212,3 +212,5 @@ class BookingSummaryActivity : AppCompatActivity() {
         binding.tvNotes.text = if (booking.additionalNotes.isNotEmpty()) booking.additionalNotes else "No additional notes"
     }
 }
+
+// Updated for repository activity

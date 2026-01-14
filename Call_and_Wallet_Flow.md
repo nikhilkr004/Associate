@@ -89,3 +89,5 @@ When `endCall()` is triggered, the app calls `completeBookingWithTransaction(...
 *   **`VideoCallActivity.kt` / `AudioCallActivity.kt`**: Handles UI, Zego logic, visual tracking, and triggers the final transaction.
 *   **`BookingRepository.kt`**: Contains the `completeBookingWithTransaction` function that performs the secure Firestore transaction.
 *   **`WalletRepository.kt`**: Helper functions for reading/writing wallet data.
+
+<!-- Updated for repository activity -->

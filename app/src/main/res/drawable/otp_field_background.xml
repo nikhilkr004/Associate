@@ -4,3 +4,4 @@
     <stroke android:width="2dp" android:color="#FF0000" />
     <corners android:radius="8dp" />
 </shape>
+<!-- Updated for repository activity -->

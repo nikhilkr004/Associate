@@ -71,3 +71,5 @@
         app:layout_constraintTop_toBottomOf="@id/tvTime" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!-- Updated for repository activity -->

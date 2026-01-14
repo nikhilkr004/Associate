@@ -30,3 +30,5 @@
         android:translationY="-4dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!-- Updated for repository activity -->

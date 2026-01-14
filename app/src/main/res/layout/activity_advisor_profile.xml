@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/_5sdp"
                 android:maxLines="1"
-                android:text="Page Title"
+                android:text=""
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -384,7 +384,7 @@
                     android:layout_marginTop="@dimen/_4sdp"
                     android:text="Office Visit"
                     android:textColor="@color/primary"
-                    android:textSize="14sp" />
+                    android:textSize="10sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -520,3 +520,4 @@
     </LinearLayout>
 
 </ScrollView>
+<!-- Updated for repository activity -->

@@ -40,3 +40,5 @@ class InstantBookingViewModel : ViewModel() {
         return null
     }
 }
+
+// Updated for repository activity

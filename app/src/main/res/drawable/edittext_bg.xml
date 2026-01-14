@@ -5,3 +5,4 @@
         android:width="@dimen/_1sdp" />
     <solid android:color="#FDFDFD"/>
 </shape>
+<!-- Updated for repository activity -->

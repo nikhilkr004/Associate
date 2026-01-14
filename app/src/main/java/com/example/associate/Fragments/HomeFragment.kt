@@ -284,3 +284,5 @@ class HomeFragment : Fragment() {
         fun newInstance() = HomeFragment()
     }
 }
+
+// Updated for repository activity

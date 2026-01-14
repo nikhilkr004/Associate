@@ -3,3 +3,4 @@
     <corners android:radius="@dimen/_10sdp"/>
     <solid android:color="#D9D9D9"/>
 </shape>
+<!-- Updated for repository activity -->

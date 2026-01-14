@@ -41,3 +41,5 @@ class HelpSupportViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 }
+
+// Updated for repository activity

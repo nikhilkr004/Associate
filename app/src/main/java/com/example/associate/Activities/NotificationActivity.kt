@@ -138,3 +138,5 @@ class NotificationActivity : AppCompatActivity() {
         Toast.makeText(this, "Notification clicked", Toast.LENGTH_SHORT).show()
     }
 }
+
+// Updated for repository activity

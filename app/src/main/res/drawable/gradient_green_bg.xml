@@ -6,3 +6,5 @@
         android:angle="0" />
     <corners android:radius="0dp" /> <!-- Flattened as per design at bottom of content area -->
 </shape>
+
+<!-- Updated for repository activity -->

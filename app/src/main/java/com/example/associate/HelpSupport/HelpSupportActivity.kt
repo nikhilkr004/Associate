@@ -163,3 +163,5 @@ class HelpSupportActivity : AppCompatActivity() {
         }
     }
 }
+
+// Updated for repository activity

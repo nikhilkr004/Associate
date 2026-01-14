@@ -107,6 +107,11 @@
         android:id="@+id/themeLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:layout_marginBottom="@dimen/_5sdp"
+        android:padding="@dimen/_2sdp"
+        android:background="@drawable/edittext_bg"
         android:layout_marginTop="@dimen/_15sdp">
 
         <ImageButton
@@ -166,7 +171,11 @@
         android:id="@+id/updateProfileLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_15sdp">
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:padding="@dimen/_2sdp"
+        android:background="@drawable/edittext_bg"
+        >
 
         <ImageButton
             android:id="@+id/editBtn"
@@ -222,14 +231,17 @@
         android:id="@+id/leaveLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_10sdp">
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:background="@drawable/edittext_bg"
+        android:padding="@dimen/_2sdp">
 
         <ImageButton
             android:id="@+id/leave"
             android:layout_width="@dimen/_37sdp"
             android:layout_height="@dimen/_37sdp"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="@dimen/_5sdp"
             android:layout_marginBottom="@dimen/_5sdp"
             android:background="@drawable/double_bg"
             android:src="@drawable/session_history"
@@ -277,6 +289,11 @@
         android:id="@+id/helpSupportLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:layout_marginBottom="@dimen/_5sdp"
+        android:padding="@dimen/_2sdp"
+        android:background="@drawable/edittext_bg"
         android:layout_marginTop="@dimen/_10sdp">
 
         <ImageButton
@@ -284,7 +301,6 @@
             android:layout_width="@dimen/_37sdp"
             android:layout_height="@dimen/_37sdp"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="@dimen/_5sdp"
             android:layout_marginBottom="@dimen/_5sdp"
             android:background="@drawable/double_bg"
             android:src="@drawable/ic_warning_red" 
@@ -334,6 +350,10 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/termandcondition"
         android:layout_width="match_parent"
+        android:background="@drawable/edittext_bg"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:padding="@dimen/_2sdp"
         android:layout_height="wrap_content"
        >
 
@@ -387,13 +407,16 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/logoutLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_10sdp">
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginBottom="@dimen/_5sdp"
+        android:background="@drawable/edittext_bg"
+        android:padding="@dimen/_2sdp">
 
         <ImageButton
             android:id="@+id/logout"
@@ -430,7 +453,6 @@
             app:layout_constraintTop_toBottomOf="@+id/textViewwew8" />
 
 
-
         <ImageButton
             android:id="@+id/imageButton"
             android:layout_width="@dimen/_37sdp"
@@ -445,3 +467,4 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
+<!-- Updated for repository activity -->

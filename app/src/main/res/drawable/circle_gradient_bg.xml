@@ -6,3 +6,5 @@
         android:endColor="#00695C"
         android:type="linear" />
 </shape>
+
+<!-- Updated for repository activity -->

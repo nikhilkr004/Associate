@@ -61,3 +61,5 @@
         android:tint="@color/white" />
 
 </LinearLayout>
+
+<!-- Updated for repository activity -->

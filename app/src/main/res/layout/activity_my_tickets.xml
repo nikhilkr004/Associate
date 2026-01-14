@@ -53,3 +53,5 @@
         tools:listitem="@layout/item_ticket" />
 
 </LinearLayout>
+
+<!-- Updated for repository activity -->
