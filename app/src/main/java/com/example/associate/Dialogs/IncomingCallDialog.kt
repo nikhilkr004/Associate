@@ -25,7 +25,10 @@ class IncomingCallDialog(
     private val callId: String,
     private val advisorName: String,
     private val channelName: String,
-    private val profileImage: String? = null
+    private val profileImage: String? = null,
+    advisorId: String,
+    urgencyLevel: String,
+    bookingId: String
 ) : Dialog(context, R.style.FullScreenDialog) {
 
     private var mediaPlayer: MediaPlayer? = null

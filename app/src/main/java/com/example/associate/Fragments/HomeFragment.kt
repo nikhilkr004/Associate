@@ -252,18 +252,25 @@ class HomeFragment : Fragment() {
                         val callId = data["id"] as? String ?: ""
                         val advisorName = data["advisorName"] as? String ?: "Advisor"
                         val channelName = data["channelName"] as? String ?: ""
+                        
+                        // 🔥 Extract additional fields
+                        val advisorId = data["advisorId"] as? String ?: ""
+                        val advisorAvatar = data["advisorAvatar"] as? String ?: ""
+                        val bookingId = data["bookingId"] as? String ?: ""
+                        val urgencyLevel = data["urgencyLevel"] as? String ?: "Medium"
 
-                        showIncomingCallDialog(callId, advisorName, channelName)
+                        showIncomingCallDialog(callId, advisorName, channelName, advisorId, advisorAvatar, bookingId, urgencyLevel)
                         updateCallStatus(callId, "ringing")
                     }
                 }
             }
     }
 
-    private fun showIncomingCallDialog(callId: String, advisorName: String, channelName: String) {
+    private fun showIncomingCallDialog(callId: String, advisorName: String, channelName: String, 
+        advisorId: String, advisorAvatar: String, bookingId: String, urgencyLevel: String) {
         if (!isAdded || requireActivity().isFinishing) return
         try {
-            IncomingCallDialog(requireContext(), callId, advisorName, channelName).show()
+            IncomingCallDialog(requireContext(), callId, advisorName, channelName, advisorAvatar, advisorId, urgencyLevel, bookingId).show()
         } catch (e: Exception) {
             Log.e("HomeFragment", "Error showing dialog", e)
         }

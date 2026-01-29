@@ -43,21 +43,21 @@ class FeedbackActivity : AppCompatActivity() {
 
     private fun submitFeedback() {
         val rating = binding.ratingBar.rating
-        val likedMost = binding.etFeedbackLike.text.toString().trim()
-        val improvement = binding.etFeedbackImprove.text.toString().trim()
-        val additional = binding.etFeedbackAdditional.text.toString().trim()
+        val reviewText = binding.etReview.text.toString().trim()
 
         if (rating == 0f) {
             Toast.makeText(this, "Please provide a rating", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val fullReview = StringBuilder()
-        if (likedMost.isNotEmpty()) fullReview.append("Liked: $likedMost\n")
-        if (improvement.isNotEmpty()) fullReview.append("Improve: $improvement\n")
-        if (additional.isNotEmpty()) fullReview.append("Comments: $additional")
-
-        val reviewText = fullReview.toString().trim().ifEmpty { "No written feedback" }
+        // 🔥 Requirement: Review Text is Required
+        if (reviewText.isEmpty()) {
+            Toast.makeText(this, "Please write a review", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // No StringBuilder needed anymore, used direct text
+        // val fullReview = ...
 
         // Determine Advisor ID
         val advisorId = bookingData?.advisorId ?: ""
@@ -75,23 +75,28 @@ class FeedbackActivity : AppCompatActivity() {
         // Let's use direct Repo call to save time/complexity.
 
         // Submit to Repository
-        val advisorRepository = com.example.associate.Repositories.AdvisorRepository()
+        // Submit to Repository
+        val ratingRepository = com.example.associate.Repositories.RatingRepository()
         val currentUser = FirebaseAuth.getInstance().currentUser
 
         if (currentUser != null) {
-             CoroutineScope(Dispatchers.IO).launch {
-                 try {
-                     // Add Review
-                     val success = advisorRepository.addAdvisorReview(
-                         advisorId = advisorId,
-                         userId = currentUser.uid,
-                         rating = rating.toDouble(),
-                         review = reviewText
-                     )
+             // Create Rating Object
+             val ratingObj = com.example.associate.DataClass.Rating(
+                 advisorId = advisorId,
+                 userId = currentUser.uid,
+                 rating = rating,
+                 review = reviewText,
+                 callId = bookingData?.bookingId ?: "",
+                 timestamp = com.google.firebase.Timestamp.now()
+             )
 
+             CoroutineScope(Dispatchers.Main).launch {
+                 // Use callback based repository in coroutine? Or plain callback?
+                 // RatingRepository.saveRating is callback based. 
+                 // Let's run it on Main thread or handle callback properly.
+                 
+                 ratingRepository.saveRating(ratingObj) { success, error ->
                      if (success) {
-                         // Also update booking status if needed, or link review to booking
-                         withContext(Dispatchers.Main) {
                              DialogUtils.showStatusDialog(
                                  this@FeedbackActivity, 
                                  true, 
@@ -101,20 +106,14 @@ class FeedbackActivity : AppCompatActivity() {
                                      finish()
                                  }
                              )
+                         } else {
+                             Toast.makeText(this@FeedbackActivity, "Failed: $error", Toast.LENGTH_SHORT).show()
                          }
-                     } else {
-                         withContext(Dispatchers.Main) {
-                             Toast.makeText(this@FeedbackActivity, "Failed to submit review", Toast.LENGTH_SHORT).show()
-                         }
-                     }
-                 } catch (e: Exception) {
-                     withContext(Dispatchers.Main) {
-                         Toast.makeText(this@FeedbackActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                      }
                  }
              }
-        }
     }
 }
+
 
 // Updated for repository activity

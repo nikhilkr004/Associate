@@ -42,17 +42,16 @@ class AdvisorProfileActivity : AppCompatActivity() {
     }
 
 
-
     private fun getIntentData() {
         advisor = intent.getParcelableExtra("ADVISOR_DATA") ?: run {
             showErrorAndFinish("Advisor data not found")
             return
         }
-        
+
         // Display initial data from intent immediately
         displayAdvisorData()
         setupReviews()
-        
+
         // Fetch fresh data from network to get latest availability
         fetchFreshAdvisorData()
     }
@@ -62,7 +61,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val repository = com.example.associate.Repositories.AdvisorRepository()
             val freshAdvisor = repository.getAdvisorById(advisor.basicInfo.id)
-            
+
             if (freshAdvisor != null) {
                 advisor = freshAdvisor
                 android.util.Log.d("AdvisorProfile", "Fresh data fetched. Updating UI.")
@@ -81,22 +80,23 @@ class AdvisorProfileActivity : AppCompatActivity() {
         binding.aboutTxt.text = advisor.professionalInfo.bio
         binding.tvLanguages.text = advisor.professionalInfo.languages.toString()
         binding.tvCompany.text = advisor.professionalInfo.officeLocation
-        binding.tvExperience.text = advisor.professionalInfo.experience.toString()+" years"
-        
+        binding.tvExperience.text = advisor.professionalInfo.experience.toString() + " years"
+
         // Use Pipe Separator for Specializations
-        binding.sepcializationTxt.text = advisor.professionalInfo.specializations.joinToString(" | ")
-        
+        binding.sepcializationTxt.text =
+            advisor.professionalInfo.specializations.joinToString(" | ")
+
         // Set Rating
         binding.ratingTxt.text = advisor.performanceInfo.rating.toString()
-        
+
         setupProfileImage()
         setupAvailabilityUI()
+        setupAwards()
+        setupSocialLinks()
     }
 
     private fun setupAvailabilityUI() {
         val availability = advisor.availabilityInfo.scheduledAvailability
-        android.util.Log.d("AdvisorProfile", "Setup UI for availability (Nested): $availability")
-//        Toast.makeText(this, "Debug: Chat=${availability.isChatEnabled}, Video=${availability.isVideoCallEnabled}", Toast.LENGTH_LONG).show()
 
         if (availability.isChatEnabled) {
             binding.chatLayout.setBackgroundResource(R.drawable.eleveted_bg)
@@ -118,28 +118,81 @@ class AdvisorProfileActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupAwards() {
+        val awards = advisor.professionalInfo.awards
+        if (awards.isNotEmpty()) {
+            binding.awardsLayout.visibility = android.view.View.VISIBLE
+            val adapter = com.example.associate.Adapters.AdvisorAwardAdapter(awards)
+            binding.awardsRecyclerview.adapter = adapter
+        } else {
+            binding.awardsLayout.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun setupSocialLinks() {
+        val resources = advisor.resources
+        setupSocialIcon(binding.imgLinkedIn, resources.linkedinProfile)
+        setupSocialIcon(binding.imgTwitter, resources.twitterProfile)
+        setupSocialIcon(binding.imgInstagram, resources.instagramProfile)
+        setupSocialIcon(binding.imgWebsite, resources.website)
+    }
+
+    private fun setupSocialIcon(view: android.view.View, url: String) {
+        if (url.isNotEmpty()) {
+            view.visibility = android.view.View.VISIBLE
+            view.setOnClickListener { openUrl(url) }
+        } else {
+            view.visibility = android.view.View.GONE
+        }
+    }
+
+    private fun openUrl(url: String) {
+        try {
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
+            intent.data = android.net.Uri.parse(url)
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun checkBalanceAndStartChat() {
         val repo = com.example.associate.Repositories.WalletRepository()
-        val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
-        
+        val currentUserId =
+            com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: return
+
         lifecycleScope.launch {
             try {
                 val balance = repo.getWalletBalance(currentUserId)
-                if (balance > 10) { 
+                if (balance > 10) {
                     startChatActivity()
                 } else {
-                    Toast.makeText(this@AdvisorProfileActivity, "Insufficient balance for chat", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@AdvisorProfileActivity,
+                        "Insufficient balance for chat",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } catch (e: Exception) {
-                 Toast.makeText(this@AdvisorProfileActivity, "Error checking balance", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@AdvisorProfileActivity,
+                    "Error checking balance",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
     private fun startChatActivity(bookingId: String = "") {
         val intent = android.content.Intent(this, ChatActivity::class.java)
-        intent.putExtra("CHAT_ID", bookingId) // Can be empty if not known, but if we have BK id, use it
-        intent.putExtra("BOOKING_ID", bookingId) // Crucial for ChatActivity to reuse existing booking
+        intent.putExtra(
+            "CHAT_ID",
+            bookingId
+        ) // Can be empty if not known, but if we have BK id, use it
+        intent.putExtra(
+            "BOOKING_ID",
+            bookingId
+        ) // Crucial for ChatActivity to reuse existing booking
         intent.putExtra("ADVISOR_ID", advisor.basicInfo.id)
         intent.putExtra("ADVISOR_NAME", advisor.basicInfo.name)
         intent.putExtra("ADVISOR_AVATAR", advisor.basicInfo.profileImage)
@@ -148,11 +201,12 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
     private fun setupReviews() {
         val repository = RatingRepository()
-        
+
         // Show loading state if needed, or just fetch
 
-        binding.advisorRecyclerview.layoutManager= LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL,false)
-        
+        binding.advisorRecyclerview.layoutManager =
+            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
         repository.getReviewsForAdvisor(advisor.basicInfo.id) { reviews ->
             if (reviews.isNotEmpty()) {
                 val adapter = AdvisorReviewAdapter(reviews)
@@ -184,7 +238,6 @@ class AdvisorProfileActivity : AppCompatActivity() {
     }
 
 
-
     private fun showBookingDialog() {
         val dialog = AppointmentTypeDialog(
             advisor = advisor,
@@ -202,7 +255,8 @@ class AdvisorProfileActivity : AppCompatActivity() {
         val dialog = InstantBookingDialog(advisor) { bookingId ->
             // User requested to go to Home Fragment
             val intent = android.content.Intent(this, MainActivity::class.java)
-            intent.flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
+            intent.flags =
+                android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish()
         }

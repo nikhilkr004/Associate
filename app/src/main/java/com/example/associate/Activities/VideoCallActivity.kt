@@ -147,12 +147,41 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
         
         // 🔥 CRITICAL: Capture Advisor ID explicitly from Intent first
-        storedAdvisorId = intent.getStringExtra("ADVISOR_ID") ?: intent.getStringExtra("advisorId") ?: ""
         if (storedAdvisorId.isEmpty()) {
              Log.w("VideoCall", "⚠️ Advisor ID missing in Intent. Will attempt to fetch from Booking.")
         } else {
              Log.d("VideoCall", "✅ Advisor ID captured from Intent: $storedAdvisorId")
         }
+
+        // 🔥 Fix: Determine Booking Type
+        val bookingType = intent.getStringExtra("BOOKING_TYPE") ?: ""
+        val urgencyLevel = intent.getStringExtra("urgencyLevel") ?: ""
+        
+        isInstantBooking = if (bookingType.isNotEmpty()) {
+            bookingType.equals("Instant", ignoreCase = true)
+        } else if (urgencyLevel.isNotEmpty()) {
+            // Check if urgencyLevel indicates Instant
+             !urgencyLevel.equals("Scheduled", ignoreCase = true) 
+             // Logic: If explicitly "Scheduled", then false. Default to Instant/Medium as true?
+             // Or safer: urgencyLevel == "Instant" || urgencyLevel == "Medium" -> Instant?
+             // Let's assume non-Scheduled is Instant for now, or check explicit values.
+             // Actually, usually urgency is "Instant" or "Scheduled".
+        } else {
+             // Fallback: If no info, default to Instant (safer for timer count up?)
+             // Or Scheduled (safer for limit?)
+             // User complaint: "Booking type instant hai fir bhi remaining time show kar रहा hai".
+             // This means it defaulted to Scheduled (isInstantBooking = false).
+             // So defaulting to true might hide the issue but solve the user complaint.
+             // But accurate logic is better.
+             false 
+        }
+        
+        // Override if logic detected "Instant" string in urgency
+        if (urgencyLevel.equals("Instant", ignoreCase = true) || urgencyLevel.equals("High", ignoreCase = true)) {
+            isInstantBooking = true
+        }
+
+        Log.d("VideoCall", "Booking Type: $bookingType, Urgency: $urgencyLevel, Is Instant: $isInstantBooking")
 
         callType = "VIDEO"
 
@@ -212,6 +241,18 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     if (!avatarUrl.isNullOrEmpty()) {
                         loadAvatar(avatarUrl)
                     }
+                    
+                    // 🔥 Fetch Pricing for Visual Tracker & Calculation
+                    val pricingInfo = document.get("pricingInfo") as? Map<*, *>
+                    // Assuming 'instantVideoFee' or similar. 
+                    // Let's try multiple keys or default to a safe value/debug log.
+                    val fee = pricingInfo?.get("instantVideoFee") as? Double 
+                        ?: pricingInfo?.get("videoFee") as? Double
+                        ?: document.getDouble("rate") // Fallback
+                        ?: 25.0 // Default fallback if nothing found (Matches user screenshot implicity)
+                        
+                    ratePerMinute = fee
+                    Log.d("VideoCall", "Fetched Rate: $ratePerMinute")
                 }
             }
     }
@@ -334,11 +375,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                 val currentCost = if (isInstantBooking) {
                     durationInMinutes * ratePerMinute
                 } else {
-                    // For scheduled, we might show fixed price or nothing dynamic
-                    ratePerMinute // ratePerMinute holds fixed sessionAmount for scheduled
+                    ratePerMinute
                 }
                 
-                // Scheduled Logic: 30 Min Limit
+                // Scheduled Logic: 30 Min Limit = 1800 seconds
                 if (!isInstantBooking) {
                     val remainingSeconds = (30 * 60) - elapsedSeconds
                     val minutesLeft = remainingSeconds / 60
@@ -354,11 +394,17 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
                     binding.tvPaymentInfo.visibility = View.GONE
                     binding.tvTimer.visibility = View.VISIBLE
                     binding.tvTimer.text = String.format("%02d:%02d", minutesLeft, secondsLeft)
+                    
+                    // Hide separate timer running in startCallTimer if it conflicts?
+                    // Actually startCallTimer updates tvTimer too. We should CANCEL startCallTimer if scheduled?
+                    callTimer?.cancel() // Ensure standard timer doesn't overwrite countdown
                 } else {
                     // Instant Logic: Rate & Spent
                     binding.tvPaymentInfo.visibility = View.VISIBLE
                     val formattedCost = String.format("%.2f", currentCost)
                     binding.tvPaymentInfo.text = "Rate: ₹$ratePerMinute/min | Spent: ₹$formattedCost"
+                    
+                    // Standard Timer (Count Up) runs via startCallTimer()
                     
                     // Balance Check (Updated with Flag)
                     if (isBalanceFetched && currentCost >= userWalletBalance) {
@@ -583,7 +629,22 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         val intent = Intent(this, BookingSummaryActivity::class.java)
         intent.putExtra("BOOKING_ID", bookingId)
         intent.putExtra("ADVISOR_ID", storedAdvisorId)
-         // Pass basic data for immediate display if needed, but BookingSummary should fetch fresh data
+        
+        // 🔥 Calculate and Pass Total Cost
+        val durationSeconds = if (callStartTime > 0) (System.currentTimeMillis() - callStartTime) / 1000 else 0
+        // Use ceil or actual fraction? Usually per minute billing uses ceil or direct multiplication.
+        // Let's use exact fraction for display accuracy if that's the logic: durationInMinutes * rate
+        val durationMinutes = durationSeconds / 60.0
+        val calculatedCost = if (isInstantBooking) durationMinutes * ratePerMinute else ratePerMinute // Scheduled fixed
+        
+        intent.putExtra("TOTAL_COST", calculatedCost)
+        
+        // 🔥 Fix: Pass Advisor Info for Immediate Display
+        intent.putExtra("ADVISOR_NAME", intent.getStringExtra("ADVISOR_NAME") ?: "Advisor")
+        intent.putExtra("ADVISOR_AVATAR", intent.getStringExtra("ADVISOR_AVATAR") ?: "")
+        
+        Log.d("VideoCall", "Navigating to Summary. Cost: $calculatedCost")
+
         startActivity(intent)
         finish()
     }

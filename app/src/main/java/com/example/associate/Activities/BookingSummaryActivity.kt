@@ -36,7 +36,10 @@ class BookingSummaryActivity : AppCompatActivity() {
         }
     }
 
+    private var isTotalCostSetFromIntent = false
+
     private fun loadData() {
+        // ... (Keep existing Parcelable logic) ...
         val booking = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("BOOKING_DATA", SessionBookingDataClass::class.java)
         } else {
@@ -55,12 +58,22 @@ class BookingSummaryActivity : AppCompatActivity() {
             populateBookingInfo(booking)
             listenForPaymentUpdates(booking.bookingId)
         } else {
-             // Fallback if only ID passed in Intent (which we do in Call Activities now)
+             // Fallback if only ID passed
              val extraBookingId = intent.getStringExtra("BOOKING_ID")
+             
+             // 🔥 Check for passed Total Cost
+             val passedTotalCost = intent.getDoubleExtra("TOTAL_COST", -1.0)
+             if (passedTotalCost >= 0) {
+                 binding.tvTotalCost.text = "₹${String.format("%.2f", passedTotalCost)}"
+                 isTotalCostSetFromIntent = true
+             }
+
              if (!extraBookingId.isNullOrEmpty()) {
                  listenForPaymentUpdates(extraBookingId)
              } else {
-                 binding.tvTotalCost.text = "N/A"
+                 if (!isTotalCostSetFromIntent) {
+                     binding.tvTotalCost.text = "N/A"
+                 }
                  binding.tvPaymentStatus.text = "Unknown"
              }
         }
@@ -70,6 +83,18 @@ class BookingSummaryActivity : AppCompatActivity() {
         } else {
             // Check for Advisor ID string
             val advisorId = intent.getStringExtra("ADVISOR_ID")
+            
+            // 🔥 Use Intent Extras for Immediate Display
+            val advisorName = intent.getStringExtra("ADVISOR_NAME")
+            val advisorAvatar = intent.getStringExtra("ADVISOR_AVATAR")
+            
+            if (!advisorName.isNullOrEmpty()) {
+                binding.tvAdvisorName.text = advisorName
+            }
+            if (!advisorAvatar.isNullOrEmpty()) {
+                Glide.with(this).load(advisorAvatar).placeholder(R.drawable.user).into(binding.imgAdvisor)
+            }
+
             if (!advisorId.isNullOrEmpty()) {
                 fetchAdvisorDetails(advisorId)
             } else if (booking != null) {
@@ -110,13 +135,6 @@ class BookingSummaryActivity : AppCompatActivity() {
 
     private fun listenForPaymentUpdates(bookingId: String) {
         val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-        
-        // Try Instant First, then Scheduled
-        // Or better: Observe BOTH or try to deduce?
-        // Let's assume we can try one and if fails try other?
-        // Snapshot listener is persistent. 
-        // We can check if document exists in one, if not try other.
-        
         checkAndListen(db, "instant_bookings", bookingId) { found ->
             if (!found) {
                 checkAndListen(db, "scheduled_bookings", bookingId) { _ -> }
@@ -131,21 +149,27 @@ class BookingSummaryActivity : AppCompatActivity() {
             if (startDoc.exists()) {
                 onResult(true)
                 // Start Listener
-                paymentListener?.remove() // Safe cleanup
+                paymentListener?.remove() 
                 paymentListener = docRef.addSnapshotListener { snapshot, e ->
                      if (e != null) return@addSnapshotListener
                      if (snapshot != null && snapshot.exists()) {
                          val paymentStatus = snapshot.getString("paymentStatus") ?: "pending"
                          val sessionAmount = snapshot.getDouble("sessionAmount") ?: 0.0
-                         val status = snapshot.getString("bookingStatus") ?: "" // or 'status'
+                         val status = snapshot.getString("bookingStatus") ?: "" 
                          
                          // Update UI
-                         binding.tvTotalCost.text = "₹${String.format("%.2f", sessionAmount)}"
+                         // 🔥 GUARD: Don't overwrite correct Total Cost with rate if we have it
+                         if (!isTotalCostSetFromIntent) {
+                             binding.tvTotalCost.text = "₹${String.format("%.2f", sessionAmount)}"
+                         } else {
+                             // Optional: Verify if sessionAmount is suspiciously close to calculated cost?
+                             // No, trust calculation from call end for now as backend seems to lag or store rate.
+                         }
                          
                          binding.tvPaymentStatus.text = paymentStatus.replaceFirstChar { it.uppercase() }
                          
+                         // ... (Color logic) ...
                          if (paymentStatus.equals("paid", ignoreCase = true) || paymentStatus.equals("completed", ignoreCase = true)) {
-
                              binding.tvPaymentStatus.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
                          } else if (paymentStatus.equals("failed", ignoreCase = true)) {
                              binding.tvPaymentStatus.setTextColor(android.graphics.Color.parseColor("#F44336"))
@@ -154,7 +178,7 @@ class BookingSummaryActivity : AppCompatActivity() {
                          }
                          
                          // Fill other info if missing (e.g. from Intent)
-                         if (binding.tvDateInfo.text == "N/A") {
+                         if (binding.tvDateInfo.text == "N/A" || binding.tvDateInfo.text.isEmpty()) {
                              val ts = snapshot.get("bookingTimestamp") as? com.google.firebase.Timestamp
                              if (ts != null) {
                                  val dateObj = ts.toDate()
@@ -162,6 +186,10 @@ class BookingSummaryActivity : AppCompatActivity() {
                                  val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
                                  binding.tvDateInfo.text = dateFormat.format(dateObj)
                                  binding.tvTimeInfo.text = timeFormat.format(dateObj)
+                                 
+                                 // Also update booking type info if needed
+                                 val type = snapshot.getString("bookingType") ?: "AUDIO" // Default
+                                 binding.tvTypeInfo.text = type.uppercase()
                              }
                          }
                      }

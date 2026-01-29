@@ -26,6 +26,16 @@ data class BasicInfo(
 // 🔹 2. Professional Info
 @Parcelize
 @IgnoreExtraProperties
+data class Award(
+    val id: String = "",
+    val title: String = "",
+    val issuer: String = "",
+    val date: String = "",
+    val url: String = ""
+) : Parcelable
+
+@Parcelize
+@IgnoreExtraProperties
 data class ProfessionalInfo(
     val designation: String = "",
     val department: String = "",
@@ -38,7 +48,9 @@ data class ProfessionalInfo(
     val certifications: List<String> = emptyList(),
     val languages: List<String> = emptyList(),
     // 🔥 NEW: Map of Specialization Name -> Certificate URL
-    val specializationUrls: Map<String, String> = emptyMap()
+    val specializationUrls: Map<String, String> = emptyMap(),
+    // 🔥 NEW: Awards List
+    val awards: List<Award> = emptyList()
 ) : Parcelable
 
 // 🔹 3. Education
@@ -125,6 +137,8 @@ data class PerformanceInfo(
 @IgnoreExtraProperties
 data class Resources(
     val linkedinProfile: String = "",
+    val twitterProfile: String = "",
+    val instagramProfile: String = "",
     val website: String = "",
     val documentUrls: Map<String, String> = emptyMap()
 ) : Parcelable
@@ -146,7 +160,7 @@ data class EarningsInfo(
     val todayEarnings: Double = 0.0,
     val pendingBalance: Double = 0.0, // Current/Withdrawable Balance
     val pendingWithdrawals: Double = 0.0,
-    @get:PropertyName("stability")
+    @PropertyName("stability")
     val stabilityScore: Double = 0.0,
     val thisMonthEarnings: Double = 0.0,
     val thisWeekEarnings: Double = 0.0,

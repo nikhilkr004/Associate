@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:gravity="center_horizontal"
+    android:layout_marginEnd="8dp">
+
+    <ImageView
+        android:id="@+id/imgAward"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/user"
+        android:scaleType="centerCrop"
+        android:background="@drawable/search_field_bg"
+        android:padding="4dp"
+        android:contentDescription="Award Image" />
+
+    <TextView
+        android:id="@+id/tvAwardTitle"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Best Advisor"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:textColor="@color/black"
+        android:layout_marginTop="4dp"/>
+
+    <TextView
+        android:id="@+id/tvAwardIssuer"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Tech Summit"
+        android:textSize="10sp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textColor="@color/green"/>
+
+    <TextView
+        android:id="@+id/tvAwardDate"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="2024"
+        android:textSize="10sp"
+        android:gravity="center"
+        android:textColor="@color/green"/>
+
+</LinearLayout>
