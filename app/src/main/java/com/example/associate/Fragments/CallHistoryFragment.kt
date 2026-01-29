@@ -171,14 +171,35 @@ class CallHistoryFragment : Fragment() {
 
     private fun observeViewModel() {
         // Observe list data
-        viewModel.callHistoryList.observe(viewLifecycleOwner) { historyList ->
-            if (historyList.isNullOrEmpty()) {
-                binding.emptyState.visibility = View.VISIBLE
+        viewModel.callHistoryList.observe(viewLifecycleOwner) { list ->
+            // binding.progressBar.visibility = View.GONE
+            // Assuming DialogUtils is available or needs to be imported
+            // DialogUtils.hideLoadingDialog() 
+            
+            if (list == null || list.isEmpty()) {
                 binding.recyclerViewVideoCalls.visibility = View.GONE
+                binding.emptyState.visibility = View.VISIBLE
             } else {
-                binding.emptyState.visibility = View.GONE
                 binding.recyclerViewVideoCalls.visibility = View.VISIBLE
-                videoCallAdapter.updateList(historyList)
+                binding.emptyState.visibility = View.GONE
+                videoCallAdapter.updateList(list)
+            }
+        }
+
+        // Observer for Earnings (Advisor Dashboard)
+        viewModel.advisorEarnings.observe(viewLifecycleOwner) { earnings ->
+            if (earnings != null) {
+                // Show Card
+                binding.earningsCard.visibility = View.VISIBLE
+                
+                // Format Currency
+                val format: (Double) -> String = { amount -> "₹ ${String.format("%.2f", amount)}" }
+                
+                binding.tvLifetimeEarnings.text = format(earnings.totalLifetimeEarnings)
+                binding.tvTodayEarnings.text = format(earnings.todayEarnings)
+                binding.tvPendingBalance.text = format(earnings.pendingBalance)
+            } else {
+                binding.earningsCard.visibility = View.GONE
             }
         }
 

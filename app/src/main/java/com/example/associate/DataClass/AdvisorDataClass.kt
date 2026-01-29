@@ -6,6 +6,7 @@ import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
 
 import com.google.firebase.firestore.IgnoreExtraProperties
+import com.google.firebase.firestore.PropertyName
 
 // 🔹 1. Basic Info
 @Parcelize
@@ -137,6 +138,21 @@ data class TimeInfo(
     val lastLogin: Timestamp = Timestamp.now()
 ) : Parcelable
 
+// 🔹 11. Earnings Info
+@Parcelize
+@IgnoreExtraProperties
+data class EarningsInfo(
+    val totalLifetimeEarnings: Double = 0.0,
+    val todayEarnings: Double = 0.0,
+    val pendingBalance: Double = 0.0, // Current/Withdrawable Balance
+    val pendingWithdrawals: Double = 0.0,
+    @get:PropertyName("stability")
+    val stabilityScore: Double = 0.0,
+    val thisMonthEarnings: Double = 0.0,
+    val thisWeekEarnings: Double = 0.0,
+    val totalWithdrawn: Double = 0.0
+) : Parcelable
+
 // 🚀 Final Advisor Data Class (MINIMUM NODES)
 @Parcelize
 @IgnoreExtraProperties
@@ -150,7 +166,8 @@ data class AdvisorDataClass(
     val systemInfo: SystemInfo = SystemInfo(),
     val performanceInfo: PerformanceInfo = PerformanceInfo(),
     val resources: Resources = Resources(),
-    val timeInfo: TimeInfo = TimeInfo()
+    val timeInfo: TimeInfo = TimeInfo(),
+    val earningsInfo: EarningsInfo = EarningsInfo() // 🔥 NEW FIELD
 ) : Parcelable {
     // Get full professional title
     fun getProfessionalTitle(): String {

@@ -123,9 +123,9 @@
                 android:layout_marginEnd="@dimen/_10sdp"
                 android:background="@drawable/double_bg"
                 android:clickable="false"
-                android:focusable="false"
                 android:drawableEnd="@drawable/search_icon"
                 android:drawablePadding="@dimen/_5sdp"
+                android:focusable="false"
                 android:hint="Start exploring with the expert"
                 android:padding="@dimen/_10sdp"
                 android:textColor="@color/green"
@@ -178,8 +178,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="Please check back later"
-                    android:textSize="14sp"
-                    android:textColor="#666666" />
+                    android:textColor="#666666"
+                    android:textSize="14sp" />
 
             </LinearLayout>
 

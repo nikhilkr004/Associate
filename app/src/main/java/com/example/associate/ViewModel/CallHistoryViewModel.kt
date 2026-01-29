@@ -33,6 +33,29 @@ class CallHistoryViewModel : ViewModel() {
     // Track current tab
     private var currentTabIndex = 0
 
+    private val _advisorEarnings = MutableLiveData<com.example.associate.DataClass.EarningsInfo?>()
+    val advisorEarnings: LiveData<com.example.associate.DataClass.EarningsInfo?> = _advisorEarnings
+
+    private val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    private val advisorRepository = com.example.associate.Repositories.AdvisorRepository()
+
+    init {
+        // fetchBookings() - Removed as it's not defined, logic is in loadCallHistory
+        fetchAdvisorEarnings()
+    }
+
+    private fun fetchAdvisorEarnings() {
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            viewModelScope.launch {
+                val advisor = advisorRepository.getAdvisorById(currentUser.uid)
+                if (advisor != null) {
+                    _advisorEarnings.value = advisor.earningsInfo
+                }
+            }
+        }
+    }
+
     /**
      * Fetches bookings from the repository.
      */

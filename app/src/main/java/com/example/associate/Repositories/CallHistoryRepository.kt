@@ -111,7 +111,7 @@ class CallHistoryRepository {
                         // Fallback: Check for alternative timestamp fields if bookingTimestamp is null
                         if (booking.bookingTimestamp == null) {
                             val data = doc.data
-                            val possibleTimestamp = data?.get("slotStartTime") ?: data?.get("createdAt") ?: data?.get("startTime")
+                            val possibleTimestamp = data?.get("timestamp") ?: data?.get("slotStartTime") ?: data?.get("createdAt") ?: data?.get("startTime")
                             
                             if (possibleTimestamp is com.google.firebase.Timestamp) {
                                 booking.bookingTimestamp = possibleTimestamp
@@ -133,7 +133,7 @@ class CallHistoryRepository {
             }
 
             // Sort by timestamp descending
-            resultList.sortByDescending { it.first.bookingTimestamp }
+            resultList.sortByDescending { it.first.bookingTimestamp?.toDate()?.time ?: 0L }
             
         } catch (e: Exception) {
             android.util.Log.e(TAG, "Error fetching bookings history", e)

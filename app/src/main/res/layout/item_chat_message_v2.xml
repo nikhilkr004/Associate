@@ -17,8 +17,7 @@
 
         <!-- Bubble Container -->
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="end">
@@ -52,8 +51,11 @@
                  <!-- Image -->
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/ivSenderImage"
-                    android:layout_width="200dp"
-                    android:layout_height="200dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:maxWidth="250dp"
+                    android:maxHeight="300dp"
                     android:scaleType="centerCrop"
                     android:visibility="gone"
                     app:shapeAppearanceOverlay="@style/RoundedImage"/>
@@ -166,9 +168,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_receiver_bubble"
-            android:padding="12dp"
+            android:padding="@dimen/_5sdp"
             android:elevation="2dp"
-             android:layout_weight="1"
              android:maxWidth="280dp"> <!-- Allow it to stretch but not full width -->
 
             <TextView
@@ -179,7 +180,7 @@
                 android:textColor="#AAAAAA"
                 android:textSize="12sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="4dp"/>
+                android:layout_marginBottom="2dp"/>
 
             <TextView
                 android:id="@+id/tvReceiverMessage"
@@ -193,8 +194,11 @@
              <!-- Image -->
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivReceiverImage"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:maxWidth="250dp"
+                android:maxHeight="300dp"
                 android:scaleType="centerCrop"
                 android:visibility="gone"
                 app:shapeAppearanceOverlay="@style/RoundedImage"/>
@@ -267,7 +271,7 @@
                 android:textColor="#AAAAAA"
                 android:textSize="10sp"
                 android:layout_gravity="end"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="2dp"/>
 
         </LinearLayout>
 

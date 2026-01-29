@@ -5,6 +5,7 @@ import kotlinx.parcelize.Parcelize
 import com.google.firebase.firestore.PropertyName
 
 @Parcelize
+@com.google.firebase.firestore.IgnoreExtraProperties
 data class InstantAvailabilityConfig(
     @get:PropertyName("chatEnabled") @set:PropertyName("chatEnabled") var isChatEnabled: Boolean = false,
     @get:PropertyName("audioCallEnabled") @set:PropertyName("audioCallEnabled") var isAudioCallEnabled: Boolean = false,
@@ -12,6 +13,7 @@ data class InstantAvailabilityConfig(
 ) : Parcelable
 
 @Parcelize
+@com.google.firebase.firestore.IgnoreExtraProperties
 data class ScheduledAvailabilityConfig(
     @get:PropertyName("chatEnabled") @set:PropertyName("chatEnabled") var isChatEnabled: Boolean = false,
     @get:PropertyName("audioCallEnabled") @set:PropertyName("audioCallEnabled") var isAudioCallEnabled: Boolean = false,
