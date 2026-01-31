@@ -941,6 +941,7 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             binding.tvSpentAmount.visibility = View.GONE
             binding.tvAdvisorName.visibility = View.GONE
             binding.tvConnectionStatus.visibility = View.GONE
+
             
         } else {
             // Restore Controls
@@ -950,10 +951,14 @@ class AudioCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             binding.btnBack.visibility = View.VISIBLE
             
             binding.tvTimer.visibility = View.VISIBLE
-            binding.tvPaymentInfo.visibility = View.VISIBLE
+//            binding.tvPaymentInfo.visibility = View.VISIBLE
             binding.tvSpentAmount.visibility = View.VISIBLE
             binding.tvAdvisorName.visibility = View.VISIBLE
-            binding.tvConnectionStatus.visibility = View.GONE 
+            binding.tvConnectionStatus.visibility = View.GONE
+
+            binding.tvPaymentInfo.visibility= View.GONE
+
+
         }
     }
 }

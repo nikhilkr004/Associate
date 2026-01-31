@@ -12,15 +12,9 @@
 
 
     <item
-        android:id="@+id/transactionFragment"
-        android:icon="@drawable/transaction"
-        android:title="Transaction" />
-
-
-    <item
-        android:id="@+id/callHistoryFragment"
-        android:icon="@drawable/session_history"
-        android:title="Call History" />
+        android:id="@+id/communityFragment"
+        android:icon="@drawable/community"
+        android:title="Community" />
 
     <item
         android:id="@+id/navigation_profile"

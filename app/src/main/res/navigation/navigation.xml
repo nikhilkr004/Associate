@@ -29,5 +29,10 @@
         android:name="com.example.associate.Fragments.CallHistoryFragment"
         android:label="fragment_call_history"
         tools:layout="@layout/fragment_call_history" />
+    <fragment
+        android:id="@+id/communityFragment"
+        android:name="com.example.associate.Fragments.CommunityFragment"
+        android:label="Community"
+        tools:layout="@layout/fragment_community" />
 </navigation>
 <!-- Updated for repository activity -->

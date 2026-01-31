@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/_5sdp"
-            android:fontFamily="@font/orienta"
+            android:fontFamily="@font/app_logo_font"
             android:text="Profile"
             android:textColor="@color/black"
             android:textSize="@dimen/_18sdp"
@@ -68,7 +68,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/_10sdp"
             android:maxLines="2"
-            android:text="TextView"
+            android:text=""
             android:textColor="@color/black"
             app:layout_constraintEnd_toEndOf="@+id/name"
             app:layout_constraintHorizontal_bias="0.0"
@@ -81,7 +81,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:maxLines="3"
-            android:text="TextView"
+            android:text=""
             android:textColor="@color/black"
             app:layout_constraintEnd_toEndOf="@+id/email"
             app:layout_constraintHorizontal_bias="0.507"
@@ -111,7 +111,6 @@
         android:layout_marginEnd="@dimen/_5sdp"
         android:layout_marginBottom="@dimen/_5sdp"
         android:padding="@dimen/_2sdp"
-        android:background="@drawable/edittext_bg"
         android:layout_marginTop="@dimen/_15sdp">
 
         <ImageButton
@@ -174,7 +173,7 @@
         android:layout_marginStart="@dimen/_5sdp"
         android:layout_marginEnd="@dimen/_5sdp"
         android:padding="@dimen/_2sdp"
-        android:background="@drawable/edittext_bg"
+
         >
 
         <ImageButton
@@ -234,7 +233,7 @@
         android:layout_marginStart="@dimen/_5sdp"
         android:layout_marginTop="@dimen/_10sdp"
         android:layout_marginEnd="@dimen/_5sdp"
-        android:background="@drawable/edittext_bg"
+
         android:padding="@dimen/_2sdp">
 
         <ImageButton
@@ -286,6 +285,62 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/transactionsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:padding="@dimen/_2sdp">
+
+        <ImageButton
+            android:id="@+id/transactionIcon"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/transaction"
+            android:tint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTransactionsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:text="My Transactions"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/btnTransactionArrow"
+            app:layout_constraintStart_toEndOf="@+id/transactionIcon"
+            app:layout_constraintTop_toTopOf="@+id/transactionIcon" />
+
+        <TextView
+            android:id="@+id/tvTransactionsSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="View your payment history"
+            app:layout_constraintEnd_toEndOf="@+id/tvTransactionsTitle"
+            app:layout_constraintStart_toStartOf="@+id/tvTransactionsTitle"
+            app:layout_constraintTop_toBottomOf="@+id/tvTransactionsTitle" />
+
+        <ImageButton
+            android:id="@+id/btnTransactionArrow"
+            android:layout_width="@dimen/_37sdp"
+            android:layout_height="@dimen/_37sdp"
+            android:layout_marginRight="@dimen/_10sdp"
+            android:background="@drawable/double_bg"
+            android:src="@drawable/outline_arrow_forward_ios_24"
+            android:tint="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/helpSupportLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -293,7 +348,6 @@
         android:layout_marginEnd="@dimen/_5sdp"
         android:layout_marginBottom="@dimen/_5sdp"
         android:padding="@dimen/_2sdp"
-        android:background="@drawable/edittext_bg"
         android:layout_marginTop="@dimen/_10sdp">
 
         <ImageButton
@@ -350,7 +404,6 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/termandcondition"
         android:layout_width="match_parent"
-        android:background="@drawable/edittext_bg"
         android:layout_marginStart="@dimen/_5sdp"
         android:layout_marginEnd="@dimen/_5sdp"
         android:padding="@dimen/_2sdp"
@@ -415,7 +468,6 @@
         android:layout_marginEnd="@dimen/_5sdp"
         android:layout_marginTop="@dimen/_5sdp"
         android:layout_marginBottom="@dimen/_5sdp"
-        android:background="@drawable/edittext_bg"
         android:padding="@dimen/_2sdp">
 
         <ImageButton

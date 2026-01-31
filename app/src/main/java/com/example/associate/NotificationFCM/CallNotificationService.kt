@@ -89,6 +89,7 @@ class CallNotificationService : Service() {
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) 
             putExtra("BOOKING_ID", bookingId) // 🔥 PROPAGE BOOKING ID to Activity
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(
             this, callId.hashCode() + 2, fullScreenIntent,
@@ -141,26 +142,31 @@ class CallNotificationService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
+        // Custom Notification Layout (RemoteViews)
+        val customLayout = RemoteViews(packageName, R.layout.notification_call_custom)
+        customLayout.setTextViewText(R.id.tv_advisor_name, callerName)
+        customLayout.setTextViewText(R.id.tv_call_status, "Incoming $callType Call")
+        
+        // Bind Actions to Custom Buttons
+        customLayout.setOnClickPendingIntent(R.id.btn_accept_call, acceptPendingIntent)
+        customLayout.setOnClickPendingIntent(R.id.btn_decline_call, declinePendingIntent)
+
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.notification)
-            .setContentTitle("Incoming $callType Call")
-            .setContentText(callerName)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setFullScreenIntent(fullScreenPendingIntent, true) // Essential for Lock Screen
             .setOngoing(true)
             .setAutoCancel(false)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            // Add Actions
-            .addAction(R.drawable.call_end, "Decline", declinePendingIntent)
-            .addAction(R.drawable.call, "Accept", acceptPendingIntent)
-
-        // Android 12+ CallStyle (Highly Recommended for Background Starts)
-        /* 
-         * Note: CallStyle requires API 31+ and Person object. 
-         * For robustness, we stick to standard High Priority + FullScreenIntent unless requested.
-         * The key to background start is FullScreenIntent + High Priority Channel + Permission.
-         */
+            // Use Custom Content View
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle()) // Wrap for better look or use strict custom
+            .setCustomContentView(customLayout)
+            .setCustomBigContentView(customLayout) // Use same for expanded
+            
+        // Fallback Actions (for standard view if custom fails or on wear)
+        notificationBuilder.addAction(R.drawable.call_end, "Decline", declinePendingIntent)
+        notificationBuilder.addAction(R.drawable.call, "Accept", acceptPendingIntent)
 
         val notification = notificationBuilder.build()
 
@@ -172,17 +178,21 @@ class CallNotificationService : Service() {
             startForeground(123, notification)
         }
         
-        // Asynchronous Avatar Load - Minimal impact on initial show
+        // Asynchronous Avatar Load - Update Custom View
          if (advisorAvatar.isNotEmpty()) {
             kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
                 try {
                     val bitmap = com.bumptech.glide.Glide.with(applicationContext)
                         .asBitmap()
                         .load(advisorAvatar)
+                        .circleCrop() // 🔥 Apply Circle Crop here since XML cannot use CircleImageView
                         .submit()
                         .get()
                     
-                    notificationBuilder.setLargeIcon(bitmap)
+                    // Update RemoteViews
+                    customLayout.setImageViewBitmap(R.id.iv_advisor_avatar, bitmap)
+                    
+                    // Update Notification
                     val manager = getSystemService(NotificationManager::class.java)
                     manager.notify(123, notificationBuilder.build())
                 } catch (e: Exception) { }

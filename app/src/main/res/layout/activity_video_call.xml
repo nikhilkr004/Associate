@@ -108,7 +108,7 @@
                 android:background="@drawable/double_bg"
                 android:text="Mute"
                 android:padding="@dimen/_5sdp"
-                android:src="@drawable/camera_turnon"
+                android:src="@drawable/bg_sender_bubble"
                 android:textColor="@color/white"
                 android:textSize="10sp" />
 

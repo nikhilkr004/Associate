@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp"
+    android:background="#202124"
+
+    android:gravity="center_vertical">
+    
+    <!-- Custom Layout for RemoteViews (No ConstraintLayout allowed) -->
+
+    <!-- Avatar -->
+    <ImageView
+        android:id="@+id/iv_advisor_avatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/user"
+        android:scaleType="centerCrop"
+        android:background="#FFFFFF"
+        android:layout_marginEnd="12dp" />
+
+    <!-- Text Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_advisor_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Advisor Name"
+            android:textColor="@color/green"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:ellipsize="end"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/tv_call_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Incoming Video Call"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp"
+            android:ellipsize="end"
+            android:maxLines="1" />
+    </LinearLayout>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginStart="8dp">
+
+        <!-- Decline -->
+        <ImageButton
+            android:id="@+id/btn_decline_call"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/call_end"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:contentDescription="Decline" />
+
+        <!-- Accept -->
+        <ImageButton
+            android:id="@+id/btn_accept_call"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:src="@drawable/call"
+            android:background="@android:color/transparent"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:contentDescription="Accept" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -74,8 +74,21 @@ class ProfileFragment : Fragment() {
         }
         
         binding.leaveLayout.setOnClickListener {
-             // Handle leave layout click - assuming it opens BookingHistory or similar?
-             // Based on layout "Booked Sessions", likely specific intent
+             // Navigate to CallHistoryFragment (Booked Sessions)
+             try {
+                 androidx.navigation.Navigation.findNavController(it).navigate(R.id.callHistoryFragment)
+             } catch (e: Exception) {
+                 Log.e(TAG, "Navigation failed", e)
+             }
+        }
+
+        binding.transactionsLayout.setOnClickListener {
+            // Navigate to TransactionFragment
+            try {
+                androidx.navigation.Navigation.findNavController(it).navigate(R.id.transactionFragment)
+            } catch (e: Exception) {
+                Log.e(TAG, "Navigation failed", e)
+            }
         }
 
         // Help & Support Click Listener
