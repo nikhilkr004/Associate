@@ -22,6 +22,7 @@ import com.example.associate.databinding.ActivityAdvisorProfileBinding
 import com.example.associate.Dialogs.AppointmentTypeDialog
 import com.example.associate.Dialogs.ScheduleBookingDialog
 import com.example.associate.MainActivity
+import com.example.associate.Adapters.AdvisorAwardAdapter
 import com.google.android.material.chip.Chip
 
 class AdvisorProfileActivity : AppCompatActivity() {
@@ -98,7 +99,10 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
         setupProfileImage()
         setupAvailabilityUI()
-        // Awards UI removed in new design
+        
+        // Restored Sections
+        setupSocialLinks()
+        setupAwards()
     }
 
     private fun setupSpecializationChips() {
@@ -118,8 +122,6 @@ class AdvisorProfileActivity : AppCompatActivity() {
 
     private fun setupAvailabilityUI() {
         val availability = advisor.availabilityInfo.scheduledAvailability
-
-        // Reset backgrounds first if needed, but we'll specific set if enabled
         
         if (availability.isChatEnabled) {
             binding.chatLayout.alpha = 1.0f
@@ -176,11 +178,11 @@ class AdvisorProfileActivity : AppCompatActivity() {
         intent.putExtra(
             "CHAT_ID",
             bookingId
-        ) // Can be empty if not known, but if we have BK id, use it
+        )
         intent.putExtra(
             "BOOKING_ID",
             bookingId
-        ) // Crucial for ChatActivity to reuse existing booking
+        )
         intent.putExtra("ADVISOR_ID", advisor.basicInfo.id)
         intent.putExtra("ADVISOR_NAME", advisor.basicInfo.name)
         intent.putExtra("ADVISOR_AVATAR", advisor.basicInfo.profileImage)
@@ -225,6 +227,43 @@ class AdvisorProfileActivity : AppCompatActivity() {
             .into(binding.profileImage)
     }
 
+    private fun setupSocialLinks() {
+        val resources = advisor.resources
+        
+        setupSocialIcon(binding.imgLinkedin, resources.linkedinProfile)
+        setupSocialIcon(binding.imgTwitter, resources.twitterProfile)
+        setupSocialIcon(binding.imgInstagram, resources.instagramProfile)
+        setupSocialIcon(binding.imgWebsite, resources.website)
+    }
+
+    private fun setupSocialIcon(view: android.view.View, url: String) {
+        if (url.isNotEmpty()) {
+            view.visibility = android.view.View.VISIBLE
+            view.setOnClickListener {
+                try {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                    startActivity(intent)
+                } catch (e: Exception) {
+                     Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            view.visibility = android.view.View.GONE
+        }
+    }
+    
+    private fun setupAwards() {
+        val awards = advisor.professionalInfo.awards
+        if (awards.isNotEmpty()) {
+            binding.rvAwards.visibility = android.view.View.VISIBLE
+            binding.tvAwardsTitle.visibility = android.view.View.VISIBLE
+            binding.rvAwards.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+            binding.rvAwards.adapter = AdvisorAwardAdapter(awards)
+        } else {
+            binding.rvAwards.visibility = android.view.View.GONE
+            binding.tvAwardsTitle.visibility = android.view.View.GONE
+        }
+    }
 
     private fun showBookingDialog() {
         val dialog = AppointmentTypeDialog(

@@ -17,264 +17,273 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Aapka original layout yahan rahega -->
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <!-- Added NestedScrollView for full screen scrolling -->
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image"
-                android:layout_width="@dimen/_40sdp"
-                android:layout_height="@dimen/_40sdp"
-                android:layout_marginStart="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:background="@drawable/double_bg"
-                android:padding="@dimen/_4sdp"
-                android:src="@drawable/user"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageView
-                android:id="@+id/notifiction_btn"
-                android:layout_width="@dimen/_35sdp"
-                android:layout_height="@dimen/_35sdp"
-                android:layout_marginTop="@dimen/_12sdp"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:background="@drawable/double_bg"
-                android:padding="@dimen/_6sdp"
-                android:src="@drawable/notification"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <LinearLayout
-                android:id="@+id/load_money_layout"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/_5sdp"
-                android:background="@drawable/double_bg"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="@+id/notifiction_btn"
-                app:layout_constraintEnd_toStartOf="@+id/notifiction_btn"
-                app:layout_constraintTop_toTopOf="@+id/notifiction_btn">
+                android:paddingBottom="100dp"> <!-- Added padding for FAB/Bottom Nav visibility -->
 
-                <TextView
-                    android:id="@+id/current_balance"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="@dimen/_40sdp"
+                    android:layout_height="@dimen/_40sdp"
                     android:layout_marginStart="@dimen/_10sdp"
-                    android:fontFamily="@font/app_logo_font"
-                    android:maxLines="1"
-                    android:text="0"
-                    android:textColor="@color/green"
-                    android:textSize="20sp"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:background="@drawable/double_bg"
+                    android:padding="@dimen/_4sdp"
+                    android:src="@drawable/user"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
-                    android:id="@+id/wallet"
+                    android:id="@+id/notifiction_btn"
                     android:layout_width="@dimen/_35sdp"
                     android:layout_height="@dimen/_35sdp"
+                    android:layout_marginTop="@dimen/_12sdp"
                     android:layout_marginEnd="@dimen/_10sdp"
-                    android:padding="@dimen/_8sdp"
-                    android:src="@drawable/wallet" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/linearLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:orientation="horizontal"
-                app:layout_constraintEnd_toEndOf="@+id/profile_image"
-                app:layout_constraintStart_toStartOf="@+id/profile_image"
-                app:layout_constraintTop_toBottomOf="@+id/profile_image">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/orienta"
-                    android:text="Welcome, "
-                    android:textSize="25sp"
-                    android:textStyle="bold"
+                    android:background="@drawable/double_bg"
+                    android:padding="@dimen/_6sdp"
+                    android:src="@drawable/notification"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="@+id/textView"
-                    app:layout_constraintTop_toBottomOf="@+id/textView" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/load_money_layout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/app_logo_font"
-                    android:maxLines="1"
-                    android:text="Nikhil Kumar"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:background="@drawable/double_bg"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toBottomOf="@+id/notifiction_btn"
+                    app:layout_constraintEnd_toStartOf="@+id/notifiction_btn"
+                    app:layout_constraintTop_toTopOf="@+id/notifiction_btn">
+
+                    <TextView
+                        android:id="@+id/current_balance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:fontFamily="@font/app_logo_font"
+                        android:maxLines="1"
+                        android:text="0"
+                        android:textColor="@color/green"
+                        android:textSize="20sp"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/wallet"
+                        android:layout_width="@dimen/_35sdp"
+                        android:layout_height="@dimen/_35sdp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:padding="@dimen/_8sdp"
+                        android:src="@drawable/wallet" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/linearLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="@+id/profile_image"
+                    app:layout_constraintStart_toStartOf="@+id/profile_image"
+                    app:layout_constraintTop_toBottomOf="@+id/profile_image">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/orienta"
+                        android:text="Welcome, "
+                        android:textSize="25sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/textView"
+                        app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/app_logo_font"
+                        android:maxLines="1"
+                        android:text="Nikhil Kumar"
+                        android:textColor="@color/green"
+                        android:textSize="20sp"
+                        app:layout_constraintEnd_toEndOf="parent" />
+                </LinearLayout>
+
+                <EditText
+                    android:id="@+id/user_email"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_6sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:background="@drawable/double_bg"
+                    android:clickable="false"
+                    android:drawableEnd="@drawable/search_icon"
+                    android:drawablePadding="@dimen/_5sdp"
+                    android:focusable="false"
+                    android:hint="Start exploring with the expert"
+                    android:padding="@dimen/_10sdp"
                     android:textColor="@color/green"
-                    android:textSize="20sp"
-                    app:layout_constraintEnd_toEndOf="parent" />
-            </LinearLayout>
+                    app:layout_constraintEnd_toEndOf="@+id/linearLayout"
+                    app:layout_constraintStart_toStartOf="@+id/linearLayout"
+                    app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
 
-            <EditText
-                android:id="@+id/user_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_6sdp"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:background="@drawable/double_bg"
-                android:clickable="false"
-                android:drawableEnd="@drawable/search_icon"
-                android:drawablePadding="@dimen/_5sdp"
-                android:focusable="false"
-                android:hint="Start exploring with the expert"
-                android:padding="@dimen/_10sdp"
-                android:textColor="@color/green"
-                app:layout_constraintEnd_toEndOf="@+id/linearLayout"
-                app:layout_constraintStart_toStartOf="@+id/linearLayout"
-                app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
-
-            <!-- 🔥 Progress Bar - Same position mein add kiya hai -->
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/user_email" />
-
-            <!-- 🔥 Empty State - Same position mein add kiya hai -->
-            <LinearLayout
-                android:id="@+id/emptyState"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="32dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/user_email">
-
-                <ImageView
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"
-                    android:src="@drawable/baseline_notifications_24"
-                    android:tint="#CCCCCC" />
-
-                <TextView
+                <!-- 🔥 Progress Bar - Same position mein add kiya hai -->
+                <ProgressBar
+                    android:id="@+id/progressBar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="No Advisors Found"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="20dp"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/user_email" />
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <!-- 🔥 Empty State - Same position mein add kiya hai -->
+                <LinearLayout
+                    android:id="@+id/emptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="32dp"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/user_email">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/baseline_notifications_24"
+                        android:tint="#CCCCCC" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="No Advisors Found"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Please check back later"
+                        android:textColor="#666666"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/live_advisore_layout"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Please check back later"
-                    android:textColor="#666666"
-                    android:textSize="14sp" />
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="@+id/user_email"
+                    app:layout_constraintStart_toStartOf="@+id/user_email"
+                    app:layout_constraintTop_toBottomOf="@+id/user_email">
 
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/textView3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:fontFamily="@font/orienta"
+                        android:text="Live Advisore"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="@+id/linearLayout6"
+                        app:layout_constraintStart_toStartOf="@+id/linearLayout6"
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
 
-            <LinearLayout
-                android:id="@+id/live_advisore_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="@+id/user_email"
-                app:layout_constraintStart_toStartOf="@+id/user_email"
-                app:layout_constraintTop_toBottomOf="@+id/user_email">
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/live_advisore_recyclerview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        tools:itemCount="1"
+                        tools:listitem="@layout/live_advisor_item" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/textView3"
+                <LinearLayout
+                    android:id="@+id/top_advisor_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:layout_marginEnd="@dimen/_10sdp"
-                    android:fontFamily="@font/orienta"
-                    android:text="Live Advisore"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@+id/linearLayout6"
-                    app:layout_constraintStart_toStartOf="@+id/linearLayout6"
-                    app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    app:layout_constraintEnd_toEndOf="@+id/live_advisore_layout"
+                    app:layout_constraintStart_toStartOf="@+id/live_advisore_layout"
+                    app:layout_constraintTop_toBottomOf="@+id/live_advisore_layout">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/live_advisore_recyclerview"
-                    android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/textView35"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:fontFamily="@font/orienta"
+                        android:text="Advisors"
+                        android:visibility="gone"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="@+id/linearLayout6"
+                        app:layout_constraintStart_toStartOf="@+id/linearLayout6"
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/top_advisore_recyclerview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_5sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_marginEnd="@dimen/_5sdp"
+                        android:nestedScrollingEnabled="false"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/textView35" />
+                </LinearLayout>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabAiChat"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:layout_marginEnd="@dimen/_10sdp"
-                    tools:itemCount="1"
-                    tools:listitem="@layout/live_advisor_item" />
-            </LinearLayout>
+                    android:layout_margin="16dp"
+                    android:contentDescription="AI Chat"
+                    android:src="@drawable/bot"
+                    app:backgroundTint="#3D8D7A"
+                    app:elevation="6dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:tint="@color/white"
+                    tools:layout_editor_absoluteY="789dp" />
 
-            <LinearLayout
-                android:id="@+id/top_advisor_layout"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/live_advisore_layout"
-                app:layout_constraintStart_toStartOf="@+id/live_advisore_layout"
-                app:layout_constraintTop_toBottomOf="@+id/live_advisore_layout">
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <TextView
-                    android:id="@+id/textView35"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:layout_marginEnd="@dimen/_10sdp"
-                    android:fontFamily="@font/orienta"
-                    android:text="Advisore"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toEndOf="@+id/linearLayout6"
-                    app:layout_constraintStart_toStartOf="@+id/linearLayout6"
-                    app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/top_advisore_recyclerview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_5sdp"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:layout_marginEnd="@dimen/_5sdp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/textView35" />
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.core.widget.NestedScrollView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- AI Chat FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAiChat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginBottom="80dp" 
-        android:contentDescription="AI Chat"
-        android:src="@drawable/bot_avatar"
-        app:backgroundTint="#3D8D7A"
-        app:tint="@color/white"
-        app:elevation="6dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 🔥 Current Booking Card - Floating at the bottom -->
     <androidx.cardview.widget.CardView
@@ -391,4 +400,3 @@
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-<!-- Updated for repository activity -->

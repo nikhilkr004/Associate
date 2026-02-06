@@ -22,47 +22,36 @@ class AdvisorAdapter(
     inner class AdvisorViewHolder(private val binding: AdvisorDialogBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(advisor: AdvisorDataClass) {
             val context = binding.root.context
+            
+            // Name
             binding.advisorName.text = advisor.basicInfo.name
             
-            // Subtitle: "Specialization(Exp years Exp)"
+            // Subtitle: "Specialization • Exp years Exp"
             val spec = advisor.professionalInfo.specializations.firstOrNull() ?: "Advisor"
             val exp = advisor.professionalInfo.experience
-            binding.advisorExp.text = "$spec($exp years Exp)"
+            binding.advisorExp.text = "$spec • $exp years Exp"
             
             // Rating
-            binding.advisorRating.text = String.format("%.1f", advisor.performanceInfo.rating)
+            val rating = advisor.performanceInfo.rating
+            binding.advisorRating.text = String.format("%.1f", rating)
             
-            // Price (Using Scheduled Video Fee as representative or instant)
-            // Ideally display range or 'starts from' but fulfilling design "₹ 180"
-            val price = advisor.pricingInfo.instantVideoFee 
-            binding.advisorPrice.text = "₹ $price"
+            // Fee
+            val fee = advisor.pricingInfo.instantVideoFee
+            binding.advisorPrice.text = "₹ $fee"
             
-            // Availability (Mocking 'Available Now' based on status or instant availability)
-            // 'isactive' is a String "true"/"false" in database
-            val isOnline = advisor.basicInfo.isactive == "true"
-            
-            // Set online indicator visibility
-            binding.icOnlineStatus.visibility = if (isOnline) {
-                android.view.View.VISIBLE 
-            } else {
-                 android.view.View.GONE
-            }
+            // Availability Status
+            // FORCED: Always show "Available Now" as per user request
+            binding.icOnlineStatus.visibility = android.view.View.VISIBLE
+            binding.tvAvailabilityLabel.text = "• Available Now"
+            binding.tvAvailabilityLabel.setTextColor(android.graphics.Color.parseColor("#4CAF50")) // Green
 
-            // If instant video is enabled -> Show "Video Consult" green
-            // Else -> maybe hide or show "Scheduled"
-            // For now, mirroring image style static or simple dynamic
-            if (advisor.availabilityInfo.instantAvailability.isVideoCallEnabled) {
-               binding.tvServiceType.text = "Video Consult"
-               binding.tvAvailabilityLabel.text = "Available Now"
-               binding.tvAvailabilityLabel.setTextColor(android.graphics.Color.parseColor("#191C1F"))
-            } else {
-               binding.tvServiceType.text = "Schedule Only"
-               binding.tvAvailabilityLabel.text = "Busy"
-               binding.tvAvailabilityLabel.setTextColor(android.graphics.Color.GRAY)
-            }
+            // Image
+            Glide.with(context)
+                .load(advisor.basicInfo.profileImage)
+                .placeholder(R.drawable.user)
+                .into(binding.profileImage)
             
-            Glide.with(context).load(advisor.basicInfo.profileImage).placeholder(R.drawable.user).into(binding.profileImage)
-            
+            // Clicks
             binding.root.setOnClickListener { onItemClick(advisor) }
             binding.btnBookAppointment.setOnClickListener { onItemClick(advisor) }
         }
@@ -83,4 +72,3 @@ class AdvisorAdapter(
 
     override fun getItemCount(): Int = advisors.size
 }
-// Updated for repository activity

@@ -4,18 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/_10sdp"
-    android:background="@drawable/progressbar_bg"
-    android:paddingBottom="20dp">
-
+    android:background="@drawable/rounded_edittext_bg"
+    android:padding="@dimen/_12sdp">
 
     <!-- Header Drag Handle -->
     <View
         android:id="@+id/view_line"
-        android:layout_width="50dp"
-        android:layout_height="4dp"
-        android:layout_marginTop="16dp"
-        android:background="@color/green"
+        android:layout_width="@dimen/_40sdp"
+        android:layout_height="@dimen/_4sdp"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:background="@color/gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -25,59 +23,36 @@
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Book Appointment"
+        android:layout_marginTop="@dimen/_16sdp"
+        android:text="Schedule Session"
         android:textColor="@color/green"
-        android:textSize="18sp"
+        android:textSize="@dimen/_16sdp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view_line" />
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginStart="16dp"
-        android:background="#2E3A59"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_title"
-        app:layout_constraintEnd_toStartOf="@+id/tv_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_title" />
-
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginEnd="16dp"
-        android:background="#2E3A59"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_title"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/tv_title"
-        app:layout_constraintTop_toTopOf="@+id/tv_title" />
-
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_8sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tv_title">
-
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/_5sdp"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:paddingBottom="20dp">
+            android:paddingBottom="@dimen/_20sdp">
 
             <!-- Section Title: Select Appointment Type -->
             <TextView
                 android:id="@+id/tv_select_type"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:text="Select Appointment Type"
-                android:textColor="@color/green"
-                android:textSize="14sp"
+                android:textColor="#5E6272"
+                android:textSize="@dimen/_12sdp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -86,9 +61,7 @@
                 android:id="@+id/layout_types"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginTop="@dimen/_8sdp"
                 android:orientation="horizontal"
                 android:weightSum="3"
                 app:layout_constraintTop_toBottomOf="@id/tv_select_type">
@@ -97,32 +70,32 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/card_chat"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_height="@dimen/_60sdp"
+                    android:layout_marginEnd="@dimen/_6sdp"
                     android:layout_weight="1"
-                    android:background="@drawable/card_bg_unselected"
+                    android:background="@drawable/double_bg"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
                         android:id="@+id/img_chat"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="8dp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
+                        android:layout_marginStart="@dimen/_8sdp"
+                        android:layout_marginTop="@dimen/_8sdp"
                         android:src="@drawable/chat"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:tint="@color/green" />
 
                     <TextView
                         android:id="@+id/tv_chat_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="@dimen/_8sdp"
                         android:text="₹ 10"
                         android:textColor="#B0B3C6"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/_10sdp"
                         app:layout_constraintBottom_toBottomOf="@id/img_chat"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@id/img_chat" />
@@ -130,10 +103,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="@dimen/_8sdp"
                         android:text="Chat"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_12sdp"
+                        android:textStyle="bold"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent" />
@@ -144,32 +118,32 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/card_audio"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_height="@dimen/_60sdp"
+                    android:layout_marginEnd="@dimen/_6sdp"
                     android:layout_weight="1"
-                    android:background="@drawable/card_bg_unselected"
+                    android:background="@drawable/double_bg"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
                         android:id="@+id/img_audio"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="8dp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
+                        android:layout_marginStart="@dimen/_8sdp"
+                        android:layout_marginTop="@dimen/_8sdp"
                         android:src="@drawable/call"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:tint="@color/green" />
 
                     <TextView
                         android:id="@+id/tv_audio_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="@dimen/_8sdp"
                         android:text="₹ 15"
                         android:textColor="#B0B3C6"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/_10sdp"
                         app:layout_constraintBottom_toBottomOf="@id/img_audio"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@id/img_audio" />
@@ -177,10 +151,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="@dimen/_8sdp"
                         android:text="Audio Call"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_12sdp"
+                        android:textStyle="bold"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent" />
@@ -191,31 +166,31 @@
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/card_video"
                     android:layout_width="0dp"
-                    android:layout_height="80dp"
+                    android:layout_height="@dimen/_60sdp"
                     android:layout_weight="1"
-                    android:background="@drawable/card_bg_unselected"
+                    android:background="@drawable/double_bg"
                     android:clickable="true"
                     android:focusable="true">
 
                     <ImageView
                         android:id="@+id/img_video"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="8dp"
+                        android:layout_width="@dimen/_18sdp"
+                        android:layout_height="@dimen/_18sdp"
+                        android:layout_marginStart="@dimen/_8sdp"
+                        android:layout_marginTop="@dimen/_8sdp"
                         android:src="@drawable/videocall"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:tint="@color/white" />
+                        app:tint="@color/green" />
 
                     <TextView
                         android:id="@+id/tv_video_price"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="@dimen/_8sdp"
                         android:text="₹ 20"
                         android:textColor="#B0B3C6"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/_10sdp"
                         app:layout_constraintBottom_toBottomOf="@id/img_video"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@id/img_video" />
@@ -223,10 +198,11 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="@dimen/_8sdp"
                         android:text="Video Call"
-                        android:textColor="@android:color/white"
-                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:textSize="@dimen/_12sdp"
+                        android:textStyle="bold"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent" />
@@ -240,11 +216,10 @@
                 android:id="@+id/tv_select_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:text="Select Date"
-                android:textColor="@color/green"
-                android:textSize="14sp"
+                android:textColor="#5E6272"
+                android:textSize="@dimen/_12sdp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layout_types" />
 
@@ -253,22 +228,19 @@
                 android:id="@+id/layout_date_picker"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginTop="@dimen/_8sdp"
                 android:background="@drawable/double_bg"
                 android:clickable="true"
                 android:focusable="true"
-                android:padding="12dp"
+                android:padding="@dimen/_12sdp"
                 app:layout_constraintTop_toBottomOf="@id/tv_select_date">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
                     android:text="Select Booking Date"
                     android:textColor="@color/green"
-                    android:textSize="10sp"
+                    android:textSize="@dimen/_10sdp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -276,32 +248,23 @@
                     android:id="@+id/tv_selected_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/_12sdp"
                     android:text="20/12/2025"
-                    android:textColor="@color/green"
-                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    android:textSize="@dimen/_14sdp"
+                    android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="@dimen/_20sdp"
+                    android:layout_height="@dimen/_20sdp"
                     android:src="@drawable/calendar"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:tint="@color/green" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/border_red_outline"
-                    android:visibility="gone"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -310,15 +273,14 @@
                 android:id="@+id/tv_select_slot"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:text="Select Slot"
-                android:textColor="@color/green"
-                android:textSize="14sp"
+                android:textColor="#5E6272"
+                android:textSize="@dimen/_12sdp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layout_date_picker" />
 
-            <!-- Slots Container (Handles visibility swapping) -->
+            <!-- Slots Container -->
             <FrameLayout
                 android:id="@+id/frame_slots_container"
                 android:layout_width="match_parent"
@@ -329,13 +291,13 @@
                     android:id="@+id/rv_time_slots"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="@dimen/_8sdp"
                     android:nestedScrollingEnabled="false" />
 
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/lottie_empty_slots"
-                    android:layout_width="@dimen/_120sdp"
-                    android:layout_height="@dimen/_120sdp"
+                    android:layout_width="@dimen/_100sdp"
+                    android:layout_height="@dimen/_100sdp"
                     android:layout_gravity="center"
                     android:layout_marginTop="@dimen/_10sdp"
                     android:layout_marginBottom="@dimen/_10sdp"
@@ -349,11 +311,10 @@
                 android:id="@+id/tv_agenda"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/_12sdp"
                 android:text="Agenda"
-                android:textColor="@color/green"
-                android:textSize="14sp"
+                android:textColor="#5E6272"
+                android:textSize="@dimen/_12sdp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/frame_slots_container" />
 
@@ -361,56 +322,47 @@
             <EditText
                 android:id="@+id/et_agenda"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
+                android:layout_height="@dimen/_80sdp"
+                android:layout_marginTop="@dimen/_6sdp"
                 android:background="@drawable/double_bg"
                 android:gravity="top|start"
                 android:hint="Type here..."
-                android:padding="16dp"
-                android:textColor="@color/green"
+                android:padding="@dimen/_10sdp"
+                android:textColor="@color/black"
                 android:textColorHint="@color/gray"
-                android:textSize="14sp"
+                android:textSize="@dimen/_12sdp"
                 app:layout_constraintTop_toBottomOf="@id/tv_agenda" />
 
             <TextView
                 android:id="@+id/tv_char_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginTop="@dimen/_4sdp"
                 android:text="0/250"
-                android:textColor="#5E6272"
-                android:textSize="12sp"
+                android:textColor="#9E9E9E"
+                android:textSize="@dimen/_10sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/et_agenda" />
-
 
             <TextView
                 android:id="@+id/btn_process"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_20sdp"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:layout_marginBottom="@dimen/_15sdp"
+                android:layout_marginTop="@dimen/_24sdp"
+                android:layout_marginBottom="@dimen/_12sdp"
                 android:background="@drawable/primary_button_bg"
-                android:padding="@dimen/_10sdp"
-                android:text="confirm"
-                android:textAlignment="center"
+                android:backgroundTint="@color/green"
+                android:gravity="center"
+                android:padding="@dimen/_12sdp"
+                android:text="Confirm Schedule"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_16sdp"
+                android:textSize="@dimen/_14sdp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/et_agenda"
-                app:layout_constraintStart_toStartOf="@+id/et_agenda"
                 app:layout_constraintTop_toBottomOf="@+id/et_agenda" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>
 
-
 </androidx.constraintlayout.widget.ConstraintLayout>
-
-<!-- Updated for repository activity -->

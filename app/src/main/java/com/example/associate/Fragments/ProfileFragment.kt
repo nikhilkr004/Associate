@@ -36,6 +36,8 @@ class ProfileFragment : Fragment() {
 
     private val currentUserId = auth.currentUser?.uid ?: ""
     private var currentProfileImageUrl: String = ""
+    private var currentUserData: UserData? = null
+
 
      companion object {
         fun newInstance() = ProfileFragment()
@@ -70,26 +72,17 @@ class ProfileFragment : Fragment() {
             openImagePicker()
         }
         binding.editBtn.setOnClickListener {
-            // Handle edit profile click
+            showUpdateProfileDialog()
+        }
+        binding.updateProfileLayout.setOnClickListener {
+            showUpdateProfileDialog()
         }
         
-        binding.leaveLayout.setOnClickListener {
-             // Navigate to CallHistoryFragment (Booked Sessions)
-             try {
-                 androidx.navigation.Navigation.findNavController(it).navigate(R.id.callHistoryFragment)
-             } catch (e: Exception) {
-                 Log.e(TAG, "Navigation failed", e)
-             }
+        binding.logoutLayout.setOnClickListener {
+            showLogoutDialog()
         }
+        
 
-        binding.transactionsLayout.setOnClickListener {
-            // Navigate to TransactionFragment
-            try {
-                androidx.navigation.Navigation.findNavController(it).navigate(R.id.transactionFragment)
-            } catch (e: Exception) {
-                Log.e(TAG, "Navigation failed", e)
-            }
-        }
 
         // Help & Support Click Listener
         binding.helpSupportLayout.setOnClickListener {
@@ -131,6 +124,7 @@ class ProfileFragment : Fragment() {
                     is UserRepository.Result.Success -> {
                         val userData = result.data
                         if (userData is UserData) {
+                            currentUserData = userData
                             Log.d(TAG, "loadUserData: User data loaded successfully - ${userData.name}")
                             displayUserData(userData)
                             currentProfileImageUrl = userData.profilePhotoUrl ?: ""
@@ -467,6 +461,124 @@ class ProfileFragment : Fragment() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting old image: ${e.message}")
+        }
+    }
+    private fun showLogoutDialog() {
+        val dialog = android.app.Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_logout)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.findViewById<View>(R.id.btnCancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.findViewById<View>(R.id.btnLogout).setOnClickListener {
+            dialog.dismiss()
+            performLogout()
+        }
+
+        dialog.show()
+    }
+
+    private fun performLogout() {
+        auth.signOut()
+        val intent = Intent(requireContext(), com.example.associate.Activities.SplashScreenActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        requireActivity().finish()
+    }
+
+    private fun showUpdateProfileDialog() {
+        val dialog = android.app.Dialog(requireContext())
+        dialog.setContentView(R.layout.dialog_update_profile)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val etName = dialog.findViewById<android.widget.EditText>(R.id.etName)
+        val etEmail = dialog.findViewById<android.widget.EditText>(R.id.etEmail)
+        val etPhone = dialog.findViewById<android.widget.EditText>(R.id.etPhone)
+        val btnUpdate = dialog.findViewById<View>(R.id.btnUpdate)
+        val btnCancel = dialog.findViewById<View>(R.id.btnCancel)
+
+        // Pre-fill data
+        currentUserData?.let { user ->
+            etName.setText(user.name)
+            etEmail.setText(user.email)
+            etPhone.setText(user.phone)
+        }
+
+        // Lock fields logic
+        // If email is present in UserData, assume it's verified/login method -> Lock it
+        if (!currentUserData?.email.isNullOrEmpty()) {
+            etEmail.isEnabled = false
+            etEmail.alpha = 0.6f
+        }
+        
+        // If phone is present in UserData, assume it's verified/login method -> Lock it
+        // Or check auth provider
+        if (!currentUserData?.phone.isNullOrEmpty()) {
+             etPhone.isEnabled = false
+             etPhone.alpha = 0.6f
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnUpdate.setOnClickListener {
+            val newName = etName.text.toString().trim()
+            val newEmail = etEmail.text.toString().trim()
+            val newPhone = etPhone.text.toString().trim()
+
+            if (newName.isEmpty()) {
+                Toast.makeText(requireContext(), "Name cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            dialog.dismiss()
+            updateUserProfile(newName, newEmail, newPhone)
+        }
+
+        dialog.show()
+    }
+
+    private fun updateUserProfile(name: String, email: String, phone: String) {
+        DialogUtils.showLoadingDialog(requireContext(), "Updating profile...")
+        
+        val updateMap = mutableMapOf<String, Any>()
+        updateMap["name"] = name
+        // Only update email/phone if they were editable (technically logic above prevents editing, but good to be safe)
+        // If the Original is empty, allow update.
+        if (currentUserData?.email.isNullOrEmpty() && email.isNotEmpty()) {
+             updateMap["email"] = email
+        }
+         if (currentUserData?.phone.isNullOrEmpty() && phone.isNotEmpty()) {
+             updateMap["phone"] = phone
+        }
+
+        lifecycleScope.launch {
+            try {
+                when (val result = userRepository.updateUser(currentUserId, updateMap)) {
+                    is UserRepository.Result.Success -> {
+                        Toast.makeText(requireContext(), "Profile updated", Toast.LENGTH_SHORT).show()
+                        loadUserData() // Refresh
+                    }
+                    is UserRepository.Result.Failure -> {
+                        Toast.makeText(requireContext(), "Failed to update: ${result.exception.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                DialogUtils.hideLoadingDialog()
+            }
         }
     }
 }

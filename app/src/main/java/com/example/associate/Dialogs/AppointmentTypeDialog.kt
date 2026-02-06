@@ -29,12 +29,17 @@ class AppointmentTypeDialog(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         
-        binding.cardInstant.setOnClickListener {
+        // Set dynamic title
+        val firstName = advisor.basicInfo.name.split(" ").firstOrNull() ?: "Advisor"
+        binding.tvTitle.text = "Connect with $firstName"
+        
+        // Setup click listeners for Connect/Book buttons
+        binding.btnInstantConnect.setOnClickListener {
             dismiss()
             onInstantClick()
         }
 
-        binding.cardSchedule.setOnClickListener {
+        binding.btnScheduleBook.setOnClickListener {
             dismiss()
             onScheduleClick()
         }
@@ -49,5 +54,3 @@ class AppointmentTypeDialog(
         return R.style.CustomBottomSheetDialogTheme
     }
 }
-
-// Updated for repository activity

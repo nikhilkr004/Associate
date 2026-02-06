@@ -47,8 +47,7 @@ class ScheduleBookingDialog(
         super.onViewCreated(view, savedInstanceState)
         bookingManager = SessionBookingManager(requireContext())
         
-        // Initialize ViewModel with Advisor Data
-        // Ideally pass via Factory, but for simplicity initializing here if not done
+        // Initialize ViewModel
         viewModel.init(advisor)
 
         setupRecyclerView()
@@ -72,29 +71,19 @@ class ScheduleBookingDialog(
         
         db.collection("wallets").document(userId).get()
             .addOnSuccessListener { document ->
-                android.util.Log.d("ScheduleBooking", "📄 Document exists: ${document.exists()}")
-                android.util.Log.d("ScheduleBooking", "📄 Document data: ${document.data}")
-                
                 if (document.exists()) {
-                    // Try multiple field names - PRIORITIZE 'balance' (correct field)
                     val balanceFromBalance = document.getDouble("balance")
                     val balanceFromWalletBalance = document.getDouble("walletBalance")
-                    
-                    android.util.Log.d("ScheduleBooking", "💰 balance field: $balanceFromBalance")
-                    android.util.Log.d("ScheduleBooking", "💰 walletBalance field: $balanceFromWalletBalance")
-                    
                     userWalletBalance = balanceFromBalance ?: balanceFromWalletBalance ?: 0.0
-                    android.util.Log.d("ScheduleBooking", "✅ Final Wallet Balance: ₹$userWalletBalance")
                 }
                 isBalanceLoaded = true
                 binding.btnProcess.isEnabled = true
-                binding.btnProcess.text = "Process"
+                binding.btnProcess.text = "Confirm Schedule"
             }
-            .addOnFailureListener { e ->
-                android.util.Log.e("ScheduleBooking", "❌ Failed to fetch balance: ${e.message}")
+            .addOnFailureListener {
                 isBalanceLoaded = true
                 binding.btnProcess.isEnabled = true
-                binding.btnProcess.text = "Process"
+                binding.btnProcess.text = "Confirm Schedule"
             }
     }
     
@@ -102,7 +91,7 @@ class ScheduleBookingDialog(
         slotAdapter = TimeSlotAdapter { slot ->
             viewModel.selectSlot(slot)
         }
-        binding.rvTimeSlots.layoutManager = GridLayoutManager(requireContext(), 2) // 2 Columns
+        binding.rvTimeSlots.layoutManager = GridLayoutManager(requireContext(), 2)
         binding.rvTimeSlots.adapter = slotAdapter
     }
     
@@ -113,31 +102,22 @@ class ScheduleBookingDialog(
         
         val availability = advisor.availabilityInfo.scheduledAvailability
         
-        // Disable unavailable services
-        if (!availability.isChatEnabled) {
-            disableCard(binding.cardChat, binding.imgChat, binding.tvChatPrice)
-        }
-        if (!availability.isAudioCallEnabled) {
-            disableCard(binding.cardAudio, binding.imgAudio, binding.tvAudioPrice)
-        }
-        if (!availability.isVideoCallEnabled) {
-             disableCard(binding.cardVideo, binding.imgVideo, binding.tvVideoPrice)
-        }
+        if (!availability.isChatEnabled) disableCard(binding.cardChat, binding.imgChat, binding.tvChatPrice)
+        if (!availability.isAudioCallEnabled) disableCard(binding.cardAudio, binding.imgAudio, binding.tvAudioPrice)
+        if (!availability.isVideoCallEnabled) disableCard(binding.cardVideo, binding.imgVideo, binding.tvVideoPrice)
     }
     
     private fun disableCard(card: View, icon: android.widget.ImageView, text: android.widget.TextView) {
         card.isEnabled = false
         card.isClickable = false
         card.background = ContextCompat.getDrawable(requireContext(), R.drawable.card_bg_disabled)
-        card.alpha = 0.5f // Dim it
+        card.alpha = 0.5f 
     }
 
     private fun setupObservers() {
         viewModel.selectedType.observe(viewLifecycleOwner) { type ->
             updateSelectionUI(type)
         }
-        
-
         
         viewModel.selectedDate.observe(viewLifecycleOwner) { calendar ->
             if (calendar != null) {
@@ -151,21 +131,12 @@ class ScheduleBookingDialog(
         viewModel.availableSlots.observe(viewLifecycleOwner) { slots ->
             slotAdapter.submitList(slots)
             
-            // Toggle Empty State
             if (slots.isEmpty()) {
-                // Only show empty state if a date IS selected, otherwise if null date, just empty list is fine or show hint
-                // User said "agar avaliable mslot nhi hai tho" (if no slots available)
-                // If date is null, we show "Select Booking Date" text usually.
-                
                 if (viewModel.selectedDate.value != null) {
                     binding.rvTimeSlots.visibility = View.GONE
                     binding.lottieEmptySlots.visibility = View.VISIBLE
                     binding.lottieEmptySlots.playAnimation()
-                    // Optional: Toast is annoying if Lottie is there
-                    // Toast.makeText(requireContext(), "No slots available for this date", Toast.LENGTH_SHORT).show()
                 } else {
-                    // Start state: Date null. Hide everything or just keep list empty?
-                    // Let's keep list hidden to be clean
                      binding.rvTimeSlots.visibility = View.GONE
                      binding.lottieEmptySlots.visibility = View.GONE
                 }
@@ -196,23 +167,13 @@ class ScheduleBookingDialog(
     }
 
     private fun setupClickListeners() {
-        binding.cardChat.setOnClickListener {
-            viewModel.selectType(BookingType.CHAT)
-        }
-        binding.cardAudio.setOnClickListener {
-            viewModel.selectType(BookingType.AUDIO)
-        }
-        binding.cardVideo.setOnClickListener {
-            viewModel.selectType(BookingType.VIDEO)
-        }
+        binding.cardChat.setOnClickListener { viewModel.selectType(BookingType.CHAT) }
+        binding.cardAudio.setOnClickListener { viewModel.selectType(BookingType.AUDIO) }
+        binding.cardVideo.setOnClickListener { viewModel.selectType(BookingType.VIDEO) }
         
-        binding.layoutDatePicker.setOnClickListener {
-            showDatePicker()
-        }
+        binding.layoutDatePicker.setOnClickListener { showDatePicker() }
         
-        binding.btnProcess.setOnClickListener {
-            processBooking()
-        }
+        binding.btnProcess.setOnClickListener { processBooking() }
     }
     
     private fun showDatePicker() {
@@ -228,7 +189,7 @@ class ScheduleBookingDialog(
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-        datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000 // Disable past
+        datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000
         datePickerDialog.show()
     }
     
@@ -258,20 +219,15 @@ class ScheduleBookingDialog(
         }
         
         if (agenda.length > 250) {
-            Toast.makeText(requireContext(), "Agenda is too long (max 250 chars)", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Agenda is too long", Toast.LENGTH_SHORT).show()
             return
         }
         
-        // 🔥 STRICT RULE: Balance Check against Dynamic Price
         val requiredAmount = viewModel.totalPrice.value?.toDouble() ?: 0.0
         if (userWalletBalance < requiredAmount) {
              Toast.makeText(requireContext(), "Insufficient balance. Required: ₹$requiredAmount", Toast.LENGTH_LONG).show()
              return
         }
-        
-        // Start Booking Process Logic
-        // For now, mocking success or using a 'createScheduledBooking' method if available
-        // Assuming bookingManager has createScheduledBooking or we use createSessionBooking with updated params
         
         startBookingProcess(agenda)
     }
@@ -283,49 +239,26 @@ class ScheduleBookingDialog(
         val slot = viewModel.selectedSlot.value!!
         val type = viewModel.selectedType.value!!
         
-        // Construct full purpose string or data
         val purpose = "Scheduled ${type.name}: $slot"
-        
-        // Format Date
-        val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val dateString = dateFormat.format(date.time)
 
-        // Use createScheduledBooking for separate collection
         bookingManager.createScheduledBooking(
             advisorId = advisor.basicInfo.id,
             advisorName = advisor.basicInfo.name,
             purpose = purpose,
             preferredLanguage = "English",
             additionalNotes = agenda,
-            bookingType = type.name, // ✅ Pass "CHAT", "AUDIO", or "VIDEO"
-            bookingSlot = slot, // ✅ Pass valid Slot e.g. "10:00 AM - 10:30 AM"
-            bookingDate = dateString, // ✅ Pass formatted Date
+            bookingType = type.name,
+            bookingSlot = slot,
+            bookingDate = dateString,
             urgencyLevel = "Scheduled",
-            sessionAmount = viewModel.totalPrice.value?.toString() ?: "0", // ✅ Pass Calculated Price
+            sessionAmount = viewModel.totalPrice.value?.toString() ?: "0",
             onSuccess = { message ->
                 dismissLoadingDialog()
-                val fee = when(type) {
-                    BookingType.CHAT -> advisor.pricingInfo.scheduledChatFee
-                    BookingType.AUDIO -> advisor.pricingInfo.scheduledAudioFee
-                    BookingType.VIDEO -> advisor.pricingInfo.scheduledVideoFee
-                }
-                
-                BookingSuccessDialog(
-                    requireContext(),
-                    advisor.basicInfo.name,
-                    "You", // Placeholder for User Name
-                    fee.toString(),
-                    dateString,
-                    slot,
-                    onGoHome = {
-                        onBookingSuccess()
-                        dismiss()
-                    },
-                    onViewAppointment = {
-                         onBookingSuccess()
-                         dismiss()
-                    }
-                ).show()
+                onBookingSuccess()
+                dismiss()
+                Toast.makeText(requireContext(), "Scheduled Successfully!", Toast.LENGTH_LONG).show()
             },
             onFailure = { error ->
                 dismissLoadingDialog()
@@ -358,5 +291,3 @@ class ScheduleBookingDialog(
         return R.style.CustomBottomSheetDialogTheme
     }
 }
-
-// Updated for repository activity

@@ -3,16 +3,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/progressbar_bg"
-    android:layout_margin="@dimen/_10sdp"
-    android:padding="@dimen/_10sdp"
-    >
+    android:background="@drawable/double_bg"
+    android:padding="24dp">
 
+    <!-- Handle/Grip View -->
     <View
-        android:id="@+id/view_line"
-        android:layout_width="50dp"
+        android:id="@+id/view_handle"
+        android:layout_width="40dp"
         android:layout_height="4dp"
-        android:background="@color/green"
+        android:layout_marginTop="4dp"
+        android:background="#E0E0E0"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -21,197 +21,183 @@
         android:id="@+id/tv_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Appointment Type"
+        android:layout_marginTop="24dp"
+        android:text="Connect with Nikhil"
         android:textColor="@color/green"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/view_line" />
-    
-     <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#2E3A59"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_title"
-        app:layout_constraintEnd_toStartOf="@+id/tv_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_title" 
-        android:layout_marginEnd="16dp"/>
+        app:layout_constraintTop_toBottomOf="@id/view_handle" />
 
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="#2E3A59"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_title"
+    <TextView
+        android:id="@+id/tv_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Select your preferred consultation mode"
+        android:textColor="@color/gray"
+        android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/tv_title"
-        app:layout_constraintTop_toTopOf="@+id/tv_title" 
-        android:layout_marginStart="16dp"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title" />
 
+    <!-- Instant Appointment Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_instant"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:background="@color/green"
-        app:cardBackgroundColor="@color/green"
-        app:cardCornerRadius="12dp"
-        android:layout_marginStart="@dimen/_5sdp"
-        android:layout_marginEnd="@dimen/_5sdp"
-        app:cardElevation="@dimen/_5sdp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_title">
-        
-        <!-- Border workaround -->
-        <FrameLayout
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_subtitle">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/double_bg"
-            android:layout_marginBottom="@dimen/_5sdp"
-            > <!-- 1dp border width -->
-            
-             <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/border_bg"
-
-                android:padding="16dp">
+                android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/img_instant"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#EDE7F6"
+                    android:padding="8dp"
                     android:src="@drawable/transaction"
-                    android:tint="@color/green"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-                <!-- Replacing src with a placeholder or generic icon if specific one doesn't exist. 
-                     Ideally we should use vector assets for clock/schedule if available, or imports.
-                     Using ic_launcher_foreground temporarily to avoid crash, will update if notified of specific assets. -->
+                    app:tint="@color/green" />
 
-                <TextView
-                    android:id="@+id/tv_instant_title"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Instant\nAppointment"
-                    android:textColor="@color/green"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintEnd_toStartOf="@+id/img_arrow_instant"
-                    app:layout_constraintStart_toEndOf="@id/img_instant"
-                    app:layout_constraintTop_toTopOf="@id/img_instant"
-                    app:layout_constraintBottom_toBottomOf="@id/img_instant"/>
+                    android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/img_arrow_instant"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/outline_arrow_forward_ios_24" 
-                    app:layout_constraintBottom_toBottomOf="@id/img_instant"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/img_instant"
-                    app:tint="@color/green" />
-                <!-- Assuming standard arrow icon exists or using android built-in if possible. 
-                     Actually standard android resource: android:drawable/ic_menu_directions is not reliable.
-                     Will try to look for existing arrow icon in project. 
-                     For now putting placeholder, if it fails I'll fix it. -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Instant Appointment"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Connect instantly with a verified Associate advisor. No waiting, no hassle just expert advice when you need it most."
-                    android:textColor="@color/gray"
-                    android:textSize="12sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/img_instant" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Connect immediately for priority financial advisory. Average wait under 2 mins."
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </FrameLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_instant_connect"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/primary_button_bg"
+                android:backgroundTint="@color/green"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="Connect Now"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+    <!-- Schedule Appointment Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_schedule"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        app:cardBackgroundColor="@color/green"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="@dimen/_10sdp"
-        android:layout_marginStart="@dimen/_5sdp"
-        android:layout_marginEnd="@dimen/_5sdp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="@dimen/_30sdp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
         app:layout_constraintTop_toBottomOf="@id/card_instant">
 
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/border_bg"
-            android:padding="1dp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/_5sdp"
-                android:background="@drawable/double_bg"
-                android:padding="16dp">
+                android:orientation="horizontal">
 
                 <ImageView
-                    android:id="@+id/img_schedule"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#FFF3E0"
+                    android:padding="8dp"
                     android:src="@drawable/ic_clock"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:tint="@color/green" />
+                    app:tint="#FF9800" />
 
-                <TextView
-                    android:id="@+id/tv_schedule_title"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="Schedule\nAppointment"
-                    android:textColor="@color/green"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="@id/img_schedule"
-                    app:layout_constraintEnd_toStartOf="@+id/img_arrow_schedule"
-                    app:layout_constraintStart_toEndOf="@id/img_schedule"
-                    app:layout_constraintTop_toTopOf="@id/img_schedule" />
+                    android:orientation="vertical">
 
-                <ImageView
-                    android:id="@+id/img_arrow_schedule"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/outline_arrow_forward_ios_24"
-                    app:layout_constraintBottom_toBottomOf="@id/img_schedule"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@id/img_schedule"
-                    app:tint="@color/green" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Schedule Appointment"
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Book a session with our verified experts at your convenience. Choose a time that fits your schedule no rush, no pressure."
-                    android:textColor="@color/gray"
-                    android:textSize="12sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/img_schedule" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Book a dedicated slot for a detailed portfolio review at your convenience."
+                        android:textColor="@color/gray"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </FrameLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_schedule_book"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/primary_button_bg"
+                android:backgroundTint="#FF9800"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="Book Later"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="PREMIUM FINANCE ACCESS"
+        android:textColor="@color/gray"
+        android:textSize="10sp"
+        android:letterSpacing="0.1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/card_schedule" 
+        android:layout_marginBottom="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
-<!-- Updated for repository activity -->
+</androidx.constraintlayout.widget.ConstraintLayout>

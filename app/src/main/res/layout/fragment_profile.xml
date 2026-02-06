@@ -12,7 +12,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/profile_header_bg">
+     >
 
         <TextView
             android:id="@+id/textView3"
@@ -226,119 +226,9 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/leaveLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_5sdp"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:layout_marginEnd="@dimen/_5sdp"
-
-        android:padding="@dimen/_2sdp">
-
-        <ImageButton
-            android:id="@+id/leave"
-            android:layout_width="@dimen/_37sdp"
-            android:layout_height="@dimen/_37sdp"
-            android:layout_marginStart="10dp"
-            android:layout_marginBottom="@dimen/_5sdp"
-            android:background="@drawable/double_bg"
-            android:src="@drawable/session_history"
-            android:tint="@color/primary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/textViewwew9"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:text="Booked Sessions"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/imageBuhtton"
-            app:layout_constraintStart_toEndOf="@+id/leave"
-            app:layout_constraintTop_toTopOf="@+id/leave" />
-
-        <TextView
-            android:id="@+id/textViaeaw"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Click here to see all your requests"
-            app:layout_constraintEnd_toEndOf="@+id/textViewwew9"
-            app:layout_constraintStart_toStartOf="@+id/textViewwew9"
-            app:layout_constraintTop_toBottomOf="@+id/textViewwew9" />
-
-        <ImageButton
-            android:id="@+id/imageBuhtton"
-            android:layout_width="@dimen/_37sdp"
-            android:layout_height="@dimen/_37sdp"
-            android:layout_marginRight="@dimen/_10sdp"
-            android:background="@drawable/double_bg"
-            android:src="@drawable/outline_arrow_forward_ios_24"
-            android:tint="@color/primary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/transactionsLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_5sdp"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:layout_marginEnd="@dimen/_5sdp"
-        android:padding="@dimen/_2sdp">
-
-        <ImageButton
-            android:id="@+id/transactionIcon"
-            android:layout_width="@dimen/_37sdp"
-            android:layout_height="@dimen/_37sdp"
-            android:layout_marginStart="10dp"
-            android:layout_marginBottom="@dimen/_5sdp"
-            android:background="@drawable/double_bg"
-            android:src="@drawable/transaction"
-            android:tint="@color/primary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/tvTransactionsTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:text="My Transactions"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/btnTransactionArrow"
-            app:layout_constraintStart_toEndOf="@+id/transactionIcon"
-            app:layout_constraintTop_toTopOf="@+id/transactionIcon" />
-
-        <TextView
-            android:id="@+id/tvTransactionsSubtitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="View your payment history"
-            app:layout_constraintEnd_toEndOf="@+id/tvTransactionsTitle"
-            app:layout_constraintStart_toStartOf="@+id/tvTransactionsTitle"
-            app:layout_constraintTop_toBottomOf="@+id/tvTransactionsTitle" />
-
-        <ImageButton
-            android:id="@+id/btnTransactionArrow"
-            android:layout_width="@dimen/_37sdp"
-            android:layout_height="@dimen/_37sdp"
-            android:layout_marginRight="@dimen/_10sdp"
-            android:background="@drawable/double_bg"
-            android:src="@drawable/outline_arrow_forward_ios_24"
-            android:tint="@color/primary"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/helpSupportLayout"

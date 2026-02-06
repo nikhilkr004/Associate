@@ -186,22 +186,22 @@ class CallHistoryFragment : Fragment() {
             }
         }
 
-        // Observer for Earnings (Advisor Dashboard)
-        viewModel.advisorEarnings.observe(viewLifecycleOwner) { earnings ->
-            if (earnings != null) {
-                // Show Card
-                binding.earningsCard.visibility = View.VISIBLE
-                
-                // Format Currency
-                val format: (Double) -> String = { amount -> "₹ ${String.format("%.2f", amount)}" }
-                
-                binding.tvLifetimeEarnings.text = format(earnings.totalLifetimeEarnings)
-                binding.tvTodayEarnings.text = format(earnings.todayEarnings)
-                binding.tvPendingBalance.text = format(earnings.pendingBalance)
-            } else {
-                binding.earningsCard.visibility = View.GONE
-            }
-        }
+//        // Observer for Earnings (Advisor Dashboard)
+//        viewModel.advisorEarnings.observe(viewLifecycleOwner) { earnings ->
+//            if (earnings != null) {
+//                // Show Card
+//                binding.earningsCard.visibility = View.VISIBLE
+//
+//                // Format Currency
+//                val format: (Double) -> String = { amount -> "₹ ${String.format("%.2f", amount)}" }
+//
+//                binding.tvLifetimeEarnings.text = format(earnings.totalLifetimeEarnings)
+//                binding.tvTodayEarnings.text = format(earnings.todayEarnings)
+//                binding.tvPendingBalance.text = format(earnings.pendingBalance)
+//            } else {
+//                binding.earningsCard.visibility = View.GONE
+//            }
+//        }
 
         // Observe loading state
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->

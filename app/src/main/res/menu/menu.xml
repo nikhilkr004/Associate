@@ -5,9 +5,6 @@
         android:icon="@drawable/home"
         android:title="Home" />
 
-
-
-
     <item
         android:id="@+id/communityFragment"
         android:icon="@drawable/ic_community"
@@ -15,12 +12,12 @@
 
     <item
         android:id="@+id/navigation_transactions"
-        android:icon="@drawable/ic_community"
+        android:icon="@drawable/transaction"
         android:title="Transactions" />
 
     <item
         android:id="@+id/navigation_call_history"
-        android:icon="@drawable/search"
+        android:icon="@drawable/session_history"
         android:title="Call History" />
 
     <item
