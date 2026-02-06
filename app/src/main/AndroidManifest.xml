@@ -232,6 +232,21 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- AI Chat Activity -->
+        <activity
+            android:name=".Activities.AiChatActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Community Activity -->
+        <activity
+            android:name=".Activities.CommunityActivity"
+            android:screenOrientation="portrait"
+            android:exported="true"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
+
     </application>
 
 </manifest>

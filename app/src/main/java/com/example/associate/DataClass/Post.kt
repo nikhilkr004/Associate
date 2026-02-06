@@ -12,7 +12,12 @@ data class Post(
     val mediaType: String = "", // "IMAGE" or "VIDEO"
     val caption: String = "",
     val timestamp: Timestamp? = null,
-    val likesCount: Int = 0,
+    var likesCount: Int = 0,
     val viewCount: Int = 0,     // Total impressions
-    val profileConnectCount: Int = 0 // Taps on profile
+    val profileConnectCount: Int = 0, // Taps on profile
+    val category: String = "",        // e.g., "Mutual Funds", "Stocks"
+    val marketSentiment: String = "",  // "BULLISH" or "BEARISH"
+    // Local state for UI
+    var isLiked: Boolean = false,
+    var commentsCount: Int = 0 
 )

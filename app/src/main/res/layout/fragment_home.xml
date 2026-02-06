@@ -261,6 +261,21 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+    <!-- AI Chat FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAiChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="80dp" 
+        android:contentDescription="AI Chat"
+        android:src="@drawable/bot_avatar"
+        app:backgroundTint="#3D8D7A"
+        app:tint="@color/white"
+        app:elevation="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- 🔥 Current Booking Card - Floating at the bottom -->
     <androidx.cardview.widget.CardView
         android:id="@+id/current_booking_card"

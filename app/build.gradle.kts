@@ -107,6 +107,12 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.2.0")
     implementation("androidx.media3:media3-ui:1.2.0")
 
+    // Google Gemini AI
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+
+    // Markdown (Markwon)
+    implementation("io.noties.markwon:core:4.6.2")
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -123,6 +129,9 @@ dependencies {
     
     // Google Sign-In (Service Based)
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    // Google ML Kit (Language Detection)
+    implementation("com.google.mlkit:language-id:17.0.4")
 }
 
 // Updated for repository activity

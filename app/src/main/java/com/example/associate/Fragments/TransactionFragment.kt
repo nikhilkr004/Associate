@@ -1,3 +1,5 @@
+package com.example.associate.Fragments
+
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -27,11 +29,11 @@ class TransactionFragment : Fragment() {
     private val transactionList = mutableListOf<Transaction>()
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-    
+
     // Listeners for Real-time Updates
     private var paymentListener: ListenerRegistration? = null
     private var transactionListener: ListenerRegistration? = null
-    
+
     // Separate lists for merging
     private val paymentTxns = ArrayList<Transaction>()
     private val callTxns = ArrayList<Transaction>()
@@ -47,13 +49,13 @@ class TransactionFragment : Fragment() {
         binding = FragmentTransactionBinding.inflate(inflater, container, false)
 
         setupRecyclerView()
-        fetchWalletBalance() 
+        fetchWalletBalance()
         fetchTransactionData()
         setupClickListeners()
 
         return binding.root
     }
-    
+
     override fun onDestroyView() {
         super.onDestroyView()
         paymentListener?.remove()
@@ -78,17 +80,17 @@ class TransactionFragment : Fragment() {
                         Log.e("TransactionFragment", "Wallet Listen Failed: ${e.message}")
                         return@addSnapshotListener
                     }
-                    
+
                     if (document != null && document.exists()) {
                         val wallet = document.toObject(WalletDataClass::class.java)
                         wallet?.let {
                             binding.currentBalance.text = "₹${String.format("%.2f", it.balance)}"
                         }
                     } else {
-                         // Create if not exists (Only once, check existence first prevents loop if creation is slow)
-                         // Actually, we shouldn't create it in a listener loop if it triggers again. 
-                         // But here we just set text 0.00 if null. Creation logic is better elsewhere or specific action.
-                         binding.currentBalance.text = "₹0.00"
+                        // Create if not exists (Only once, check existence first prevents loop if creation is slow)
+                        // Actually, we shouldn't create it in a listener loop if it triggers again.
+                        // But here we just set text 0.00 if null. Creation logic is better elsewhere or specific action.
+                        binding.currentBalance.text = "₹0.00"
                     }
                 }
         }
@@ -110,7 +112,7 @@ class TransactionFragment : Fragment() {
             .whereEqualTo("userId", currentUser.uid)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
-                
+
                 paymentTxns.clear()
                 if (snapshot != null) {
                     for (doc in snapshot.documents) {
@@ -128,7 +130,7 @@ class TransactionFragment : Fragment() {
             .whereEqualTo("userId", currentUser.uid)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) return@addSnapshotListener
-                
+
                 callTxns.clear()
                 if (snapshot != null) {
                     for (doc in snapshot.documents) {
@@ -137,12 +139,16 @@ class TransactionFragment : Fragment() {
                             val amount = (data["amount"] as? Number)?.toDouble() ?: 0.0
                             val type = data["type"] as? String ?: "debit"
                             val timestamp = data["timestamp"] as? Timestamp ?: Timestamp.now()
-                            val bookingId = data["bookingId"] as? String ?: data["relatedBookingId"] ?: doc.id
+                            val bookingId =
+                                data["bookingId"] as? String ?: data["relatedBookingId"] ?: doc.id
                             val description = data["description"] as? String ?: "Transaction"
                             val category = data["category"] as? String ?: ""
-                            
-                            val isDebit = type.equals("debit", ignoreCase = true) || category == "call_payment"
-                            
+
+                            val isDebit = type.equals(
+                                "debit",
+                                ignoreCase = true
+                            ) || category == "call_payment"
+
                             val formattedAmount = if (isDebit) {
                                 "- ₹${String.format("%.2f", amount)}"
                             } else {
@@ -168,28 +174,31 @@ class TransactionFragment : Fragment() {
                 updateMergedList()
             }
     }
-    
+
     private fun updateMergedList() {
         val mergedList = ArrayList<Transaction>()
         mergedList.addAll(paymentTxns)
         mergedList.addAll(callTxns)
-        
+
         // Sort by Date Descending
         mergedList.sortByDescending { it.timestamp }
-        
+
         transactionList.clear()
         transactionList.addAll(mergedList)
         transactionAdapter.notifyDataSetChanged()
-        
+
         // binding.loadingProgressBar.visibility = View.GONE
         DialogUtils.hideLoadingDialog()
-        
+
         if (transactionList.isEmpty()) {
-             // Handle empty state visibility if view exists
+            // Handle empty state visibility if view exists
         }
     }
 
-    private fun convertPaymentToTransaction(payment: PaymentDataClass, documentId: String): Transaction {
+    private fun convertPaymentToTransaction(
+        payment: PaymentDataClass,
+        documentId: String
+    ): Transaction {
         return Transaction(
             id = documentId,
             type = getTransactionType(payment),
@@ -217,6 +226,7 @@ class TransactionFragment : Fragment() {
             "INR" -> "₹"
             "USD" -> "$"
             else -> ""
+
         }
 
         return if (payment.amount >= 0) {
@@ -239,7 +249,7 @@ class TransactionFragment : Fragment() {
     private fun getFormattedStatus(payment: PaymentDataClass): String {
         if (payment.status == "pending") return "Pending"
         if (payment.status == "failed") return "Failed"
-        if (payment.status == "success") return "Debited" 
+        if (payment.status == "success") return "Debited"
 
         if (payment.type == "video_call" || payment.amount < 0) {
             return "Debited"
@@ -273,7 +283,7 @@ class TransactionFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance() = TransactionFragment()
+       fun newInstance() = TransactionFragment()
     }
 }
 // Updated for repository activity

@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.example.associate.Utils.ThemeManager.applyTheme(this)
@@ -66,20 +67,21 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(HomeFragment.newInstance())
                     true
                 }
-                R.id.navigation_advisors -> {
-                    loadFragment(com.example.associate.Fragments.SearchFragment.newInstance())
+
+                R.id.communityFragment -> {
+                    loadFragment(com.example.associate.Fragments.CommunityFragment.newInstance())
                     true
                 }
-                R.id.transactionFragment -> {
-                    loadFragment(TransactionFragment.newInstance())
+                R.id.navigation_transactions -> {
+                    loadFragment(com.example.associate.Fragments.TransactionFragment.newInstance())
+                    true
+                }
+                R.id.navigation_call_history -> {
+                    loadFragment(CallHistoryFragment.newInstance())
                     true
                 }
                 R.id.navigation_profile -> {
                     loadFragment(ProfileFragment.newInstance())
-                    true
-                }
-                R.id.callHistoryFragment -> {
-                    loadFragment(CallHistoryFragment.newInstance())
                     true
                 }
                 else -> false

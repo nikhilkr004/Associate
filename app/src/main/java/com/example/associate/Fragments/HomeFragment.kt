@@ -89,6 +89,10 @@ class HomeFragment : Fragment() {
         binding.notifictionBtn.setOnClickListener {
             startActivity(Intent(requireContext(), com.example.associate.Activities.NotificationActivity::class.java))
         }
+
+        binding.fabAiChat.setOnClickListener {
+            startActivity(Intent(requireContext(), com.example.associate.Activities.AiChatActivity::class.java))
+        }
     }
 
     private fun setupRecyclerView() {

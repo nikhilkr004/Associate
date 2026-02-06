@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#0F1C18"> <!-- Dark Greenish Black from reference -->
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp">
+
+        <!-- Header -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/imgPostAvatar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="12dp"
+            android:src="@drawable/ic_launcher_background"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvPostUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Advisor Name"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@+id/imgPostAvatar"
+            app:layout_constraintTop_toTopOf="@+id/imgPostAvatar" />
+
+        <ImageView
+            android:id="@+id/ivVerifiedBadge"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="4dp"
+            android:src="@drawable/ic_check_circle" 
+            app:layout_constraintBottom_toBottomOf="@+id/tvPostUsername"
+            app:layout_constraintStart_toEndOf="@+id/tvPostUsername"
+            app:layout_constraintTop_toTopOf="@+id/tvPostUsername"
+            app:tint="#4CAF50" /> <!-- Green Verified -->
+
+        <TextView
+            android:id="@+id/tvPostCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Category • 2h ago"
+            android:textColor="#B0BEC5" 
+            android:textSize="11sp"
+            app:layout_constraintStart_toEndOf="@+id/imgPostAvatar"
+            app:layout_constraintTop_toBottomOf="@+id/tvPostUsername" />
+
+        <ImageButton
+            android:id="@+id/btnPostMore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_more_vert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/white"
+            app:layout_constraintBottom_toBottomOf="@+id/imgPostAvatar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/imgPostAvatar" />
+
+        <!-- Caption (Text) - Placed ABOVE Media as per reference -->
+        <TextView
+            android:id="@+id/tvPostCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="12dp"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imgPostAvatar" />
+
+        <!-- Media Container -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cvMediaContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvPostCaption">
+
+            <ImageView
+                android:id="@+id/imgPostMedia"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:scaleType="centerCrop"
+                android:background="#2E3A36"
+                />
+                
+            <!-- Sentiment Tag Overlay -->
+            <TextView
+                android:id="@+id/tvSentiment"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="12dp"
+                android:text="BULLISH"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_sentiment_tag" 
+                android:visibility="gone"/>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Actions Row -->
+        <ImageButton
+            android:id="@+id/btnPostLike"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="12dp"
+            android:src="@drawable/heart"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cvMediaContainer" />
+
+        <TextView
+            android:id="@+id/tvPostLikes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="2.4k"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/btnPostLike"
+            app:layout_constraintStart_toEndOf="@+id/btnPostLike"
+            app:layout_constraintTop_toTopOf="@+id/btnPostLike" />
+
+        <ImageButton
+            android:id="@+id/btnPostComment"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="24dp"
+            android:src="@drawable/chat_bubble"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/white"
+            app:layout_constraintBottom_toBottomOf="@+id/btnPostLike"
+            app:layout_constraintStart_toEndOf="@+id/tvPostLikes"
+            app:layout_constraintTop_toTopOf="@+id/btnPostLike" />
+
+        <TextView
+            android:id="@+id/tvPostComments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="156"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/btnPostComment"
+            app:layout_constraintStart_toEndOf="@+id/btnPostComment"
+            app:layout_constraintTop_toTopOf="@+id/btnPostComment" />
+
+            app:layout_constraintTop_toTopOf="@+id/btnPostLike" />
+            
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBookSession"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginEnd="12dp"
+            android:text="Book"
+            android:textColor="@color/black"
+            android:textSize="12sp"
+            android:backgroundTint="@color/white"
+            app:cornerRadius="18dp"
+            app:layout_constraintBottom_toBottomOf="@+id/btnPostLike"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/btnPostLike" />
+            
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Share"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginEnd="6dp"
+            app:layout_constraintBottom_toBottomOf="@+id/btnPostShare"
+            app:layout_constraintEnd_toStartOf="@+id/btnPostShare"
+            app:layout_constraintTop_toTopOf="@+id/btnPostShare" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

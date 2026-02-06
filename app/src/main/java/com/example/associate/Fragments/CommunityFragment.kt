@@ -13,7 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.associate.Activities.AdvisorProfileActivity
-import com.example.associate.Adapters.CommunityAdapter
+import com.example.associate.Adapters.SocialPostAdapter
 import com.example.associate.DataClass.Post
 import com.example.associate.Repositories.CommunityRepository
 import com.example.associate.databinding.FragmentCommunityBinding
@@ -25,10 +25,10 @@ class CommunityFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val repository = CommunityRepository()
-    private lateinit var adapter: CommunityAdapter
+    private lateinit var adapter: SocialPostAdapter
     private val visibleHandler = Handler(Looper.getMainLooper())
-    private val visiblePostTracker = mutableMapOf<String, Long>() // PostId -> StartTime
-    private val viewedPosts = mutableSetOf<String>() // PostIds already incremented
+    private val visiblePostTracker = mutableMapOf<String, Long>()
+    private val viewedPosts = mutableSetOf<String>()
     private val VISIBILITY_THRESHOLD_MS = 3000L
 
     private val visibilityRunnable = object : Runnable {
@@ -49,31 +49,155 @@ class CommunityFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupTabs()
         setupRecyclerView()
+        setupReels()
         loadPosts()
     }
 
+    private fun setupTabs() {
+        binding.tabLayout.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: com.google.android.material.tabs.TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> { // Posts
+                        binding.rvCommunity.visibility = View.VISIBLE
+                        binding.vpReels.visibility = View.GONE
+                    }
+                    1 -> { // Reels
+                        binding.rvCommunity.visibility = View.GONE
+                        binding.vpReels.visibility = View.VISIBLE
+                        // Load reels if empty?
+                    }
+                }
+            }
+            override fun onTabUnselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+            override fun onTabReselected(tab: com.google.android.material.tabs.TabLayout.Tab?) {}
+        })
+    }
+
+    private fun setupReels() {
+        // Mock Reels Data
+        val mockReels = listOf(
+            Post(
+                advisorName = "DanceChoreo",
+                caption = "New moves! #dance",
+                likesCount = 500,
+                mediaUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                mediaType = "VIDEO",
+                advisorProfileImage = "https://via.placeholder.com/150",
+                category = "Lifestyle"
+            ),
+             Post(
+                advisorName = "ChefMike",
+                caption = "Best steak recipe 🥩",
+                likesCount = 1200,
+                mediaUrl = "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                mediaType = "VIDEO",
+                advisorProfileImage = "https://via.placeholder.com/150",
+                category = "Food"
+            )
+        )
+
+        val reelsAdapter = com.example.associate.Adapters.ReelsAdapter(mockReels) {
+            // Reel Click
+        }
+        binding.vpReels.adapter = reelsAdapter
+        binding.vpReels.orientation = androidx.viewpager2.widget.ViewPager2.ORIENTATION_VERTICAL
+    }
+
     private fun setupRecyclerView() {
-        adapter = CommunityAdapter(
-            onProfileClick = { advisorId ->
-                val intent = Intent(requireContext(), AdvisorProfileActivity::class.java)
-                intent.putExtra("advisorId", advisorId)
-                startActivity(intent)
-            },
+        // Mock Data for Posts with Sentiment
+        val mockPosts = listOf(
+            Post(
+                advisorName = "CA Rahul Sharma",
+                caption = "The new tax regime changes for FY 2024-25 are here! 📊 If your income is above ₹15L...",
+                likesCount = 2400,
+                advisorProfileImage = "https://via.placeholder.com/150",
+                mediaUrl = "https://via.placeholder.com/400x300",
+                category = "Income Tax Specialist",
+                marketSentiment = "BULLISH",
+                advisorId = "1",
+                commentsCount = 156
+            ),
+            Post(
+                advisorName = "Ananya S.",
+                caption = "BTC/INR testing major support at ₹54,00,000. Volume is picking up.",
+                likesCount = 892,
+                advisorProfileImage = "https://via.placeholder.com/150",
+                mediaUrl = "https://via.placeholder.com/400x300",
+                category = "Crypto Strategist",
+                marketSentiment = "BEARISH",
+                advisorId = "2",
+                commentsCount = 45
+            )
+        )
+
+        adapter = SocialPostAdapter(
+            posts = mockPosts, // Passing mock data directly for demo
             onBookSessionClick = { advisorId ->
-                // Basic logic: Navigate to AdvisorProfile for booking, or open dialog if implemented
                 val intent = Intent(requireContext(), AdvisorProfileActivity::class.java)
                 intent.putExtra("advisorId", advisorId)
-                intent.putExtra("openBooking", true) // Optional flag
+                intent.putExtra("openBooking", true) 
                 startActivity(intent)
             },
-            onPostVisible = { postId ->
-                // Handled by scroll check mainly, but this can be a fallback signal
+            onPostClick = { post -> },
+            onLikeClick = { post ->
+                post.isLiked = !post.isLiked
+                adapter.notifyDataSetChanged()
+            },
+            onCommentClick = { post ->
+                showCommentsBottomSheet(post)
             }
         )
 
         binding.rvCommunity.layoutManager = LinearLayoutManager(context)
         binding.rvCommunity.adapter = adapter
+    }
+
+    private fun showCommentsBottomSheet(post: Post) {
+        val dialog = com.google.android.material.bottomsheet.BottomSheetDialog(requireContext())
+        val view = layoutInflater.inflate(com.example.associate.R.layout.bottom_sheet_comments, null)
+        dialog.setContentView(view)
+
+        val comments = mutableListOf(
+            com.example.associate.DataClass.Comment("c1", post.postId, "u1", "alice", "", "Great post!"),
+            com.example.associate.DataClass.Comment("c2", post.postId, "u2", "bob", "", "I agree with this.")
+        )
+
+        val rvComments = view.findViewById<RecyclerView>(com.example.associate.R.id.rvComments)
+        val etInput = view.findViewById<android.widget.EditText>(com.example.associate.R.id.etCommentInput)
+        val btnSend = view.findViewById<android.view.View>(com.example.associate.R.id.btnPostComment)
+        
+        val commentAdapter = com.example.associate.Adapters.CommentAdapter(
+            comments, 
+            onReplyClick = { comment ->
+                etInput.setText("@${comment.username} ")
+                etInput.setSelection(etInput.text.length)
+                etInput.requestFocus()
+            },
+            onLikeClick = { comment -> }
+        )
+        rvComments.layoutManager = LinearLayoutManager(requireContext())
+        rvComments.adapter = commentAdapter
+
+        btnSend.setOnClickListener {
+            val text = etInput.text.toString()
+            if (text.isNotEmpty()) {
+                comments.add(com.example.associate.DataClass.Comment(
+                    java.util.UUID.randomUUID().toString(),
+                    post.postId,
+                    "me", "Me", "", text
+                ))
+                commentAdapter.notifyItemInserted(comments.size - 1)
+                rvComments.smoothScrollToPosition(comments.size - 1)
+                etInput.setText("")
+                
+                // Update Post Comment Count UI
+                post.commentsCount += 1
+                adapter.notifyDataSetChanged()
+            }
+        }
+        dialog.show()
     }
 
     private fun loadPosts() {
@@ -126,7 +250,6 @@ class CommunityFragment : Fragment() {
             }
         }
 
-        // Remove posts that are no longer visible
         val setIterator = visiblePostTracker.iterator()
         while (setIterator.hasNext()) {
             val entry = setIterator.next()
@@ -137,17 +260,22 @@ class CommunityFragment : Fragment() {
     }
 
     private fun isViewVisible(view: View): Boolean {
+        if (binding.rvCommunity.visibility != View.VISIBLE) return false
         val rect = Rect()
         val isVisible = view.getGlobalVisibleRect(rect)
         if (!isVisible) return false
 
         val height = view.height
         val visibleHeight = rect.height()
-        return visibleHeight >= height * 0.5 // >50% visible
+        return visibleHeight >= height * 0.5 
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+        fun newInstance() = CommunityFragment()
     }
 }

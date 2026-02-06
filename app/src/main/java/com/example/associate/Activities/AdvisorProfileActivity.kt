@@ -1,6 +1,9 @@
 package com.example.associate.Activities
 
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +22,7 @@ import com.example.associate.databinding.ActivityAdvisorProfileBinding
 import com.example.associate.Dialogs.AppointmentTypeDialog
 import com.example.associate.Dialogs.ScheduleBookingDialog
 import com.example.associate.MainActivity
+import com.google.android.material.chip.Chip
 
 class AdvisorProfileActivity : AppCompatActivity() {
 
@@ -76,83 +80,67 @@ class AdvisorProfileActivity : AppCompatActivity() {
     }
 
     private fun displayAdvisorData() {
+        // Name & Bio
         binding.tvName.text = advisor.basicInfo.name
         binding.aboutTxt.text = advisor.professionalInfo.bio
-        binding.tvLanguages.text = advisor.professionalInfo.languages.toString()
-        binding.tvCompany.text = advisor.professionalInfo.officeLocation
-        binding.tvExperience.text = advisor.professionalInfo.experience.toString() + " years"
 
-        // Use Pipe Separator for Specializations
-        binding.sepcializationTxt.text =
-            advisor.professionalInfo.specializations.joinToString(" | ")
+        // Stats Grid
+        binding.tvExperience.text = "${advisor.professionalInfo.experience} Years"
+        binding.tvLanguages.text = advisor.professionalInfo.languages.joinToString(", ")
+        binding.tvLocation.text = advisor.professionalInfo.officeLocation
+        binding.tvAUM.text = "0-50 Cr" // Placeholder as per design
 
-        // Set Rating
+        // Rating
         binding.ratingTxt.text = advisor.performanceInfo.rating.toString()
+
+        // Specialization Chips
+        setupSpecializationChips()
 
         setupProfileImage()
         setupAvailabilityUI()
-        setupAwards()
-        setupSocialLinks()
+        // Awards UI removed in new design
+    }
+
+    private fun setupSpecializationChips() {
+        binding.specializationChipGroup.removeAllViews()
+        val specializations = advisor.professionalInfo.specializations
+        
+        for (spec in specializations) {
+            val chip = Chip(this)
+            chip.text = spec
+            chip.chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#E0F2F1"))
+            chip.setTextColor(Color.parseColor("#00695C"))
+            chip.isClickable = false
+            chip.isCheckable = false
+            binding.specializationChipGroup.addView(chip)
+        }
     }
 
     private fun setupAvailabilityUI() {
         val availability = advisor.availabilityInfo.scheduledAvailability
 
+        // Reset backgrounds first if needed, but we'll specific set if enabled
+        
         if (availability.isChatEnabled) {
-            binding.chatLayout.setBackgroundResource(R.drawable.eleveted_bg)
+            binding.chatLayout.alpha = 1.0f
             binding.chatLayout.setOnClickListener {
                 checkBalanceAndStartChat()
             }
+        } else {
+            binding.chatLayout.alpha = 0.5f
+            binding.chatLayout.setOnClickListener(null)
         }
+
         if (availability.isVideoCallEnabled) {
-            binding.videoLayout.setBackgroundResource(R.drawable.eleveted_bg)
+            binding.videoLayout.alpha = 1.0f
+        } else {
+             binding.videoLayout.alpha = 0.5f
         }
+
         if (availability.isAudioCallEnabled) {
-            binding.audioLayout.setBackgroundResource(R.drawable.eleveted_bg)
-        }
-        if (availability.isOfficeVisitEnabled) {
-            binding.officeVisitLayout.setBackgroundResource(R.drawable.eleveted_bg)
-        }
-        if (availability.isInPersonEnabled) {
-            binding.inpersonLayout.setBackgroundResource(R.drawable.eleveted_bg)
-        }
-    }
-
-    private fun setupAwards() {
-        val awards = advisor.professionalInfo.awards
-        if (awards.isNotEmpty()) {
-            binding.awardsLayout.visibility = android.view.View.VISIBLE
-            val adapter = com.example.associate.Adapters.AdvisorAwardAdapter(awards)
-            binding.awardsRecyclerview.adapter = adapter
+            binding.audioLayout.alpha = 1.0f
         } else {
-            binding.awardsLayout.visibility = android.view.View.GONE
-        }
-    }
-
-    private fun setupSocialLinks() {
-        val resources = advisor.resources
-        setupSocialIcon(binding.imgLinkedIn, resources.linkedinProfile)
-        setupSocialIcon(binding.imgTwitter, resources.twitterProfile)
-        setupSocialIcon(binding.imgInstagram, resources.instagramProfile)
-        setupSocialIcon(binding.imgWebsite, resources.website)
-    }
-
-    private fun setupSocialIcon(view: android.view.View, url: String) {
-        if (url.isNotEmpty()) {
-            view.visibility = android.view.View.VISIBLE
-            view.setOnClickListener { openUrl(url) }
-        } else {
-            view.visibility = android.view.View.GONE
-        }
-    }
-
-    private fun openUrl(url: String) {
-        try {
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW)
-            intent.data = android.net.Uri.parse(url)
-            startActivity(intent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+             binding.audioLayout.alpha = 0.5f
         }
     }
 
@@ -184,7 +172,7 @@ class AdvisorProfileActivity : AppCompatActivity() {
     }
 
     private fun startChatActivity(bookingId: String = "") {
-        val intent = android.content.Intent(this, ChatActivity::class.java)
+        val intent = android.content.Intent(this, com.example.associate.Activities.ChatActivity::class.java)
         intent.putExtra(
             "CHAT_ID",
             bookingId
@@ -202,8 +190,6 @@ class AdvisorProfileActivity : AppCompatActivity() {
     private fun setupReviews() {
         val repository = RatingRepository()
 
-        // Show loading state if needed, or just fetch
-
         binding.advisorRecyclerview.layoutManager =
             LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
@@ -220,12 +206,14 @@ class AdvisorProfileActivity : AppCompatActivity() {
                 // Update UI with calculated rating
                 val formattedRating = String.format("%.1f", averageRating)
                 binding.ratingTxt.text = formattedRating
-                binding.rbReviewRating.rating = averageRating
+                binding.rbReviewRating.rating = averageRating.toFloat()
+                binding.tvReviewCount.text = "(${reviews.size} Reviews)"
 
             } else {
                 binding.advisorRecyclerview.visibility = android.view.View.GONE
                 binding.ratingTxt.text = "0.0"
                 binding.rbReviewRating.rating = 0f
+                binding.tvReviewCount.text = "(0 Reviews)"
             }
         }
     }
@@ -275,4 +263,3 @@ class AdvisorProfileActivity : AppCompatActivity() {
         finish()
     }
 }
-// Updated for repository activity

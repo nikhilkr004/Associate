@@ -5,627 +5,540 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activitys.AdvisorProfileActivity">
-
+    android:background="@android:color/white"
+    tools:context=".Activities.AdvisorProfileActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
+        android:orientation="vertical"
+        android:paddingBottom="20dp">
 
         <!-- Header Section -->
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/topAppBar"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/light_gray"
-            app:contentInsetStart="0dp">
+            android:paddingHorizontal="16dp">
 
-            <!-- Back Button -->
             <ImageView
                 android:id="@+id/imgBack"
-                android:layout_width="@dimen/_30sdp"
-                android:layout_height="@dimen/_30sdp"
-                android:layout_gravity="start|center_vertical"
-                android:layout_margin="@dimen/_5sdp"
-                android:contentDescription="Back"
-                android:padding="8dp"
-                android:src="@drawable/back" />
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_centerVertical="true"
+                android:padding="6dp"
+                android:src="@drawable/back"
+                app:tint="@color/black" />
 
-            <!-- Title Text -->
             <TextView
-                android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/_5sdp"
-                android:maxLines="1"
-                android:text=""
+                android:layout_centerInParent="true"
+                android:text="Advisor Profile"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
-            <!-- Action Text (Right side) -->
             <TextView
                 android:id="@+id/advisor_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end|center_horizontal"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:background="@drawable/search_field_bg"
-                android:padding="@dimen/_5sdp"
-                android:paddingEnd="16dp"
-                android:text="Online"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/double_bg"
+                android:drawableStart="@drawable/double_bg"
+                android:drawablePadding="4dp"
+                android:drawableTint="@color/green"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="ONLINE"
+                android:textColor="@color/green"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-                android:textSize="16sp" />
+        </RelativeLayout>
 
-        </com.google.android.material.appbar.MaterialToolbar>
+        <!-- Profile Image & Badge -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal">
 
-        <!-- Profile main section  -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:padding="3dp"
+                    android:src="@drawable/user"
+                    app:civ_border_color="#FFD700"
+                    app:civ_border_width="2dp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:layout_marginBottom="-2dp"
+                    android:background="@drawable/primary_button_bg"
+                    android:backgroundTint="#FFC107"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="2dp"
+                    android:text="EXPERT"
+                    android:textColor="@color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+        </RelativeLayout>
 
-        <!-- Name Row -->
+        <!-- Name & Rating -->
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="Nikhil Kumar"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
-
-            <!-- Profile Image and Social Links -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image"
-                android:layout_width="@dimen/_60sdp"
-                android:layout_height="@dimen/_60sdp"
-                android:layout_marginStart="@dimen/_10sdp"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:src="@drawable/user"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
-
-                <!-- Social Media Icons -->
-                <LinearLayout
-                    android:id="@+id/social_media_layout"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginEnd="@dimen/_10sdp"
-                    android:layout_marginTop="@dimen/_10sdp">
-
-                    <ImageView
-                        android:id="@+id/imgLinkedIn"
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:src="@drawable/linkedin"
-                        android:padding="@dimen/_7sdp"
-                        android:visibility="gone"
-                        android:background="@drawable/double_bg"
-                        android:contentDescription="LinkedIn"
-                       />
-
-                    <ImageView
-                        android:id="@+id/imgTwitter"
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:src="@drawable/twitter"
-                        android:padding="@dimen/_7sdp"
-                        android:layout_marginStart="5dp"
-                        android:background="@drawable/double_bg"
-                        android:contentDescription="Twitter"
-                        android:visibility="gone"
-                       />
-
-                    <ImageView
-                        android:id="@+id/imgInstagram"
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:src="@drawable/instagram"
-                        android:padding="@dimen/_7sdp"
-                        android:layout_marginStart="5dp"
-                        android:background="@drawable/double_bg"
-                        android:contentDescription="Instagram"
-                        android:visibility="gone"/>
-
-                    <ImageView
-                        android:id="@+id/imgWebsite"
-                        android:layout_width="@dimen/_25sdp"
-                        android:layout_height="@dimen/_25sdp"
-                        android:src="@drawable/website"
-                        android:padding="@dimen/_7sdp"
-                        android:layout_marginStart="5dp"
-                        android:background="@drawable/double_bg"
-                        android:contentDescription="Website"
-                        android:visibility="gone"/>
-                </LinearLayout>
-
-            </LinearLayout>
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/tvName"
+                android:id="@+id/rating_txt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sandesh Samudravijay Hirap"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:layout_marginTop="@dimen/_5sdp"
-                android:layout_marginStart="@dimen/_10sdp"
+                android:text="4.3"
+                android:textColor="#FFC107"
                 android:textStyle="bold" />
+
+            <RatingBar
+                android:id="@+id/rbReviewRating"
+                style="?android:attr/ratingBarStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:isIndicator="true"
+                android:numStars="5"
+                android:progressTint="#FFC107"
+                android:rating="4.5" />
+
             <TextView
-                android:id="@+id/sepcialization_txt"
-                android:layout_width="match_parent"
+                android:id="@+id/tvReviewCount"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_10sdp"
-                android:text="Mutual Fund | Tex"
-             />
-
-            <!-- Rating Row -->
-         <LinearLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:orientation="horizontal">
-             <TextView
-                 android:id="@+id/rating_txt"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginEnd="@dimen/_5sdp"
-                 android:layout_marginStart="@dimen/_10sdp"
-                 android:text="5.0"
-                 />
-
-             <RatingBar
-                 android:id="@+id/rbReviewRating"
-                 style="?android:attr/ratingBarStyleSmall"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:numStars="5"
-                 android:stepSize="0.5"
-                 android:isIndicator="true"
-                 android:progressTint="#FFEB3B"
-                 android:secondaryProgressTint="#BAB14F"
-                 android:rating="5.0"/>
-         </LinearLayout>
-
+                android:layout_marginStart="4dp"
+                android:text="(128 Reviews)"
+                android:textColor="@color/dark_gray"
+                android:textSize="12sp" />
         </LinearLayout>
 
 
-
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:layout_margin="@dimen/_10sdp"
-           android:background="@drawable/double_bg"
-           android:padding="@dimen/_5sdp"
-           android:orientation="vertical">
-           <!-- Experience Row -->
-           <LinearLayout
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="@dimen/_4sdp"
-               android:gravity="center_vertical"
-               android:orientation="horizontal">
-
-               <ImageView
-                   android:layout_width="@dimen/_20sdp"
-                   android:layout_height="@dimen/_20sdp"
-                   android:layout_marginEnd="@dimen/_8sdp"
-                   android:src="@drawable/portfolio"
-                   android:tint="@color/green" />
-
-               <TextView
-                   android:id="@+id/tvExperience"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:text="0 - 3 Years Experience"
-                   android:textColor="@color/black"
-                   android:textSize="16sp" />
-           </LinearLayout>
-
-           <!-- Languages Row -->
-           <LinearLayout
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="@dimen/_2sdp"
-               android:gravity="center_vertical"
-               android:orientation="horizontal">
-
-               <ImageView
-                   android:layout_width="@dimen/_20sdp"
-                   android:layout_height="@dimen/_20sdp"
-                   android:layout_marginEnd="@dimen/_8sdp"
-                   android:src="@drawable/language"
-                   android:tint="@color/green" />
-
-               <TextView
-                   android:id="@+id/tvLanguages"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:text="Marathi, English, Hindi"
-                   android:textColor="@color/black"
-                   android:textSize="16sp" />
-           </LinearLayout>
-
-           <!-- AUM Row -->
-           <LinearLayout
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="@dimen/_2sdp"
-               android:gravity="center_vertical"
-               android:orientation="horizontal">
-
-               <ImageView
-                   android:layout_width="@dimen/_20sdp"
-                   android:layout_height="@dimen/_20sdp"
-                   android:layout_marginEnd="@dimen/_8sdp"
-                   android:src="@drawable/checkmark"
-                   android:tint="@color/green" />
-
-               <TextView
-                   android:id="@+id/tvAUM"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:text="Current AUM 0-50 cr"
-                   android:textColor="@color/black"
-                   android:textSize="16sp" />
-           </LinearLayout>
-
-           <!-- Company Row -->
-           <LinearLayout
-               android:layout_width="match_parent"
-               android:layout_height="wrap_content"
-               android:layout_marginTop="@dimen/_2sdp"
-               android:gravity="center_vertical"
-               android:orientation="horizontal">
-
-               <ImageView
-                   android:layout_width="@dimen/_20sdp"
-                   android:layout_height="@dimen/_20sdp"
-                   android:layout_marginEnd="@dimen/_8sdp"
-                   android:src="@drawable/building"
-                   android:tint="@color/green" />
-
-               <TextView
-                   android:id="@+id/tvCompany"
-                   android:layout_width="wrap_content"
-                   android:layout_height="wrap_content"
-                   android:text="Sandesh Hirap and Associates"
-                   android:textColor="@color/black"
-                   android:textSize="16sp" />
-           </LinearLayout>
-
-       </LinearLayout>
-
-
-
-
-
-
-   <LinearLayout
-       android:id="@+id/Consultation_Lyt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-       android:orientation="vertical">
-
-
-       <TextView
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:text="Consultation Mode"
-           android:fontFamily="@font/archivo_black"
-           android:textColor="@color/green"
-           android:textSize="18sp"
-           android:layout_marginStart="@dimen/_10sdp"
-           android:textStyle="bold" />
-
-    <!-- Communication Options -->
-        <LinearLayout
-
+        <!-- Stats Grid -->
+        <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/_10sdp"
-            android:background="@drawable/double_bg"
-            android:orientation="horizontal"
-            android:padding="@dimen/_10sdp"
-            android:weightSum="5">
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:columnCount="2"
+            android:rowCount="2"
+            android:useDefaultMargins="true">
 
-
-
-
-            <!-- Chat Button -->
-
+            <!-- Card 1: Experience -->
             <LinearLayout
-                android:id="@+id/chat_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="@dimen/_5sdp">
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:background="@drawable/double_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
 
                 <ImageView
-                    android:layout_width="@dimen/_30sdp"
-                    android:layout_height="@dimen/_30sdp"
-                    android:padding="@dimen/_5sdp"
-                    android:src="@drawable/chat"
-                    android:tint="@color/primary"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#E8F5E9"
+                    android:padding="6dp"
+                    android:src="@drawable/portfolio"
+                    app:tint="@color/green" />
 
-                    />
-
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="Chat"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp" />
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="EXPERIENCE"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/tvExperience"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5 Years"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!-- Card 2: AUM -->
             <LinearLayout
-                android:id="@+id/video_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:layout_marginStart="@dimen/_4sdp"
-
-                android:padding="@dimen/_5sdp"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="@dimen/_30sdp"
-                    android:layout_height="@dimen/_30sdp"
-                    android:src="@drawable/videocall"
-                    android:padding="@dimen/_5sdp"
-                    android:tint="@color/primary"
-
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="Video"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/audio_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="@dimen/_5sdp"
-                android:layout_marginStart="@dimen/_4sdp"
-                android:orientation="vertical">
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:background="@drawable/double_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
 
                 <ImageView
-                    android:layout_width="@dimen/_30sdp"
-                    android:layout_height="@dimen/_30sdp"
-                    android:src="@drawable/call"
-                    android:padding="@dimen/_8sdp"
-                    android:tint="@color/primary"
-
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="Audio"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/office_visit_layout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="@dimen/_4sdp"
-                android:layout_marginStart="@dimen/_4sdp"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="@dimen/_30sdp"
-                    android:layout_height="@dimen/_30sdp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#E3F2FD"
+                    android:padding="6dp"
                     android:src="@drawable/building"
-                    android:padding="@dimen/_5sdp"
-                    android:tint="@color/primary"
+                    app:tint="#1976D2" />
 
-                    />
-
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAlignment="center"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="Office Visit"
-                    android:textColor="@color/primary"
-                    android:textSize="10sp" />
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="AUM RANGE"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/tvAUM"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0-50 Cr"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!-- Card 3: Language -->
             <LinearLayout
-                android:id="@+id/inperson_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="@dimen/_5sdp"
-                android:gravity="center"
-                android:layout_marginStart="@dimen/_4sdp"
-                android:orientation="vertical">
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:background="@drawable/double_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
 
                 <ImageView
-                    android:layout_width="@dimen/_30sdp"
-                    android:layout_height="@dimen/_30sdp"
-                    android:src="@drawable/inperson_icon"
-                    android:padding="@dimen/_5sdp"
-                    android:tint="@color/primary"
-                    />
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#F3E5F5"
+                    android:padding="6dp"
+                    android:src="@drawable/language"
+                    app:tint="#7B1FA2" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/_4sdp"
-                    android:text="In Person"
-                    android:textAlignment="center"
-                    android:textColor="@color/primary"
-                    android:textSize="14sp" />
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LANGUAGE"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/tvLanguages"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:text="English, Hindi"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!-- Card 4: Location -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                android:background="@drawable/double_bg"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#FFF3E0"
+                    android:padding="6dp"
+                    android:src="@drawable/website"
+                    app:tint="#E64A19" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LOCATION"
+                        android:textColor="@color/dark_gray"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/tvLocation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gurugram"
+                        android:textColor="@color/black"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </GridLayout>
 
 
-
-
-        </LinearLayout>
-
-   </LinearLayout>
-
-
-        <!-- About Section -->
-
+        <!-- Consultation Modes -->
         <TextView
-
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="About"
-            android:fontFamily="@font/archivo_black"
-            android:textColor="@color/green"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginStart="@dimen/_10sdp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:text="Consultation Modes"
+            android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:weightSum="3">
+
+            <!-- Chat -->
+            <LinearLayout
+                android:id="@+id/chat_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/double_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="@color/green"
+                    android:padding="10dp"
+                    android:src="@drawable/chat"
+                    app:tint="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Chat"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Video -->
+            <LinearLayout
+                android:id="@+id/video_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/double_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#E3F2FD"
+                    android:padding="10dp"
+                    android:src="@drawable/videocall"
+                    app:tint="#1976D2" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Video"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Audio -->
+            <LinearLayout
+                android:id="@+id/audio_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/double_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/eleveted_bg"
+                    android:backgroundTint="#F3E5F5"
+                    android:padding="10dp"
+                    android:src="@drawable/call"
+                    app:tint="#7B1FA2" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Audio"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+
+        <!-- About Section -->
+        <TextView
+            android:id="@+id/aboutTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:text="About Consultant"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/double_bg"
-            android:layout_margin="@dimen/_10sdp"
+            android:backgroundTint="#E0F2F1"
             android:orientation="vertical"
-            android:padding="@dimen/_6sdp">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/about_txt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="If you think compliance cost is more, Try non-compliance.\nWe provide wide range of services such as Audit,\nAccountancy, Consultancy related to Income Tax, Gst, Roc, etc."
-                />
+                android:text="Description..."
+                android:textColor="@color/black"
+                android:lineSpacingExtra="4dp"
+                android:textSize="14sp" />
+
+            <!-- Specialization Chips Container -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/specialization_chip_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp" />
+
         </LinearLayout>
 
+
+        <!-- Reviews / Ratings -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:orientation="vertical">
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
 
-            <!-- Awards Section -->
-            <LinearLayout
-                android:id="@+id/awards_layout"
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:layout_weight="1"
+                android:text="Rating | Reviews"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:text="Awards &amp; Certificates"
-                    android:textColor="@color/green"
-                    android:textSize="18sp"
-                    android:fontFamily="@font/archivo_black"
-                    android:textStyle="bold" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/awards_recyclerview"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingStart="@dimen/_10sdp"
-                    android:paddingEnd="@dimen/_10sdp"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:clipToPadding="false"
-                    android:orientation="horizontal"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/light_gray"
-                    android:layout_marginTop="@dimen/_10sdp"
-                    android:layout_marginBottom="@dimen/_10sdp"/>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:text="Rating | Reviews"
-                    android:textColor="@color/green"
-                    android:textSize="18sp"
-                    android:fontFamily="@font/archivo_black"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp"
-                    android:gravity="end"
-                    android:text="View all >>>"
-                    android:layout_marginEnd="@dimen/_10sdp"
-
-                 />
-
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/advisorRecyclerview"
-                android:layout_width="match_parent"
-                tools:listitem="@layout/item_advisor_review"
-                android:layout_height="wrap_content" />
-
-
-
+                android:text="View All >"
+                android:textColor="@color/green"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
-        <!-- Book Appointment Button -->
-        <TextView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/advisorRecyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingStart="16dp"
+            android:clipToPadding="false" />
+
+
+        <!-- Floating/Fixed Bottom Button? No, let's keep it in scroll for now as per previous design, or fix it to bottom. 
+             Previous design had it in ScrollView. Design screenshot shows it might be sticky or at bottom. 
+             I'll leave it out for now as the screenshot didn't explicitly show the "Book" button but it's crucial functionality.
+             Wait, I should check if the user wanted me to REMOVE it. 
+             "review section will be same make smooth ui and add details according to it"
+             The screenshot cuts off at reviews. 
+             I will add the Book Button back at the end of the scrollview to ensure functionality isn't lost. -->
+
+         <TextView
             android:id="@+id/book_advisor_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_10sdp"
-            android:layout_marginTop="@dimen/_20sdp"
-            android:layout_marginEnd="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_30sdp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="32dp"
             android:background="@drawable/primary_button_bg"
-            android:padding="@dimen/_10sdp"
-            android:text="Book Advisor"
-            android:textAlignment="center"
+            android:padding="14dp"
+            android:gravity="center"
+            android:text="Book Appointment"
             android:textColor="@color/white"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
-
 </ScrollView>
-<!-- Updated for repository activity -->

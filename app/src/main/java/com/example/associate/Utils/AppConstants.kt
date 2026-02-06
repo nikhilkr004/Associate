@@ -9,5 +9,6 @@ object AppConstants {
     // Payment Configuration
     const val PAYMENT_INTERVAL_MS = 10000L // 10 seconds
 
+    // Google Gemini AI
+    const val GEMINI_API_KEY = "AIzaSyDw2tavMAsZ92csbkUOI6Uwrw9dVnrB9E4"
 }
-// Updated for repository activity

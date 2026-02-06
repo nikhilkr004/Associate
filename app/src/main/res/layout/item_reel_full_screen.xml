@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <!-- Video View (Full Screen) -->
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/playerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:use_controller="false"
+        app:resize_mode="zoom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Overlay Gradient (Bottom) to make text readable -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@drawable/gradient_bottom_black"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Right Side Actions -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="60dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Camera Icon (Top Right in reference, but usually actions are bottom right) -->
+        <!-- Reference shows Camera Top Right. Actions are Bottom Right. -->
+
+        <ImageView
+            android:id="@+id/btnReelLike"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/heart"
+            app:tint="@color/white" />
+        
+        <TextView
+            android:id="@+id/tvReelLikes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="99k"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+
+        <ImageView
+            android:id="@+id/btnReelComment"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="24dp"
+            android:src="@drawable/chat_bubble"
+            app:tint="@color/white" />
+            
+        <TextView
+            android:id="@+id/tvReelComments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="940"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+
+        <ImageView
+            android:id="@+id/btnReelShare"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="24dp"
+            android:src="@drawable/send"
+            app:tint="@color/white" />
+            
+        <TextView
+            android:id="@+id/tvReelShares"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5k"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+            
+        <ImageView
+            android:id="@+id/btnReelMore"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="24dp"
+            android:src="@drawable/ic_more_vert"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+    <!-- Bottom Info (User, Caption) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="80dp" 
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imgReelAvatar"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/user" />
+                
+            <TextView
+                android:id="@+id/tvReelUsername"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="username"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="14sp" />
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/rounded_button_bg_white_outline"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="Follow"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+                
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvReelCaption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Lorem ipsum dolor sit amet, consectetur..."
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:maxLines="3"
+            android:ellipsize="end" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/music_note"
+                app:tint="@color/white" />
+                
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Original Audio - Artist Name"
+                android:textColor="@color/white"
+                android:textSize="12sp" /> 
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

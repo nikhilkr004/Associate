@@ -5,16 +5,23 @@
         android:icon="@drawable/home"
         android:title="Home" />
 
-    <item
-        android:id="@+id/navigation_advisors"
-        android:icon="@drawable/search"
-        android:title="Advisors" />
+
 
 
     <item
         android:id="@+id/communityFragment"
-        android:icon="@drawable/community"
+        android:icon="@drawable/ic_community"
         android:title="Community" />
+
+    <item
+        android:id="@+id/navigation_transactions"
+        android:icon="@drawable/ic_community"
+        android:title="Transactions" />
+
+    <item
+        android:id="@+id/navigation_call_history"
+        android:icon="@drawable/search"
+        android:title="Call History" />
 
     <item
         android:id="@+id/navigation_profile"
