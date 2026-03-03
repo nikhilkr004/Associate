@@ -4,6 +4,7 @@ import com.example.associate.R
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -28,27 +29,36 @@ class TransactionAdapter(private val transactions: List<Transaction>) :
 
     override fun onBindViewHolder(holder: TransactionViewHolder, position: Int) {
         val transaction = transactions[position]
+        val ctx = holder.itemView.context
 
         holder.transactionType.text = transaction.type
         holder.amountText.text = transaction.amount
         holder.dateText.text = transaction.date
-        holder.transactionIdText.text = "TriD. ${transaction.transactionId}"
-        holder.statusText.text = transaction.status
 
-        // Amount color based on type
-        if (transaction.amount.startsWith("-") || transaction.type == "Video Call Payment") {
-            holder.amountText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.holo_red_dark))
-        } else {
-            holder.amountText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.green))
-        }
+        // Format ID nicely like "ID: #C-439821"
+        val rawId = transaction.transactionId.take(6).ifEmpty { "N/A" }
+        holder.transactionIdText.text = "ID: #C-$rawId"
 
-        // Status color
-        when (transaction.status) {
-            "Completed" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.green))
-            "Pending" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.orange))
-            "Debited" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.holo_red_dark))
-            "Failed" -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, android.R.color.holo_red_dark))
-            else -> holder.statusText.setTextColor(ContextCompat.getColor(holder.itemView.context, R.color.black))
+        holder.statusText.text = transaction.status.uppercase()
+
+        // Status badge: background + text color
+        when (transaction.status.lowercase()) {
+            "completed", "credited" -> {
+                holder.statusText.setTextColor(android.graphics.Color.parseColor("#10B981"))
+                holder.statusText.background = ContextCompat.getDrawable(ctx, R.drawable.badge_bg_green)
+            }
+            "pending", "reviewing" -> {
+                holder.statusText.setTextColor(android.graphics.Color.parseColor("#F59E0B"))
+                holder.statusText.background = ContextCompat.getDrawable(ctx, R.drawable.badge_bg_orange)
+            }
+            "debited", "failed" -> {
+                holder.statusText.setTextColor(android.graphics.Color.parseColor("#EF4444"))
+                holder.statusText.background = ContextCompat.getDrawable(ctx, R.drawable.badge_bg_red)
+            }
+            else -> {
+                holder.statusText.setTextColor(android.graphics.Color.parseColor("#6B7280"))
+                holder.statusText.background = null
+            }
         }
     }
 

@@ -52,6 +52,9 @@ class TransactionFragment : Fragment() {
         fetchWalletBalance()
         fetchTransactionData()
 
+        binding.addFundsBtn.setOnClickListener {
+            Toast.makeText(requireContext(), "Top Up feature coming soon!", Toast.LENGTH_SHORT).show()
+        }
 
         return binding.root
     }

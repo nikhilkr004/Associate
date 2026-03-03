@@ -1,106 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:padding="@dimen/_5sdp"
-    android:background="@drawable/edittext_bg"
-    android:layout_margin="8dp">
+    android:gravity="center_vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="12dp"
+    android:background="#FFFFFF"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginBottom="8dp">
 
-    <ImageButton
-        android:id="@+id/refresh_btn"
-        android:layout_width="@dimen/_45sdp"
-        android:layout_height="@dimen/_45sdp"
-        android:padding="@dimen/_6sdp"
-        android:src="@drawable/transaction"
-        android:tint="@color/green"
-        android:background="@drawable/double_bg"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:layout_marginBottom="@dimen/_10sdp"
-        android:layout_marginEnd="@dimen/_10sdp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- Icon Box -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#1A1A2E">
 
+        <ImageView
+            android:id="@+id/item_icon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/user"
+            android:tint="#FFFFFF"
+            tools:ignore="ContentDescription" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Name, Date, ID -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="12dp">
 
-        <!-- Top Row - Title and Amount -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/transaction_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:text="Legal Advisory"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#111827"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/transaction_type"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Work Payment"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="#000000" />
-
-            <TextView
-                android:id="@+id/amountText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="+ $180.00"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50" />
-
-        </LinearLayout>
-
-        <!-- Middle Row - Date -->
         <TextView
             android:id="@+id/dateText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="25-09-2022 at 13:12"
-            android:textSize="14sp"
-            android:textColor="#666666"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp"
+            android:text="Oct 24, 2023 · 14:20"
+            android:textSize="12sp"
+            android:textColor="#9CA3AF" />
 
-        <!-- Bottom Row - Transaction ID and Status -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/transactionIdText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="4dp">
-
-            <TextView
-                android:id="@+id/transactionIdText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="TriD. 439863920"
-                android:textSize="14sp"
-                android:textColor="#666666" />
-
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Completed"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="#4CAF50"
-                android:background="@drawable/double_bg"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp" />
-
-        </LinearLayout>
-
-
+            android:text="ID: #C-439821"
+            android:textSize="11sp"
+            android:textColor="#9CA3AF"
+            android:layout_marginTop="1dp" />
     </LinearLayout>
 
+    <!-- Amount + Status -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:layout_marginStart="8dp">
 
+        <TextView
+            android:id="@+id/amountText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-180.0"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#111827"
+            android:gravity="end" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="COMPLETED"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#10B981"
+            android:background="@drawable/badge_bg_green"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:gravity="center" />
+    </LinearLayout>
 
 </LinearLayout>
-<!-- Updated for repository activity -->
