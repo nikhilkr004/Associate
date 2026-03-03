@@ -1,104 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:paddingHorizontal="16dp"
-    android:paddingVertical="12dp"
-    android:background="#FFFFFF"
     android:layout_marginHorizontal="16dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="10dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
-    <!-- Icon Box -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="0dp"
-        app:cardBackgroundColor="#1A1A2E">
-
-        <ImageView
-            android:id="@+id/item_icon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_gravity="center"
-            android:src="@drawable/user"
-            android:tint="#FFFFFF"
-            tools:ignore="ContentDescription" />
-    </androidx.cardview.widget.CardView>
-
-    <!-- Name, Date, ID -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:layout_marginStart="12dp">
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp">
 
-        <TextView
-            android:id="@+id/transaction_type"
-            android:layout_width="match_parent"
+        <!-- Icon Box -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            app:cardCornerRadius="13dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#1A1A2E">
+
+            <ImageView
+                android:id="@+id/item_icon"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_gravity="center"
+                android:src="@drawable/transaction"
+                android:tint="#FFFFFF"
+                tools:ignore="ContentDescription" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Name, Date, ID -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Legal Advisory"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#111827"
-            android:maxLines="1"
-            android:ellipsize="end" />
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="13dp">
 
-        <TextView
-            android:id="@+id/dateText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Oct 24, 2023 · 14:20"
-            android:textSize="12sp"
-            android:textColor="#9CA3AF" />
+            <TextView
+                android:id="@+id/transaction_type"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Legal Advisory"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#111827"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
-        <TextView
-            android:id="@+id/transactionIdText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ID: #C-439821"
-            android:textSize="11sp"
-            android:textColor="#9CA3AF"
-            android:layout_marginTop="1dp" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/dateText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Oct 24, 2023 · 14:20"
+                android:textSize="12sp"
+                android:textColor="#9CA3AF" />
 
-    <!-- Amount + Status -->
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="end"
-        android:layout_marginStart="8dp">
+            <TextView
+                android:id="@+id/transactionIdText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ID: #C-439821"
+                android:textSize="11sp"
+                android:textColor="#BFBFBF"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
 
-        <TextView
-            android:id="@+id/amountText"
+        <!-- Amount + Status Badge -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-180.0"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="#111827"
-            android:gravity="end" />
+            android:orientation="vertical"
+            android:gravity="end"
+            android:layout_marginStart="10dp">
 
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="COMPLETED"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            android:textColor="#10B981"
-            android:background="@drawable/badge_bg_green"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="2dp"
-            android:gravity="center" />
+            <TextView
+                android:id="@+id/amountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-180.0"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#111827"
+                android:gravity="end" />
+
+            <TextView
+                android:id="@+id/statusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="COMPLETED"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="#10B981"
+                android:background="@drawable/badge_bg_green"
+                android:paddingHorizontal="7dp"
+                android:paddingVertical="3dp"
+                android:gravity="center" />
+        </LinearLayout>
+
     </LinearLayout>
-
-</LinearLayout>
+</com.google.android.material.card.MaterialCardView>

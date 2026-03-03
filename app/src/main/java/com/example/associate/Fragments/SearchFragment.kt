@@ -201,9 +201,12 @@ class SearchFragment : Fragment() {
                     val finalAdvisor = if (advisor.basicInfo.id.isEmpty()) {
                         advisor.copy(basicInfo = advisor.basicInfo.copy(id = doc.id))
                     } else advisor
-                    
-                    allAdvisorsList.add(finalAdvisor)
-                    searchList.add(finalAdvisor)
+
+                    // Only show advisors with status == "active"
+                    if (finalAdvisor.basicInfo.status.equals("active", ignoreCase = true)) {
+                        allAdvisorsList.add(finalAdvisor)
+                        searchList.add(finalAdvisor)
+                    }
                 }
                 searchAdapter.notifyDataSetChanged()
                 
