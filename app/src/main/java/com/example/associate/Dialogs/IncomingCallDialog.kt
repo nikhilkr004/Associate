@@ -26,9 +26,9 @@ class IncomingCallDialog(
     private val advisorName: String,
     private val channelName: String,
     private val profileImage: String? = null,
-    advisorId: String,
-    urgencyLevel: String,
-    bookingId: String
+    private val advisorId: String,
+    private val urgencyLevel: String,
+    private val bookingId: String
 ) : Dialog(context, R.style.FullScreenDialog) {
 
     private var mediaPlayer: MediaPlayer? = null
@@ -167,6 +167,11 @@ class IncomingCallDialog(
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
             putExtra("IS_INCOMING_CALL", true)
+            putExtra("ADVISOR_ID", advisorId)
+            putExtra("BOOKING_ID", bookingId)
+            putExtra("urgencyLevel", urgencyLevel)
+            putExtra("ADVISOR_NAME", advisorName)
+            putExtra("ADVISOR_AVATAR", profileImage)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         context.startActivity(intent)

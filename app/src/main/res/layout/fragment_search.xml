@@ -120,7 +120,7 @@
                         android:gravity="center"
                         android:layout_marginEnd="12dp">
 
-                        <androidx.cardview.widget.CardView
+                        <com.google.android.material.card.MaterialCardView
                             android:layout_width="64dp"
                             android:layout_height="64dp"
                             app:cardCornerRadius="18dp"
@@ -132,7 +132,7 @@
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_community"
                                 app:tint="#E07B00"/>
-                        </androidx.cardview.widget.CardView>
+                        </com.google.android.material.card.MaterialCardView>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -154,7 +154,7 @@
                         android:gravity="center"
                         android:layout_marginEnd="12dp">
 
-                        <androidx.cardview.widget.CardView
+                        <com.google.android.material.card.MaterialCardView
                             android:layout_width="64dp"
                             android:layout_height="64dp"
                             app:cardCornerRadius="18dp"
@@ -166,7 +166,7 @@
                                 android:layout_gravity="center"
                                 android:src="@drawable/document"
                                 app:tint="#1B8A4A"/>
-                        </androidx.cardview.widget.CardView>
+                        </com.google.android.material.card.MaterialCardView>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -186,19 +186,19 @@
                         android:gravity="center"
                         android:layout_marginEnd="12dp">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            app:cardCornerRadius="18dp"
-                            app:cardElevation="0dp"
-                            app:cardBackgroundColor="#FDE8D8">
+                        <com.google.android.material.card.MaterialCardView
+                             android:layout_width="64dp"
+                             android:layout_height="64dp"
+                             app:cardCornerRadius="18dp"
+                             app:cardElevation="0dp"
+                             app:cardBackgroundColor="#FDE8D8">
                             <ImageView
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_community"
                                 app:tint="#C96A1D"/>
-                        </androidx.cardview.widget.CardView>
+                        </com.google.android.material.card.MaterialCardView>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -218,19 +218,19 @@
                         android:gravity="center"
                         android:layout_marginEnd="12dp">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            app:cardCornerRadius="18dp"
-                            app:cardElevation="0dp"
-                            app:cardBackgroundColor="#E0E8FF">
+                        <com.google.android.material.card.MaterialCardView
+                             android:layout_width="64dp"
+                             android:layout_height="64dp"
+                             app:cardCornerRadius="18dp"
+                             app:cardElevation="0dp"
+                             app:cardBackgroundColor="#E0E8FF">
                             <ImageView
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/history"
                                 app:tint="#2D5FD4"/>
-                        </androidx.cardview.widget.CardView>
+                        </com.google.android.material.card.MaterialCardView>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -250,19 +250,19 @@
                         android:gravity="center"
                         android:layout_marginEnd="8dp">
 
-                        <androidx.cardview.widget.CardView
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            app:cardCornerRadius="18dp"
-                            app:cardElevation="0dp"
-                            app:cardBackgroundColor="#FCE4EC">
+                        <com.google.android.material.card.MaterialCardView
+                             android:layout_width="64dp"
+                             android:layout_height="64dp"
+                             app:cardCornerRadius="18dp"
+                             app:cardElevation="0dp"
+                             app:cardBackgroundColor="#FCE4EC">
                             <ImageView
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:layout_gravity="center"
                                 android:src="@drawable/ic_check_circle"
                                 app:tint="#B5215D"/>
-                        </androidx.cardview.widget.CardView>
+                        </com.google.android.material.card.MaterialCardView>
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

@@ -147,6 +147,7 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         }
         
         // 🔥 CRITICAL: Capture Advisor ID explicitly from Intent first
+        storedAdvisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
         if (storedAdvisorId.isEmpty()) {
              Log.w("VideoCall", "⚠️ Advisor ID missing in Intent. Will attempt to fetch from Booking.")
         } else {
@@ -176,8 +177,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
              false 
         }
         
-        // Override if logic detected "Instant" string in urgency
-        if (urgencyLevel.equals("Instant", ignoreCase = true) || urgencyLevel.equals("High", ignoreCase = true)) {
+        // Override if logic detected "Instant" string in urgency or it's an incoming call without type
+        if (urgencyLevel.equals("Instant", ignoreCase = true) || 
+            urgencyLevel.equals("High", ignoreCase = true) ||
+            (intent.getBooleanExtra("IS_INCOMING_CALL", false) && bookingType.isEmpty())) {
             isInstantBooking = true
         }
 
@@ -205,15 +208,21 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     private fun initializeUI() {
         val advisorName = intent.getStringExtra("ADVISOR_NAME") ?: "Advisor"
         val advisorAvatar = intent.getStringExtra("ADVISOR_AVATAR") ?: ""
+        val specialty = intent.getStringExtra("ADVISOR_SPECIALTY") ?: "Advisor"
+        val hospital = intent.getStringExtra("ADVISOR_HOSPITAL") ?: "General Hospital"
         
-        // Fix: Use tvCallStatus instead of missing tvAdvisorName
-        binding.tvCallStatus.text = "Call with $advisorName"
-        binding.tvTimer.text = "00:00"
+        binding.tvAdvisorName.text = advisorName
+        binding.tvAdvisorSpecialty.text = "$specialty • $hospital"
+        
+        binding.tvTimer.text = "00:00:00"
         
         binding.tvPaymentInfo.visibility = View.GONE
         binding.tvPaymentInfo.text = "Initializing..."
         
-        binding.tvConnectionStatus.text = "Initializing Video Call..."
+        binding.tvConnectionStatus.text = "Connecting to $advisorName..."
+
+        // Start animation for rings
+        startRingAnimation()
 
         if (advisorAvatar.isNotEmpty()) {
             loadAvatar(advisorAvatar)
@@ -222,6 +231,19 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
             if (advisorId.isNotEmpty()) {
                 fetchAdvisorAvatar(advisorId)
             }
+        }
+    }
+
+    private fun startRingAnimation() {
+        val rings = arrayOf(binding.ringInner, binding.ringMiddle, binding.ringOuter)
+        rings.forEachIndexed { index, view ->
+            val anim = android.view.animation.AlphaAnimation(0.2f, 0.8f).apply {
+                duration = 1000
+                startOffset = (index * 300).toLong()
+                repeatMode = android.view.animation.Animation.REVERSE
+                repeatCount = android.view.animation.Animation.INFINITE
+            }
+            view.startAnimation(anim)
         }
     }
 
@@ -429,6 +451,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     
     // ... (keep setupCallControls) ...
     private fun setupCallControls() {
+        binding.btnBack.setOnClickListener {
+            onBackPressed()
+        }
+
         binding.btnEndCall.setOnClickListener {
             showEndCallConfirmation()
         }
@@ -508,9 +534,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
 
     private fun updateCallTimer() {
         val elapsedSeconds = (System.currentTimeMillis() - callStartTime) / 1000
-        val minutes = elapsedSeconds / 60
+        val hours = elapsedSeconds / 3600
+        val minutes = (elapsedSeconds % 3600) / 60
         val seconds = elapsedSeconds % 60
-        binding.tvTimer.text = String.format("%02d:%02d", minutes, seconds)
+        binding.tvTimer.text = String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
 
     // ... (Keep BroadCast Receiver if needed, but we are moving logic to Activity) ...
@@ -572,16 +599,12 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         db.collection("videoCalls").document(currentCallId)
             .update(updates)
             .addOnSuccessListener {
-                Log.d("VideoCall", "Call ended. Server will process payment.")
-                Log.d("PaymentDebug", "✅ Success: VideoCall Doc Updated") 
-                Toast.makeText(this, "Call Ended", Toast.LENGTH_SHORT).show()
-                finish()
+                Log.d("VideoCall", "Call ended. Navigating to Summary.")
+                navigationAfterEnd()
             }
             .addOnFailureListener { e ->
                 Log.e("VideoCall", "Error ending call", e)
-                Log.e("PaymentDebug", "❌ Error Updating VideoCall Doc: ${e.message}")
-                // Fallback: Force Close
-                finish()
+                navigationAfterEnd() // Still try to show summary
             }
         
         leaveZegoRoom()
@@ -626,26 +649,29 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
     // Call this in onCreate or after callId is set
     
     private fun navigationAfterEnd() {
-        val intent = Intent(this, BookingSummaryActivity::class.java)
-        intent.putExtra("BOOKING_ID", bookingId)
-        intent.putExtra("ADVISOR_ID", storedAdvisorId)
+        Log.d("VideoCall", "=== navigationAfterEnd CALLED ===")
+        val elapsedSeconds = if (callStartTime > 0) (System.currentTimeMillis() - callStartTime) / 1000 else 0
         
-        // 🔥 Calculate and Pass Total Cost
-        val durationSeconds = if (callStartTime > 0) (System.currentTimeMillis() - callStartTime) / 1000 else 0
-        // Use ceil or actual fraction? Usually per minute billing uses ceil or direct multiplication.
-        // Let's use exact fraction for display accuracy if that's the logic: durationInMinutes * rate
-        val durationMinutes = durationSeconds / 60.0
-        val calculatedCost = if (isInstantBooking) durationMinutes * ratePerMinute else ratePerMinute // Scheduled fixed
+        // 🔥 Pro-rata Calculation: Use exact fraction of minute for display
+        val durationToBill = if (elapsedSeconds > 0) elapsedSeconds / 60.0 else 0.0
         
-        intent.putExtra("TOTAL_COST", calculatedCost)
+        // 🔥 Rate Safeguard: Ensure we have a rate, use fallback if not
+        val effectiveRate = if (ratePerMinute > 0) ratePerMinute else 60.0
         
-        // 🔥 Fix: Pass Advisor Info for Immediate Display
-        intent.putExtra("ADVISOR_NAME", intent.getStringExtra("ADVISOR_NAME") ?: "Advisor")
-        intent.putExtra("ADVISOR_AVATAR", intent.getStringExtra("ADVISOR_AVATAR") ?: "")
+        val calculatedCost = if (isInstantBooking) durationToBill * effectiveRate else effectiveRate
         
-        Log.d("VideoCall", "Navigating to Summary. Cost: $calculatedCost")
+        Log.d("VideoCall", "Summary Nav: Elapsed: $elapsedSeconds, BillMin: $durationToBill, Rate: $effectiveRate, Cost: $calculatedCost")
 
-        startActivity(intent)
+        val summaryIntent = Intent(this, BookingSummaryActivity::class.java).apply {
+            putExtra("BOOKING_ID", bookingId)
+            putExtra("ADVISOR_ID", storedAdvisorId)
+            putExtra("TOTAL_COST", calculatedCost)
+            putExtra("ADVISOR_NAME", this@VideoCallActivity.intent.getStringExtra("ADVISOR_NAME"))
+            putExtra("ADVISOR_AVATAR", this@VideoCallActivity.intent.getStringExtra("ADVISOR_AVATAR"))
+            putExtra("IS_INSTANT", isInstantBooking)
+        }
+        
+        startActivity(summaryIntent)
         finish()
     }
     
@@ -671,7 +697,10 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         runOnUiThread {
             if (errorCode == 0) {
                 updateCallStatus("Connected to room: $roomID")
-                binding.tvConnectionStatus.visibility = View.GONE
+                binding.connectingContainer.visibility = View.GONE
+                binding.ringInner.clearAnimation()
+                binding.ringMiddle.clearAnimation()
+                binding.ringOuter.clearAnimation()
                 
                 if (callStartTime == 0L) {
                     callStartTime = System.currentTimeMillis()
@@ -771,30 +800,21 @@ class VideoCallActivity : AppCompatActivity(), ZegoCallManager.ZegoCallListener 
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
             // Hide Controls
-            binding.btnEndCall.visibility = View.GONE
-            binding.btnMute.visibility = View.GONE
-            binding.btnVideoToggle.visibility = View.GONE
-            binding.btnSwitchCamera.visibility = View.GONE
-            binding.btnChat.visibility = View.GONE
-            binding.tvTimer.visibility = View.GONE
-            binding.tvPaymentInfo.visibility = View.GONE
-            binding.tvCallStatus.visibility = View.GONE
-            binding.tvConnectionStatus.visibility = View.GONE
-            binding.localVideoView.visibility = View.GONE // Hide self view to focus on Advisor
+            binding.bottomControler.visibility = View.GONE
+            binding.headerLayout.visibility = View.GONE
+            binding.advisorDetails.visibility = View.GONE
+            binding.connectingContainer.visibility = View.GONE
+            binding.localVideoContainer.visibility = View.GONE // Hide self view to focus on Advisor
         } else {
             // Restore Controls
-            binding.btnEndCall.visibility = View.VISIBLE
-            binding.btnMute.visibility = View.VISIBLE
-            binding.btnVideoToggle.visibility = View.VISIBLE
-            binding.btnSwitchCamera.visibility = View.VISIBLE
-            binding.btnChat.visibility = View.VISIBLE
-            binding.tvTimer.visibility = View.VISIBLE
-            binding.tvPaymentInfo.visibility = View.VISIBLE
-            binding.tvCallStatus.visibility = View.VISIBLE
-            // Don't restore connection status if it was gone
-            // binding.tvConnectionStatus.visibility = View.VISIBLE 
+            binding.bottomControler.visibility = View.VISIBLE
+            binding.headerLayout.visibility = View.VISIBLE
+            binding.advisorDetails.visibility = View.VISIBLE
+            if (!isCallActive) {
+                binding.connectingContainer.visibility = View.VISIBLE
+            }
             if (isVideoEnabled) {
-                binding.localVideoView.visibility = View.VISIBLE
+                binding.localVideoContainer.visibility = View.VISIBLE
             }
         }
     }

@@ -49,19 +49,19 @@ class IncomingCallActivity : AppCompatActivity() {
         // Get call details from intent
         // Get call details from intent (Refined Logic)
         val callId = intent.getStringExtra("CALL_ID") ?: ""
-        // 🔥 Fix: If CHANNEL_NAME missing, use CALL_ID (which IS the Chat Doc ID)
         val channelNameRaw = intent.getStringExtra("CHANNEL_NAME")
         val channelName = if (!channelNameRaw.isNullOrEmpty()) channelNameRaw else callId
-        val callerName = intent.getStringExtra("title") ?: "Unknown Advisor"
-        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
+        val callerName = intent.getStringExtra("ADVISOR_NAME") ?: intent.getStringExtra("title") ?: "Unknown Advisor"
+        val advisorAvatar = intent.getStringExtra("ADVISOR_AVATAR") ?: intent.getStringExtra("advisorAvatar") ?: ""
         val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
-        val bookingId = intent.getStringExtra("BOOKING_ID") ?: "" // No fallback to callId
+        val bookingId = intent.getStringExtra("BOOKING_ID") ?: "" 
         val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
         val urgencyLevel = intent.getStringExtra("urgencyLevel") ?: "Medium"
+        val bookingType = intent.getStringExtra("BOOKING_TYPE") ?: ""
         
         this.advisorId = advisorId // Update local var
         
-        android.util.Log.e("IncomingScreen", "Activity Launched. CallID=$callId Type=$callType BookingID=$bookingId")
+        android.util.Log.e("IncomingScreen", "Activity Launched. CallID=$callId, Type=$callType, BookingID=$bookingId, Type=$bookingType")
         
         binding.tvCallerName.text = callerName
         
@@ -100,8 +100,8 @@ class IncomingCallActivity : AppCompatActivity() {
         }
         
         // Update UI for new call
-        val callerName = intent.getStringExtra("title") ?: "Unknown Caller"
-        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: ""
+        val callerName = intent.getStringExtra("ADVISOR_NAME") ?: intent.getStringExtra("title") ?: "Unknown Caller"
+        val advisorAvatar = intent.getStringExtra("ADVISOR_AVATAR") ?: intent.getStringExtra("advisorAvatar") ?: ""
         val callType = intent.getStringExtra("CALL_TYPE") ?: "VIDEO"
         
         setupUIForType(callType, callerName)
@@ -241,8 +241,9 @@ class IncomingCallActivity : AppCompatActivity() {
     private fun acceptCall(callId: String, channelName: String, advisorName: String, advisorId: String, callType: String, bookingId: String) {
         stopService()
         
-        val advisorAvatar = intent.getStringExtra("advisorAvatar") ?: "" 
+        val advisorAvatar = intent.getStringExtra("ADVISOR_AVATAR") ?: intent.getStringExtra("advisorAvatar") ?: "" 
         val urgencyLevel = intent.getStringExtra("urgencyLevel") ?: "Medium"
+        val bookingType = intent.getStringExtra("BOOKING_TYPE") ?: ""
 
         val targetClass = when (callType) {
             "CHAT" -> ChatActivity::class.java
@@ -256,9 +257,11 @@ class IncomingCallActivity : AppCompatActivity() {
             putExtra("ADVISOR_NAME", advisorName)
             putExtra("ADVISOR_ID", advisorId)
             putExtra("ADVISOR_AVATAR", advisorAvatar)
-            putExtra("BOOKING_ID", bookingId) // Important for completion logic
-            putExtra("urgencyLevel", urgencyLevel) // Important for billing
+            putExtra("BOOKING_ID", bookingId) 
+            putExtra("BOOKING_TYPE", bookingType)
+            putExtra("urgencyLevel", urgencyLevel) 
             putExtra("CALL_TYPE", callType)
+            putExtra("IS_INCOMING_CALL", true)
             // 🔥 Fix: Pass the actual Call/Chat ID so ChatActivity doesn't create a NEW doc and trigger loop
             putExtra("CHAT_ID", if (callType == "CHAT") callId else "") 
             flags = Intent.FLAG_ACTIVITY_NEW_TASK

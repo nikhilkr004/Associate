@@ -176,7 +176,7 @@ class ChatActivity : AppCompatActivity(), com.example.associate.PreferencesHelpe
         bookingId = intent.getStringExtra("BOOKING_ID") ?: ""
         
         // 🔥 CRITICAL: Capture Advisor ID explicitly from Intent first
-        advisorId = intent.getStringExtra("ADVISOR_ID") ?: intent.getStringExtra("advisorId") ?: ""
+        advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
         if (advisorId.isEmpty()) {
              Log.w("ChatActivity", "⚠️ Advisor ID missing in Intent.")
         } else {

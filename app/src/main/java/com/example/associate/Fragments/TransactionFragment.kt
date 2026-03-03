@@ -53,7 +53,7 @@ class TransactionFragment : Fragment() {
         fetchTransactionData()
 
         binding.addFundsBtn.setOnClickListener {
-            val intent = android.content.Intent(requireContext(), com.example.associate.Activities.WalletActivity::class.java)
+            val intent = android.content.Intent(requireContext(), com.example.associate.Payment.LoadMoneyActivity::class.java)
             startActivity(intent)
         }
 

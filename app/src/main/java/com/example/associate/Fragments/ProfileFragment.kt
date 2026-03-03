@@ -62,17 +62,25 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         loadUserData()
         setupClickListeners()
+        displayAppVersion()
+    }
+
+    private fun displayAppVersion() {
+        try {
+            val pInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+            val version = pInfo.versionName
+            binding.versionText.text = "VERSION $version"
+        } catch (e: Exception) {
+            binding.versionText.text = "VERSION 2.4.0" // Fallback as requested
+        }
     }
 
     private fun setupClickListeners() {
         binding.profileImage.setOnClickListener {
             openImagePicker()
         }
-        binding.changePhotoImage.setOnClickListener {
+        binding.editImageBtn.setOnClickListener {
             openImagePicker()
-        }
-        binding.editBtn.setOnClickListener {
-            showUpdateProfileDialog()
         }
         binding.updateProfileLayout.setOnClickListener {
             showUpdateProfileDialog()

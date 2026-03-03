@@ -148,23 +148,25 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             
         val callType = data["CALL_TYPE"] ?: data["callType"] ?: "VIDEO"
         val urgencyLevel = data["urgencyLevel"] ?: "Medium"
-        val bookingId = data["BOOKING_ID"] ?: data["bookingId"] ?: "" // 🔥 No fallback to callId
+        val bookingId = data["BOOKING_ID"] ?: data["bookingId"] ?: ""
+        val bookingType = data["BOOKING_TYPE"] ?: data["bookingType"] ?: ""
         
         Log.e("DEBUG_CALL", ">>> FCM RECEIVED PAYLOAD <<<")
         data.forEach { (k, v) -> Log.e("DEBUG_CALL", "   $k : $v") }
-        Log.e("DEBUG_CALL", "Extracted: CallID=$callId, Channel=$channelName, Caller=$callerName, ID=$advisorId")
+        Log.e("DEBUG_CALL", "Extracted: CallID=$callId, BookingID=$bookingId, Type=$bookingType, Caller=$callerName")
         
         Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName, Type: $callType, Urgency: $urgencyLevel")
         
         val serviceIntent = Intent(this, CallNotificationService::class.java).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
-            putExtra("advisorName", callerName) // Using same key "advisorName" to minimize breakage in Service, but it holds Caller Name
-            putExtra("advisorAvatar", callerAvatar)
-            putExtra("ADVISOR_ID", advisorId) // Using same key "ADVISOR_ID" but it holds Caller ID
+            putExtra("ADVISOR_NAME", callerName) 
+            putExtra("ADVISOR_AVATAR", callerAvatar)
+            putExtra("ADVISOR_ID", advisorId) 
             putExtra("CALL_TYPE", callType)
-            putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate to Service
-            putExtra("BOOKING_ID", bookingId) // Pass Booking ID
+            putExtra("urgencyLevel", urgencyLevel) 
+            putExtra("BOOKING_ID", bookingId) 
+            putExtra("BOOKING_TYPE", bookingType)
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

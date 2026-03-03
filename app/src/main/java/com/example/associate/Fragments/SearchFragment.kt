@@ -88,25 +88,41 @@ class SearchFragment : Fragment() {
     }
 
     private fun setupCategoryChips() {
-        binding.chipSelectPurpose.setOnClickListener {
-            selectedCategory = "All"
-            performSearch(binding.etSearch.text.toString())
+        val chips = listOf(
+            binding.chipSelectPurpose to "All",
+            binding.chipTaxPlanning to "Tax Planning",
+            binding.chipRetirement to "Retirement",
+            binding.chipInvestments to "Investments",
+            binding.chipInsurance to "Insurance"
+        )
+
+        chips.forEach { (chip, category) ->
+            chip.setOnClickListener {
+                selectedCategory = category
+                updateChipVisuals()
+                performSearch(binding.etSearch.text.toString())
+            }
         }
-        binding.chipTaxPlanning.setOnClickListener {
-            selectedCategory = "Tax Planning"
-            performSearch(binding.etSearch.text.toString())
-        }
-        binding.chipRetirement.setOnClickListener {
-            selectedCategory = "Retirement"
-            performSearch(binding.etSearch.text.toString())
-        }
-        binding.chipInvestments.setOnClickListener {
-            selectedCategory = "Investments"
-            performSearch(binding.etSearch.text.toString())
-        }
-        binding.chipInsurance.setOnClickListener {
-            selectedCategory = "Insurance"
-            performSearch(binding.etSearch.text.toString())
+        updateChipVisuals() // Initial state
+    }
+
+    private fun updateChipVisuals() {
+        val chips = mapOf(
+            "All" to binding.chipSelectPurpose,
+            "Tax Planning" to binding.chipTaxPlanning,
+            "Retirement" to binding.chipRetirement,
+            "Investments" to binding.chipInvestments,
+            "Insurance" to binding.chipInsurance
+        )
+
+        chips.forEach { (category, chip) ->
+            val cardView = chip.getChildAt(0) as? com.google.android.material.card.MaterialCardView
+            if (category == selectedCategory) {
+                cardView?.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                cardView?.strokeColor = android.graphics.Color.parseColor("#2D6A4F") // Match theme green
+            } else {
+                cardView?.strokeWidth = 0
+            }
         }
     }
 
@@ -280,20 +296,15 @@ class SearchFragment : Fragment() {
             fun bind(advisor: AdvisorDataClass, isFavorite: Boolean) {
                 name.text = advisor.basicInfo.name
                 
-                // Enhanced Data Display
-                val designation = advisor.professionalInfo.designation.ifEmpty { "Advisor" }
-                val department = advisor.professionalInfo.department
-                
-                // Logic: Show Designation • Department
-                val subText = if (department.isNotEmpty()) {
-                    "$designation • $department"
-                } else if (advisor.professionalInfo.specializations.isNotEmpty()) {
-                    "$designation • ${advisor.professionalInfo.specializations[0]}"
+                // Enhanced Specialization Display
+                val specs = advisor.professionalInfo.specializations
+                val specializationText = if (specs.isNotEmpty()) {
+                    "• " + specs.joinToString(" • ").toUpperCase()
                 } else {
-                    designation
+                    advisor.professionalInfo.designation.ifEmpty { "Advisor" }.toUpperCase()
                 }
                 
-                special.text = subText
+                special.text = specializationText
                 
                 val fee = advisor.pricingInfo.instantVideoFee
                 price.text = "₹$fee"

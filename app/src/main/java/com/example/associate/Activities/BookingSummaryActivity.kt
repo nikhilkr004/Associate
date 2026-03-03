@@ -37,8 +37,14 @@ class BookingSummaryActivity : AppCompatActivity() {
     }
 
     private var isTotalCostSetFromIntent = false
+    private var passedTotalCost = -1.0
 
     private fun loadData() {
+        passedTotalCost = intent.getDoubleExtra("TOTAL_COST", -1.0)
+        if (passedTotalCost >= 0) {
+            binding.tvTotalCost.text = "₹${String.format("%.2f", passedTotalCost)}"
+            isTotalCostSetFromIntent = true
+        }
         // ... (Keep existing Parcelable logic) ...
         val booking = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("BOOKING_DATA", SessionBookingDataClass::class.java)
@@ -60,13 +66,6 @@ class BookingSummaryActivity : AppCompatActivity() {
         } else {
              // Fallback if only ID passed
              val extraBookingId = intent.getStringExtra("BOOKING_ID")
-             
-             // 🔥 Check for passed Total Cost
-             val passedTotalCost = intent.getDoubleExtra("TOTAL_COST", -1.0)
-             if (passedTotalCost >= 0) {
-                 binding.tvTotalCost.text = "₹${String.format("%.2f", passedTotalCost)}"
-                 isTotalCostSetFromIntent = true
-             }
 
              if (!extraBookingId.isNullOrEmpty()) {
                  listenForPaymentUpdates(extraBookingId)
@@ -158,13 +157,16 @@ class BookingSummaryActivity : AppCompatActivity() {
                          val status = snapshot.getString("bookingStatus") ?: "" 
                          
                          // Update UI
-                         // 🔥 GUARD: Don't overwrite correct Total Cost with rate if we have it
-                         if (!isTotalCostSetFromIntent) {
-                             binding.tvTotalCost.text = "₹${String.format("%.2f", sessionAmount)}"
+                         // 🔥 GUARD: Don't overwrite calculated cost if Firestore is still 0 (cloud function lag)
+                         val finalDisplayCost = if (sessionAmount > 0) {
+                             sessionAmount
+                         } else if (passedTotalCost > 0) {
+                             passedTotalCost
                          } else {
-                             // Optional: Verify if sessionAmount is suspiciously close to calculated cost?
-                             // No, trust calculation from call end for now as backend seems to lag or store rate.
+                             0.0
                          }
+                         
+                         binding.tvTotalCost.text = "₹${String.format("%.2f", finalDisplayCost)}"
                          
                          binding.tvPaymentStatus.text = paymentStatus.replaceFirstChar { it.uppercase() }
                          

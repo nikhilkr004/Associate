@@ -70,7 +70,7 @@ class LoadMoneyActivity : AppCompatActivity(), PaymentResultListener {
 
     private fun observeViewModel() {
         viewModel.walletBalance.observe(this) { balance ->
-            // Update UI with balance if needed
+            binding.currentBalanceText.text = "₹${String.format("%.2f", balance)}"
             Log.d(TAG, "Current balance: ₹$balance")
         }
 
@@ -132,8 +132,9 @@ class LoadMoneyActivity : AppCompatActivity(), PaymentResultListener {
 
     @SuppressLint("SetTextI18n")
     private fun updatePayButton() {
-        binding.payButton.text = if (currentAmount > 0) "Pay ₹${currentAmount.toInt()} Now" else "Pay"
-        binding.payButton.isEnabled = true
+        // In the new design, we keep the button text as "Top Up Now" as per the screenshot
+        // but we can enable/disable it based on amount
+        binding.payButton.isEnabled = currentAmount > 0
     }
 
     private fun startPaymentProcess() {

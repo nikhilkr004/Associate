@@ -54,24 +54,24 @@ class CallNotificationService : Service() {
         val channelName = intent?.getStringExtra("CHANNEL_NAME") ?: intent?.getStringExtra("ROOM_ID") ?: callId
         
         // Name & ID extraction (Keys from MyFirebaseMessagingService)
-        val callerName = intent?.getStringExtra("advisorName") ?: intent?.getStringExtra("title") ?: "Incoming Call"
-        val advisorAvatar = intent?.getStringExtra("advisorAvatar") ?: ""
+        val callerName = intent?.getStringExtra("ADVISOR_NAME") ?: intent?.getStringExtra("advisorName") ?: intent?.getStringExtra("title") ?: "Incoming Call"
+        val advisorAvatar = intent?.getStringExtra("ADVISOR_AVATAR") ?: intent?.getStringExtra("advisorAvatar") ?: ""
         val advisorId = intent?.getStringExtra("ADVISOR_ID") ?: ""
-        
         val callType = intent?.getStringExtra("CALL_TYPE") ?: "VIDEO"
-        val urgencyLevel = intent?.getStringExtra("urgencyLevel") ?: "Medium" // 🔥 Extraction
-        val bookingId = intent?.getStringExtra("BOOKING_ID") ?: "" // 🔥 No fallback to callId
+        val urgencyLevel = intent?.getStringExtra("urgencyLevel") ?: "Medium" 
+        val bookingId = intent?.getStringExtra("BOOKING_ID") ?: "" 
+        val bookingType = intent?.getStringExtra("BOOKING_TYPE") ?: ""
         
-        android.util.Log.e("DEBUG_SERVICE", "Service Started. CallID=$callId, BookingID=$bookingId, Urgency=$urgencyLevel")
+        android.util.Log.e("DEBUG_SERVICE", "Service Started. CallID=$callId, BookingID=$bookingId, Type=$bookingType")
         
         createNotificationChannel()
-        showNotification(callId, channelName, callerName, advisorAvatar, advisorId, callType, urgencyLevel, bookingId)
+        showNotification(callId, channelName, callerName, advisorAvatar, advisorId, callType, urgencyLevel, bookingId, bookingType)
         playRingtone()
 
         return START_NOT_STICKY
     }
 
-    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String, callType: String, urgencyLevel: String, bookingId: String) {
+    private fun showNotification(callId: String, channelName: String, callerName: String, advisorAvatar: String, advisorId: String, callType: String, urgencyLevel: String, bookingId: String, bookingType: String) {
         
         // Determine Target Activity
         val targetClass = when (callType) {
@@ -85,13 +85,14 @@ class CallNotificationService : Service() {
             putExtra("CALL_ID", callId)
             // putExtra("ROOM_ID", callId) // Removed implicit RoomID
             putExtra("CHANNEL_NAME", channelName)
-            putExtra("title", callerName)
-            putExtra("advisorAvatar", advisorAvatar)
             putExtra("ADVISOR_NAME", callerName) 
+            putExtra("ADVISOR_AVATAR", advisorAvatar)
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) 
-            putExtra("BOOKING_ID", bookingId) // 🔥 PROPAGE BOOKING ID to Activity
+            putExtra("BOOKING_ID", bookingId) 
+            putExtra("BOOKING_TYPE", bookingType)
+            putExtra("IS_INCOMING_CALL", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
         val fullScreenPendingIntent = PendingIntent.getActivity(
@@ -123,11 +124,13 @@ class CallNotificationService : Service() {
             putExtra("CALL_ID", callId)
             // putExtra("ROOM_ID", callId) // Removed implicit RoomID
             putExtra("BOOKING_ID", bookingId)
-            putExtra("CHANNEL_NAME", channelName)
             putExtra("ADVISOR_NAME", callerName) 
+            putExtra("ADVISOR_AVATAR", advisorAvatar)
             putExtra("ADVISOR_ID", advisorId)
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) 
+            putExtra("BOOKING_TYPE", bookingType)
+            putExtra("IS_INCOMING_CALL", true)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
         val acceptPendingIntent = PendingIntent.getActivity(
