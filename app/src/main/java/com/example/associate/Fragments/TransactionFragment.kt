@@ -53,7 +53,8 @@ class TransactionFragment : Fragment() {
         fetchTransactionData()
 
         binding.addFundsBtn.setOnClickListener {
-            Toast.makeText(requireContext(), "Top Up feature coming soon!", Toast.LENGTH_SHORT).show()
+            val intent = android.content.Intent(requireContext(), com.example.associate.Activities.WalletActivity::class.java)
+            startActivity(intent)
         }
 
         return binding.root
@@ -202,13 +203,14 @@ class TransactionFragment : Fragment() {
         payment: PaymentDataClass,
         documentId: String
     ): Transaction {
+        val isTopUp = payment.type == "topup" || payment.amount > 0
         return Transaction(
             id = documentId,
             type = getTransactionType(payment),
-            amount = getFormattedAmount(payment),
+            amount = if (isTopUp) "+ ${getFormattedAmount(payment)}" else getFormattedAmount(payment),
             date = formatDate(payment.createdAt),
             transactionId = payment.razorpayPaymentId.ifEmpty { payment.paymentId },
-            status = getFormattedStatus(payment),
+            status = if (isTopUp) "Credited" else getFormattedStatus(payment),
             paymentData = payment,
             timestamp = payment.createdAt
         )

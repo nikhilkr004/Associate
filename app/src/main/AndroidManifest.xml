@@ -247,6 +247,12 @@
             android:exported="true"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
+        <!-- Wallet / Top-Up Activity -->
+        <activity
+            android:name=".Activities.WalletActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
     </application>
 
 </manifest>
