@@ -23,6 +23,7 @@ import com.example.associate.databinding.ActivityAiChatBinding
 import com.example.associate.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 
 class AiChatActivity : AppCompatActivity() {
 
@@ -43,12 +44,23 @@ class AiChatActivity : AppCompatActivity() {
         fetchUserName()
     }
 
+    private var currentGenerationJob: kotlinx.coroutines.Job? = null
+
     private fun setupUI() {
-        adapter = AiChatAdapter(messages)
+        adapter = AiChatAdapter(messages) { message ->
+            copyToClipboard(message)
+        }
         binding.rvAiChat.layoutManager = LinearLayoutManager(this).apply {
             stackFromEnd = true
         }
         binding.rvAiChat.adapter = adapter
+    }
+    
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("AiResponse", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 
     private fun fetchUserName() {
@@ -73,9 +85,21 @@ class AiChatActivity : AppCompatActivity() {
         binding.chipExclusions.setOnClickListener { sendMessage("What is usually excluded in Health Insurance?") }
 
         binding.btnAiSend.setOnClickListener {
-            val text = binding.etAiInput.text.toString().trim()
-            if (text.isNotEmpty() || selectedImageBitmap != null) {
-                sendMessage(text)
+            // Check if we are currently generating
+            if (currentGenerationJob?.isActive == true) {
+                // STOP LOGIC
+                currentGenerationJob?.cancel()
+                currentGenerationJob = null
+                
+                // Reset UI immediately
+                binding.btnAiSend.setImageResource(R.drawable.send)
+                Toast.makeText(this, "Generation stopped", Toast.LENGTH_SHORT).show()
+            } else {
+                // SEND LOGIC
+                val text = binding.etAiInput.text.toString().trim()
+                if (text.isNotEmpty() || selectedImageBitmap != null) {
+                    sendMessage(text)
+                }
             }
         }
 
@@ -167,6 +191,13 @@ class AiChatActivity : AppCompatActivity() {
         binding.rvAiChat.visibility = View.VISIBLE
         binding.etAiInput.setText("")
         
+        // Set Stop Icon
+        // Assuming we have a stop icon or use a placeholder like ic_close or similar
+        // If R.drawable.stop_circle doesn't exist, I'll fallback to ic_close or similar standard icon
+        // For now using ic_close as a safe bet if stop isn't there, or I can rely on a vector asset.
+        // Let's assume ic_close is available (used in preview close)
+        binding.btnAiSend.setImageResource(R.drawable.ic_close) 
+        
         // Hide Preview since we are sending it
         val currentImage = selectedImageBitmap
         val currentPdfUri = selectedPdfUri
@@ -176,68 +207,81 @@ class AiChatActivity : AppCompatActivity() {
         messages.add(AiChatMessage(message = text, isUser = true))
         adapter.notifyItemInserted(messages.size - 1)
         
-        // Add Loading
-        messages.add(AiChatMessage(isLoading = true))
-        adapter.notifyItemInserted(messages.size - 1)
-        binding.rvAiChat.smoothScrollToPosition(messages.size - 1)
+        // Add Empty Bot Message for Streaming
+        // We add a placeholder that we will update live
+        messages.add(AiChatMessage(message = "", isUser = false, isLoading = false)) // Using empty message as start
+        val botMessagePosition = messages.size - 1
+        adapter.notifyItemInserted(botMessagePosition)
+        binding.rvAiChat.smoothScrollToPosition(botMessagePosition)
 
         val context = repository.getInitialContext()
 
         // Detect Language
         com.example.associate.Utils.LanguageUtils.detectLanguage(text) { languageCode ->
-            lifecycleScope.launch {
+            // CAPTURE THE JOB
+            currentGenerationJob = lifecycleScope.launch {
                 // Prepare PDF String if needed
                 val pdfBase64 = if (currentPdfUri != null) {
                     com.example.associate.Utils.PdfUtils.readPdfAsBase64(this@AiChatActivity, currentPdfUri)
                 } else null
                 
-                val aiResponse = repository.sendMessage(
-                    userMessage = text,
-                    context = context,
-                    languageCode = languageCode,
-                    image = currentImage,
-                    pdfBase64 = pdfBase64
-                )
+                var fullResponse = ""
                 
-                processAiResponse(aiResponse)
+                try {
+                    repository.sendMessage(
+                        userMessage = text,
+                        context = context,
+                        languageCode = languageCode,
+                        image = currentImage,
+                        pdfBase64 = pdfBase64
+                    ).collect { chunk ->
+                        fullResponse += chunk
+                        
+                        // Live Update: Remove [SHOW_ADVISORS] if it appears during stream to avoid ugliness
+                        // But keep it in fullResponse for logic.
+                        // Ideally we just display what we have. If tag is at end, it might show briefly.
+                        val displayResponse = fullResponse.replace("[SHOW_ADVISORS]", "")
+                        
+                        // Fix for immutable val: create a copy
+                        messages[botMessagePosition] = messages[botMessagePosition].copy(message = displayResponse)
+                        adapter.notifyItemChanged(botMessagePosition)
+                        binding.rvAiChat.smoothScrollToPosition(botMessagePosition)
+                    }
+                    
+                    // Transformation Completed
+                    finalizeResponse(text, fullResponse)
+                    
+                } catch (e: Exception) {
+                    if (e is kotlinx.coroutines.CancellationException) {
+                        // Handle Cancellation
+                        messages[botMessagePosition] = messages[botMessagePosition].copy(
+                            message = messages[botMessagePosition].message + " [Stopped]"
+                        )
+                        adapter.notifyItemChanged(botMessagePosition)
+                    } else {
+                        messages[botMessagePosition] = messages[botMessagePosition].copy(message = "Error: ${e.localizedMessage}")
+                        adapter.notifyItemChanged(botMessagePosition)
+                    }
+                } finally {
+                    // Reset Button
+                    binding.btnAiSend.setImageResource(R.drawable.send)
+                    currentGenerationJob = null
+                }
             }
         }
     }
     
-    private fun processAiResponse(response: String) {
-        // Remove Loading
-        if (messages.isNotEmpty() && messages.last().isLoading) {
-            messages.removeAt(messages.size - 1)
-            adapter.notifyItemRemoved(messages.size)
-        }
-
+    private fun finalizeResponse(userQuery: String, fullResponse: String) {
         // SAVE TO HISTORY (Persistence)
         val uid = FirebaseAuth.getInstance().currentUser?.uid
         if (uid != null) {
-            // We need the last user query. It's at [size-1] usually if we just removed loading.
-            // But 'messages' has everything. 
-            // We can track the last query in a variable or find it.
-            // Simple approach: Pass 'text' from sendMessage to here? No, processAiResponse is separated.
-            // Let's just launch a save coroutine here with the context of "Last User Message".
-            // Finding last user message:
-            val lastUserMsg = messages.findLast { it.isUser }?.message
-            if (!lastUserMsg.isNullOrEmpty()) {
-                lifecycleScope.launch {
-                    repository.saveChatToHistory(uid, lastUserMsg, response)
-                }
-            }
+             lifecycleScope.launch {
+                 repository.saveChatToHistory(uid, userQuery, fullResponse)
+             }
         }
 
         // Check for Advisor Tag
-        if (response.contains("[SHOW_ADVISORS]")) {
-            val cleanResponse = response.replace("[SHOW_ADVISORS]", "").trim()
-            
-            // Add Text Response First
-            if (cleanResponse.isNotEmpty()) {
-                messages.add(AiChatMessage(message = cleanResponse, isUser = false))
-                adapter.notifyItemInserted(messages.size - 1)
-            }
-
+        if (fullResponse.contains("[SHOW_ADVISORS]")) {
             // Add Advisor List Card
             lifecycleScope.launch {
                 val topAdvisors = repository.getTopAdvisors()
@@ -254,12 +298,6 @@ class AiChatActivity : AppCompatActivity() {
                 adapter.notifyItemInserted(messages.size - 1)
                 binding.rvAiChat.smoothScrollToPosition(messages.size - 1)
             }
-            
-        } else {
-            // Normal Response
-            messages.add(AiChatMessage(message = response, isUser = false))
-            adapter.notifyItemInserted(messages.size - 1)
-            binding.rvAiChat.smoothScrollToPosition(messages.size - 1)
         }
     }
 

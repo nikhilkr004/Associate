@@ -45,6 +45,18 @@ class MainActivity : AppCompatActivity() {
                 .commit()
         }
 
+        // Initialize Firebase App Check
+        try {
+            com.google.firebase.FirebaseApp.initializeApp(this)
+            val firebaseAppCheck = com.google.firebase.appcheck.FirebaseAppCheck.getInstance()
+            firebaseAppCheck.installAppCheckProviderFactory(
+                com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory.getInstance()
+            )
+            Log.d("AppCheck", "App Check Initialized with Play Integrity")
+        } catch (e: Exception) {
+            Log.e("AppCheck", "Failed to initialize App Check", e)
+        }
+
         checkOverlayPermission()
     }
 

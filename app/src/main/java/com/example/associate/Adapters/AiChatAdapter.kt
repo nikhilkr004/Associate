@@ -10,8 +10,10 @@ import com.example.associate.R
 import io.noties.markwon.Markwon
 
 
-class AiChatAdapter(private val messages: ArrayList<AiChatMessage>) :
-    RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class AiChatAdapter(
+    private val messages: ArrayList<AiChatMessage>,
+    private val onCopyClick: (String) -> Unit
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val VIEW_TYPE_USER = 1
     private val VIEW_TYPE_BOT = 2
@@ -24,6 +26,7 @@ class AiChatAdapter(private val messages: ArrayList<AiChatMessage>) :
 
     inner class BotViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvMessage: TextView = itemView.findViewById(R.id.tvBotMessage)
+        val btnCopy: android.widget.ImageButton = itemView.findViewById(R.id.btnCopy)
     }
     
     inner class LoadingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
@@ -44,9 +47,6 @@ class AiChatAdapter(private val messages: ArrayList<AiChatMessage>) :
                 BotViewHolder(view)
             }
             VIEW_TYPE_ADVISOR_LIST -> {
-                // We need a container layout for the horizontal RecyclerView
-                // For simplicity, reusing a basic Recyclerview item or creating a new frame
-                // Note: We need a layout file for this list item
                 val view = LayoutInflater.from(parent.context).inflate(R.layout.item_ai_advisor_list, parent, false)
                 AdvisorListViewHolder(view)
             }
@@ -67,6 +67,17 @@ class AiChatAdapter(private val messages: ArrayList<AiChatMessage>) :
             holder.tvMessage.text = msg.message
         } else if (holder is BotViewHolder) {
             markwon.setMarkdown(holder.tvMessage, msg.message)
+            
+            // Handle Copy Button
+            if (msg.message.isNotEmpty()) {
+                holder.btnCopy.visibility = View.VISIBLE
+                holder.btnCopy.setOnClickListener {
+                    onCopyClick(msg.message)
+                }
+            } else {
+                holder.btnCopy.visibility = View.GONE
+            }
+            
         } else if (holder is AdvisorListViewHolder) {
             msg.advisors?.let { advisors ->
                 val advisorAdapter = AiAdvisorAdapter(advisors)

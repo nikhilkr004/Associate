@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp">
@@ -29,5 +30,19 @@
         app:layout_constraintStart_toEndOf="@+id/ivBotAvatar"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintWidth_max="300dp" />
+
+    <ImageButton
+        android:id="@+id/btnCopy"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_content_copy"
+        android:padding="4dp"
+        app:tint="#808080"
+        android:layout_marginStart="4dp"
+        app:layout_constraintStart_toEndOf="@+id/tvBotMessage"
+        app:layout_constraintBottom_toBottomOf="@+id/tvBotMessage"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

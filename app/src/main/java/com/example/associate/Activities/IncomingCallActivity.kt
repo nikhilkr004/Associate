@@ -111,14 +111,16 @@ class IncomingCallActivity : AppCompatActivity() {
         } else {
             val advisorId = intent.getStringExtra("ADVISOR_ID") ?: ""
             if (advisorId.isNotEmpty()) {
-                fetchAdvisorAvatar(advisorId)
+                fetchCallerAvatar(advisorId)
             }
         }
     }
     
-    private fun fetchAdvisorAvatar(advisorId: String) {
+    private fun fetchCallerAvatar(callerId: String) {
         val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
-        db.collection("advisors").document(advisorId).get()
+        
+        // 1. Try Advisors Collection First
+        db.collection("advisors").document(callerId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     // Check for nested basicInfo first (AdvisorDataClass structure)
@@ -131,16 +133,44 @@ class IncomingCallActivity : AppCompatActivity() {
                     }
                     
                     if (!avatarUrl.isNullOrEmpty()) {
-                        // Update Intent for next activity
-                        intent.putExtra("advisorAvatar", avatarUrl)
-                        intent.putExtra("ADVISOR_AVATAR", avatarUrl)
-                        loadAvatar(avatarUrl)
+                        updateAvatar(avatarUrl)
                     }
+                } else {
+                    // 2. Not an Advisor? Try Users Collection
+                    fetchUserAvatar(callerId)
                 }
             }
             .addOnFailureListener { e ->
                 e.printStackTrace()
+                // Fallback on failure
+                fetchUserAvatar(callerId)
             }
+    }
+    
+    private fun fetchUserAvatar(userId: String) {
+        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+        db.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val avatarUrl = document.getString("profileUrl") 
+                        ?: document.getString("profileImage") 
+                        ?: document.getString("profilePhotoUrl") // Common keys
+                    
+                    if (!avatarUrl.isNullOrEmpty()) {
+                        updateAvatar(avatarUrl)
+                    }
+                }
+            }
+            .addOnFailureListener { e -> e.printStackTrace() }
+    }
+    
+    private fun updateAvatar(avatarUrl: String?) {
+        if (!avatarUrl.isNullOrEmpty()) {
+             // Update Intent for next activity
+            intent.putExtra("advisorAvatar", avatarUrl)
+            intent.putExtra("ADVISOR_AVATAR", avatarUrl)
+            loadAvatar(avatarUrl)
+        }
     }
 
     private fun loadAvatar(url: String) {

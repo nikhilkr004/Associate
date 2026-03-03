@@ -1,7 +1,7 @@
 package com.example.associate.DataClass
 
 data class AiChatMessage(
-    val message: String = "",
+    var message: String = "",
     val isUser: Boolean = false,
     val isLoading: Boolean = false, // Helper for UI loading state
     val attachmentUri: String? = null, // For images/PDFs

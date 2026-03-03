@@ -2,13 +2,13 @@ package com.example.associate.Utils
 
 object AppConstants {
     // ZegoCloud Configuration
-    const val ZEGO_APP_ID: Long = 1090399585L // Replace with your App ID
-    const val ZEGO_APP_SIGN = "332c1e72681654c47dd6836e7e834f3346d25c25e93afcdb757b84ddbcacc388" // Replace with your App Sign
+    const val ZEGO_APP_ID: Long = 243845632L // Replace with your App ID
+    const val ZEGO_APP_SIGN = "3f0daea606259e68c2c902051931ba67d34d4e9c92973466c02e7b1dd625e4bb" // Replace with your App Sign
     const val DEFAULT_CHANNEL_NAME = "test_channel" // Default channel name
 
     // Payment Configuration
     const val PAYMENT_INTERVAL_MS = 10000L // 10 seconds
 
-    // Google Gemini AI
-    const val GEMINI_API_KEY = "AIzaSyDw2tavMAsZ92csbkUOI6Uwrw9dVnrB9E4"
+    const val GEMINI_API_KEY = "AIzaSyB9sdItbepvafid2T1HnFknwH-WH0qB9bA"
 }
+

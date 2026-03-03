@@ -124,25 +124,44 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         // 🔥 Robust Extraction based on User's New Payload
         val callId = data["CALL_ID"] ?: data["callId"] ?: ""
         val channelName = data["CHANNEL_NAME"] ?: data["channelName"] ?: ""
-        val callerName = data["title"] ?: data["advisorName"] ?: "Incoming Call"
-        val callerAvatar = data["advisorAvatar"] ?: ""
-        val advisorId = data["ADVISOR_ID"] ?: data["advisorId"] ?: ""
+        
+        // Caller Name Logic: Check all possible keys
+        val callerName = data["title"] 
+            ?: data["advisorName"] 
+            ?: data["userName"] 
+            ?: data["senderName"] 
+            ?: "Incoming Call"
+            
+        // Caller Avatar: Check all possible keys
+        val callerAvatar = data["advisorAvatar"] 
+            ?: data["userAvatar"] 
+            ?: data["senderAvatar"] 
+            ?: data["pofileImage"] // potential typo handling
+            ?: ""
+            
+        // Caller ID: Check all possible keys
+        val advisorId = data["ADVISOR_ID"] 
+            ?: data["advisorId"] 
+            ?: data["userId"] 
+            ?: data["senderId"] 
+            ?: ""
+            
         val callType = data["CALL_TYPE"] ?: data["callType"] ?: "VIDEO"
         val urgencyLevel = data["urgencyLevel"] ?: "Medium"
         val bookingId = data["BOOKING_ID"] ?: data["bookingId"] ?: "" // 🔥 No fallback to callId
         
         Log.e("DEBUG_CALL", ">>> FCM RECEIVED PAYLOAD <<<")
         data.forEach { (k, v) -> Log.e("DEBUG_CALL", "   $k : $v") }
-        Log.e("DEBUG_CALL", "Extracted: CallID=$callId, Channel=$channelName, BookingID=$bookingId, Urgency=$urgencyLevel")
+        Log.e("DEBUG_CALL", "Extracted: CallID=$callId, Channel=$channelName, Caller=$callerName, ID=$advisorId")
         
         Log.d(TAG, "Starting CallNotificationService - CallID: $callId, Caller: $callerName, Type: $callType, Urgency: $urgencyLevel")
         
         val serviceIntent = Intent(this, CallNotificationService::class.java).apply {
             putExtra("CALL_ID", callId)
             putExtra("CHANNEL_NAME", channelName)
-            putExtra("advisorName", callerName)
+            putExtra("advisorName", callerName) // Using same key "advisorName" to minimize breakage in Service, but it holds Caller Name
             putExtra("advisorAvatar", callerAvatar)
-            putExtra("ADVISOR_ID", advisorId)
+            putExtra("ADVISOR_ID", advisorId) // Using same key "ADVISOR_ID" but it holds Caller ID
             putExtra("CALL_TYPE", callType)
             putExtra("urgencyLevel", urgencyLevel) // 🔥 Propagate to Service
             putExtra("BOOKING_ID", bookingId) // Pass Booking ID

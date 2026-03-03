@@ -52,9 +52,12 @@ class CallNotificationService : Service() {
         val callId = intent?.getStringExtra("CALL_ID") ?: ""
         // 🔥 Robust Extraction: ChannelName -> RoomID -> CallID
         val channelName = intent?.getStringExtra("CHANNEL_NAME") ?: intent?.getStringExtra("ROOM_ID") ?: callId
+        
+        // Name & ID extraction (Keys from MyFirebaseMessagingService)
         val callerName = intent?.getStringExtra("advisorName") ?: intent?.getStringExtra("title") ?: "Incoming Call"
         val advisorAvatar = intent?.getStringExtra("advisorAvatar") ?: ""
         val advisorId = intent?.getStringExtra("ADVISOR_ID") ?: ""
+        
         val callType = intent?.getStringExtra("CALL_TYPE") ?: "VIDEO"
         val urgencyLevel = intent?.getStringExtra("urgencyLevel") ?: "Medium" // 🔥 Extraction
         val bookingId = intent?.getStringExtra("BOOKING_ID") ?: "" // 🔥 No fallback to callId

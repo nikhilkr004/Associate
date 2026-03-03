@@ -34,5 +34,11 @@
         android:name="com.example.associate.Fragments.CommunityFragment"
         android:label="Community"
         tools:layout="@layout/fragment_community" />
+
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.example.associate.Fragments.SearchFragment"
+        android:label="SearchFragment"
+        tools:layout="@layout/fragment_search"/>
 </navigation>
 <!-- Updated for repository activity -->
