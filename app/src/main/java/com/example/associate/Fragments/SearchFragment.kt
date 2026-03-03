@@ -37,7 +37,7 @@ class SearchFragment : Fragment() {
     private lateinit var searchAdapter: SearchAdapter
 
     private var selectedCategory: String = "All"
-    private val categories = arrayOf("All", "Mutual Funds", "Equity", "Debt", "Hybrid", "Insurance", "Stocks", "Commodity")
+    private val categories = arrayOf("All", "Tax Planning", "Retirement", "Investments", "Insurance", "Mutual Funds", "Equity", "Stocks")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +53,7 @@ class SearchFragment : Fragment() {
         setupRecyclerView()
         setupSearch()
         setupFilter()
+        setupCategoryChips()
         loadFavorites() // Load favorites first, then advisors
     }
 
@@ -83,6 +84,29 @@ class SearchFragment : Fragment() {
     private fun setupFilter() {
         binding.btnFilter.setOnClickListener {
             showFilterDialog()
+        }
+    }
+
+    private fun setupCategoryChips() {
+        binding.chipSelectPurpose.setOnClickListener {
+            selectedCategory = "All"
+            performSearch(binding.etSearch.text.toString())
+        }
+        binding.chipTaxPlanning.setOnClickListener {
+            selectedCategory = "Tax Planning"
+            performSearch(binding.etSearch.text.toString())
+        }
+        binding.chipRetirement.setOnClickListener {
+            selectedCategory = "Retirement"
+            performSearch(binding.etSearch.text.toString())
+        }
+        binding.chipInvestments.setOnClickListener {
+            selectedCategory = "Investments"
+            performSearch(binding.etSearch.text.toString())
+        }
+        binding.chipInsurance.setOnClickListener {
+            selectedCategory = "Insurance"
+            performSearch(binding.etSearch.text.toString())
         }
     }
 
@@ -245,8 +269,10 @@ class SearchFragment : Fragment() {
             val price: android.widget.TextView = view.findViewById(com.example.associate.R.id.tvPrice)
             val image: android.widget.ImageView = view.findViewById(com.example.associate.R.id.ivAdvisorImage)
             val bookBtn: android.widget.Button = view.findViewById(com.example.associate.R.id.btnBook)
+            val quickChatBtn: android.widget.Button = view.findViewById(com.example.associate.R.id.btnQuickChat)
             val rating: android.widget.TextView = view.findViewById(com.example.associate.R.id.tvRating)
             val favoriteIcon: android.widget.ImageView = view.findViewById(com.example.associate.R.id.ivFavorite)
+            val bio: android.widget.TextView = view.findViewById(com.example.associate.R.id.tvBio)
 
             fun bind(advisor: AdvisorDataClass, isFavorite: Boolean) {
                 name.text = advisor.basicInfo.name
@@ -266,9 +292,14 @@ class SearchFragment : Fragment() {
                 
                 special.text = subText
                 
-                val fee = advisor.pricingInfo.scheduledVideoFee
-                // Format Price nicely
-                price.text = "$$fee / Session"
+                val fee = advisor.pricingInfo.instantVideoFee
+                price.text = "₹$fee"
+
+                // Bio
+                val bioText = advisor.professionalInfo.bio.ifEmpty {
+                    "Expert advisor with ${advisor.professionalInfo.experience} years of experience."
+                }
+                bio.text = bioText
                 
                 rating.text = String.format("%.1f", advisor.performanceInfo.rating)
 
@@ -279,6 +310,17 @@ class SearchFragment : Fragment() {
                         .into(image)
                 }
 
+                // Specialization color
+                val dept = advisor.professionalInfo.department.lowercase()
+                val specColor = when {
+                    dept.contains("retire") -> android.graphics.Color.parseColor("#F59E0B")
+                    dept.contains("tech") -> android.graphics.Color.parseColor("#3B82F6")
+                    dept.contains("health") -> android.graphics.Color.parseColor("#EC4899")
+                    dept.contains("tax") -> android.graphics.Color.parseColor("#10B981")
+                    else -> android.graphics.Color.parseColor("#F59E0B")
+                }
+                special.setTextColor(specColor)
+
                 // Initial Favorite State
                 if (isFavorite) {
                     favoriteIcon.setImageResource(com.example.associate.R.drawable.filled_heart)
@@ -288,6 +330,7 @@ class SearchFragment : Fragment() {
 
                 favoriteIcon.setOnClickListener { onFavoriteClick(advisor, adapterPosition) }
                 bookBtn.setOnClickListener { onClick(advisor) }
+                quickChatBtn.setOnClickListener { onClick(advisor) }
                 itemView.setOnClickListener { onClick(advisor) }
             }
         }

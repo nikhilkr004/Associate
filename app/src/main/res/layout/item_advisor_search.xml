@@ -6,11 +6,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
+    android:layout_marginBottom="12dp"
     app:cardBackgroundColor="@android:color/white"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="6dp"
-    app:strokeColor="#E0E0E0"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="4dp"
+    app:strokeColor="#F0F0F0"
     app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -18,116 +18,179 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Rating with Star -->
-        <LinearLayout
-            android:id="@+id/ratingLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
+        <!-- Advisor Image -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivAdvisorImage"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/user"
+            app:civ_border_color="#E0E0E0"
+            app:civ_border_width="1dp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/tvRating"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="4.5"
-                android:textColor="@color/green"
-                android:textStyle="bold"
-                android:textSize="14sp" />
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:layout_marginStart="4dp"
-                android:src="@drawable/rationg_icon"
-                app:tint="#FFEB3B" />
-        </LinearLayout>
-
-        <!-- Favorite Button -->
+        <!-- Favorite Heart -->
         <ImageView
             android:id="@+id/ivFavorite"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/empty_heart"
+            app:tint="#ef4444"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="#ef4444" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Advisor Infos -->
+        <!-- Advisor Name -->
         <TextView
             android:id="@+id/tvAdvisorName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
             android:text="Dr. Raul Weinman"
-            android:textColor="#1F2937"
-            android:textSize="18sp"
+            android:textColor="#1A1A2E"
+            android:textSize="17sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/ivAdvisorImage"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ratingLayout" />
+            app:layout_constraintEnd_toStartOf="@id/ivFavorite"
+            app:layout_constraintStart_toEndOf="@id/ivAdvisorImage"
+            app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Specialization Tag -->
         <TextView
             android:id="@+id/tvSpecialization"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text=""
-            android:textColor="#6B7280"
-            android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="@+id/tvAdvisorName"
-            app:layout_constraintStart_toStartOf="@+id/tvAdvisorName"
-            app:layout_constraintTop_toBottomOf="@+id/tvAdvisorName" />
-
-        <TextView
-            android:id="@+id/tvPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text=""
-            android:textColor="#9CA3AF"
-            android:textSize="12sp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:text="• RETIREMENT &amp; ESTATE"
+            android:textColor="#F59E0B"
+            android:textSize="11sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/tvAdvisorName"
-            app:layout_constraintTop_toBottomOf="@+id/tvSpecialization" />
+            android:letterSpacing="0.05"
+            app:layout_constraintStart_toEndOf="@id/ivAdvisorImage"
+            app:layout_constraintTop_toBottomOf="@id/tvAdvisorName" />
 
-        <!-- Advisor Image -->
-        <!-- Using a fixed size for the image to maintain aspect ratio -->
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/ivAdvisorImage"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@drawable/user"
-            app:civ_border_color="@android:color/transparent"
-            app:civ_border_width="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/btnBook"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/ivFavorite"
+        <!-- Rating Row -->
+        <LinearLayout
+            android:id="@+id/ratingLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintStart_toEndOf="@id/ivAdvisorImage"
+            app:layout_constraintTop_toBottomOf="@id/tvSpecialization">
 
-             />
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/rationg_icon"
+                app:tint="#FFEB3B" />
 
-        <!-- Book Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBook"
+            <TextView
+                android:id="@+id/tvRating"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="4.9"
+                android:textColor="#555555"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Bio Text -->
+        <TextView
+            android:id="@+id/tvBio"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Book"
-            android:textAllCaps="false"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            app:backgroundTint="@color/green"
-            app:cornerRadius="24dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginTop="10dp"
+            android:text="Expert financial advisor helping you achieve your goals."
+            android:textColor="#555555"
+            android:textSize="13sp"
+            android:maxLines="2"
+            android:ellipsize="end"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvPrice" />
+            app:layout_constraintTop_toBottomOf="@id/ivAdvisorImage" />
+
+        <!-- Divider -->
+        <View
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#F0F0F0"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvBio" />
+
+        <!-- Price -->
+        <LinearLayout
+            android:id="@+id/priceLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:gravity=""
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:id="@+id/tvPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="$120"
+                android:textColor="#1A1A2E"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" / hr"
+                android:textColor="#888888"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Quick Chat Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnQuickChat"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="8dp"
+            android:text="Quick\nChat"
+            android:textAllCaps="false"
+            android:textColor="#2D6A4F"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:cornerRadius="22dp"
+            app:strokeColor="#2D6A4F"
+            app:strokeWidth="1.5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnBook"
+            app:layout_constraintStart_toEndOf="@id/priceLayout"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
+
+        <!-- Book Session Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBook"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="Book\nSession"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:backgroundTint="#2D6A4F"
+            app:cornerRadius="22dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>
-
-<!-- Updated for repository activity -->

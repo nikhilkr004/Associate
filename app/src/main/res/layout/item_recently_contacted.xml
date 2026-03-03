@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="140dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <!-- Avatar -->
+        <ImageView
+            android:id="@+id/rc_avatar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/circle_bg_green_light"
+            android:scaleType="centerCrop"
+            android:background="@drawable/circle_bg_dark"
+            tools:ignore="ContentDescription" />
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/rc_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="Dr. Aris Thorne"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A2E"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- Category Badge -->
+        <TextView
+            android:id="@+id/rc_category"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="LEGAL"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            android:textColor="#FF8C00"
+            android:background="@drawable/badge_bg_orange"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="2dp" />
+
+        <!-- Pay Now -->
+        <TextView
+            android:id="@+id/rc_pay_now"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="RECENT"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:background="@drawable/edittext_bg" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

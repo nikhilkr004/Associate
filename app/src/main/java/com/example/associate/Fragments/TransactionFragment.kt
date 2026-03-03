@@ -51,7 +51,7 @@ class TransactionFragment : Fragment() {
         setupRecyclerView()
         fetchWalletBalance()
         fetchTransactionData()
-        setupClickListeners()
+
 
         return binding.root
     }
@@ -269,11 +269,11 @@ class TransactionFragment : Fragment() {
         }
     }
 
-    private fun setupClickListeners() {
-        binding.refreshBtn.setOnClickListener {
-            Toast.makeText(requireContext(), "Live Updating...", Toast.LENGTH_SHORT).show()
-        }
-    }
+//    private fun setupClickListeners() {
+//        binding.refreshBtn.setOnClickListener {
+//            Toast.makeText(requireContext(), "Live Updating...", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     override fun onResume() {
         super.onResume()

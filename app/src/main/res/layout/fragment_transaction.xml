@@ -1,89 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/gradient_bg"
-    android:orientation="vertical"
+    android:background="#F0F4FF"
+    android:fillViewport="true"
     tools:context=".Fragments.TransactionFragment">
 
-
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_15sdp"
-        android:fontFamily="@font/archivo_black"
-        android:text="Wallet"
-        android:layout_marginBottom="@dimen/_10sdp"
-        android:textAlignment="center"
-        android:textSize="@dimen/_18sdp" />
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_margin="@dimen/_5sdp"
-        android:background="@drawable/double_bg"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/textView4"
-            android:layout_marginTop="@dimen/_6sdp"
-            android:layout_width="wrap_content"
+        <!-- Top Header: Wallet Account + Bell -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_10sdp"
-            android:text="Current balance"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:paddingHorizontal="20dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/current_balance"
-            android:layout_width="0dp"
+            <ImageView
+                android:id="@+id/wallet_avatar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/circle_bg"
+                android:background="@drawable/circle_bg_green_light"
+                android:scaleType="centerCrop"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/wallet_name_box"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/wallet_avatar"
+                app:layout_constraintEnd_toStartOf="@id/bell_btn"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="WALLET ACCOUNT"
+                    android:textSize="10sp"
+                    android:letterSpacing="0.12"
+                    android:textColor="#888888"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/wallet_user_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Loading..."
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A1A2E"
+                    tools:text="Alex Rivera" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/bell_btn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/baseline_notifications_24"
+                android:background="@drawable/circle_bg_white"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Balance Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:fontFamily="@font/archivo_black"
-            android:text="100.0"
-            android:layout_marginBottom="@dimen/_10sdp"
-            android:textSize="@dimen/_22sdp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/refresh_btn"
-            app:layout_constraintStart_toStartOf="@+id/textView4"
-            app:layout_constraintTop_toBottomOf="@+id/textView4" />
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="#E8FFF6">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
 
-        <ImageButton
-            android:id="@+id/refresh_btn"
-            android:layout_width="@dimen/_45sdp"
-            android:layout_height="@dimen/_45sdp"
-            android:padding="@dimen/_6sdp"
-            android:src="@drawable/reload"
-            android:tint="@color/green"
-            android:background="@drawable/eleveted_bg"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_10sdp"
-            android:layout_marginEnd="@dimen/_10sdp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Available Credit"
+                    android:textSize="13sp"
+                    android:textColor="#00A86B"
+                    android:fontFamily="sans-serif-medium" />
 
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="bottom"
+                    android:layout_marginTop="4dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_10sdp"
-        android:textStyle="bold"
-        android:text="Transactions history"
-        android:layout_marginStart="@dimen/_10sdp"
-        android:textSize="@dimen/_16sdp" />
+                    <TextView
+                        android:id="@+id/current_balance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹0"
+                        android:textSize="42sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A1A2E"
+                        tools:text="₹8,240" />
 
-<androidx.recyclerview.widget.RecyclerView
-    android:id="@+id/transaction_history_recyclerview"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    tools:listitem="@layout/payment_history_item"/>
+                    <TextView
+                        android:id="@+id/current_balance_decimal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=".00"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A1A2E"
+                        android:layout_marginBottom="6dp"
+                        tools:text=".50" />
+                </LinearLayout>
 
+                <!-- Add Funds Button -->
+                <Button
+                    android:id="@+id/add_funds_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="20dp"
+                    android:text="⊕  Add Funds"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    android:backgroundTint="#00C07A"
+                    android:stateListAnimator="@null"
+                    style="@style/Widget.MaterialComponents.Button" />
 
-</LinearLayout>
-<!-- Updated for repository activity -->
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Recently Contacted Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RECENTLY CONNECTED"
+                android:textSize="11sp"
+                android:letterSpacing="0.1"
+                android:textColor="#888888"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginHorizontal="20dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recently_contacted_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:clipToPadding="false"
+                android:paddingHorizontal="16dp"
+                tools:listitem="@layout/item_recently_contacted" />
+
+        </LinearLayout>
+
+        <!-- Recent Consultations Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="20dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="PAYMENTS"
+                    android:textSize="11sp"
+                    android:letterSpacing="0.1"
+                    android:textColor="#888888"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/view_all_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View All"
+                    android:textSize="13sp"
+                    android:textColor="#00C07A"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/transaction_history_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/payment_history_item" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
