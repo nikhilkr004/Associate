@@ -14,26 +14,31 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="8dp">
 
+        <ImageView
+            android:id="@+id/backIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/arrow_back"
+            android:contentDescription="Back" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_centerInParent="true"
             android:text="My Bookings"
-            android:textColor="@color/green"
-            android:textSize="20sp"
-
-            android:padding="@dimen/_10sdp"
-            android:textAlignment="center"
+            android:textColor="#000000"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
 
     </RelativeLayout>
-
+    
     <!-- Tabs -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
@@ -41,11 +46,12 @@
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         app:tabGravity="fill"
-        app:tabIndicatorColor="@color/green"
+        app:tabIndicatorColor="#2196F3"
+        app:tabIndicatorHeight="3dp"
         app:tabMode="fixed"
-        app:tabSelectedTextColor="@color/green"
+        app:tabSelectedTextColor="#2196F3"
         app:tabTextAppearance="@style/CustomTabTextStyle"
-        app:tabTextColor="#757575">
+        app:tabTextColor="#9E9E9E">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
