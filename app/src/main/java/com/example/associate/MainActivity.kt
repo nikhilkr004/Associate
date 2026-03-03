@@ -79,7 +79,10 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(HomeFragment.newInstance())
                     true
                 }
-
+                R.id.searchFragment -> {
+                    loadFragment(com.example.associate.Fragments.SearchFragment.newInstance())
+                    true
+                }
                 R.id.communityFragment -> {
                     loadFragment(com.example.associate.Fragments.CommunityFragment.newInstance())
                     true
