@@ -85,7 +85,7 @@
             android:layout_height="80dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/card_bg_unselected"
+            android:background="@drawable/double_bg"
             android:clickable="true"
             android:focusable="true">
 
@@ -98,7 +98,7 @@
                 android:src="@drawable/chat"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/white" />
+                app:tint="@color/green" />
 
             <TextView
                 android:id="@+id/tv_chat_price"
@@ -106,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:text="₹ 10"
-                android:textColor="#B0B3C6"
+                android:textColor="@color/green"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/img_chat"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="Chat"
-                android:textColor="@android:color/white"
+                android:textColor="@color/green"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -132,7 +132,7 @@
             android:layout_height="80dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/card_bg_unselected"
+            android:background="@drawable/double_bg"
             android:clickable="true"
             android:focusable="true">
 
@@ -145,7 +145,7 @@
                 android:src="@drawable/call"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/white" />
+                app:tint="@color/green" />
 
             <TextView
                 android:id="@+id/tv_audio_price"
@@ -153,7 +153,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:text="₹ 15"
-                android:textColor="#B0B3C6"
+                android:textColor="@color/green"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/img_audio"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -164,7 +164,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="Audio Call"
-                android:textColor="@android:color/white"
+                android:textColor="@color/green"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -178,7 +178,7 @@
             android:layout_width="0dp"
             android:layout_height="80dp"
             android:layout_weight="1"
-            android:background="@drawable/card_bg_unselected"
+            android:background="@drawable/double_bg"
             android:clickable="true"
             android:focusable="true">
 
@@ -191,7 +191,7 @@
                 android:src="@drawable/videocall"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/white" />
+                app:tint="@color/green" />
 
             <TextView
                 android:id="@+id/tv_video_price"
@@ -199,7 +199,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:text="₹ 20"
-                android:textColor="#B0B3C6"
+                android:textColor="@color/green"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@id/img_video"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -210,7 +210,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="Video Call"
-                android:textColor="@android:color/white"
+                android:textColor="@color/green"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

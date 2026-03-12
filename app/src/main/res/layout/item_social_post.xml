@@ -170,8 +170,6 @@
             app:layout_constraintBottom_toBottomOf="@+id/btnPostComment"
             app:layout_constraintStart_toEndOf="@+id/btnPostComment"
             app:layout_constraintTop_toTopOf="@+id/btnPostComment" />
-
-            app:layout_constraintTop_toTopOf="@+id/btnPostLike" />
             
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBookSession"
@@ -188,15 +186,16 @@
             app:layout_constraintTop_toTopOf="@+id/btnPostLike" />
             
         <TextView
+            android:id="@+id/tvPostShare"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Share"
             android:textColor="@color/white"
             android:textSize="12sp"
             android:layout_marginEnd="6dp"
-            app:layout_constraintBottom_toBottomOf="@+id/btnPostShare"
-            app:layout_constraintEnd_toStartOf="@+id/btnPostShare"
-            app:layout_constraintTop_toTopOf="@+id/btnPostShare" />
+            app:layout_constraintBottom_toBottomOf="@+id/btnBookSession"
+            app:layout_constraintEnd_toStartOf="@+id/btnBookSession"
+            app:layout_constraintTop_toTopOf="@+id/btnBookSession" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

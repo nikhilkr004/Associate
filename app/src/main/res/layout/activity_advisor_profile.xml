@@ -15,35 +15,42 @@
         android:paddingBottom="20dp">
 
         <!-- Header Section -->
-        <RelativeLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:paddingHorizontal="16dp">
+            android:layout_height="?actionBarSize"
+            android:background="@android:color/white"
+            android:elevation="4dp">
 
-            <ImageView
+            <ImageButton
                 android:id="@+id/imgBack"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_centerVertical="true"
-                android:padding="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@drawable/back"
-                app:tint="@color/black" />
+                android:tint="@color/black"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
+                android:layout_marginStart="16dp"
+                android:fontFamily="@font/archivo_black"
                 android:text="Advisor Profile"
                 android:textColor="@color/black"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/imgBack"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/advisor_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/double_bg"
                 android:drawableStart="@drawable/double_bg"
                 android:drawablePadding="4dp"
@@ -53,9 +60,11 @@
                 android:text="ONLINE"
                 android:textColor="@color/green"
                 android:textSize="12sp"
-                android:textStyle="bold" />
-
-        </RelativeLayout>
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- Profile Image & Badge -->
         <RelativeLayout

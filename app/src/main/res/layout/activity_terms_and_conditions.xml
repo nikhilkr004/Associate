@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:fontFamily="@font/archivo_black"
-            android:text="Terms &amp; Conditions"
+            android:text="Privacy Policy &amp; Terms"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -57,10 +57,117 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Last Updated: January 2026"
+                android:text="Last Updated: March 2026"
                 android:textStyle="italic"
                 android:textColor="@color/gray"
                 android:layout_marginBottom="16dp"/>
+
+            <!-- ===== PRIVACY POLICY ===== -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="PRIVACY POLICY"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="1. Information We Collect"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="We collect information you provide directly, including your name, email address, phone number, city, and gender. We also collect device information, FCM tokens for notifications, and usage data to improve the app."
+                android:textColor="@color/black"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2. How We Use Your Information"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Your information is used to: provide and improve our services, facilitate communication between users and advisors, process payments, send notifications, and ensure account security."
+                android:textColor="@color/black"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="3. Data Storage &amp; Security"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Your data is securely stored using Google Firebase (Firestore &amp; Firebase Authentication). We implement industry-standard security measures to protect your personal information from unauthorized access."
+                android:textColor="@color/black"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="4. Data Sharing"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="We do not sell your personal data. We share data only with advisors you connect with on the platform and with trusted third-party services (Firebase, payment processors) strictly necessary to operate the app."
+                android:textColor="@color/black"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="5. Your Rights"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="You have the right to access, update, or delete your personal data at any time. To request data deletion, please contact us using the details below."
+                android:textColor="@color/black"
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- ===== TERMS &amp; CONDITIONS ===== -->
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TERMS &amp; CONDITIONS"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="12dp"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -130,7 +237,7 @@
                 android:lineSpacingExtra="4dp"
                 android:layout_marginBottom="16dp"/>
 
-             <TextView
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="5. Limitation of Liability"
@@ -145,23 +252,43 @@
                 android:text="Associate is not liable for any direct, indirect, incidental, or consequential damages arising from your use of the service."
                 android:textColor="@color/black"
                 android:lineSpacingExtra="4dp"
-                android:layout_marginBottom="16dp"/>
-                
-            <TextView
+                android:layout_marginBottom="24dp"/>
+
+            <!-- ===== DEVELOPER / CONTACT INFORMATION ===== -->
+
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="6. Contact Us"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"
-                android:layout_marginBottom="8dp"/>
+                android:layout_height="1dp"
+                android:background="@color/gray"
+                android:layout_marginBottom="16dp"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="If you have any questions about these Terms, please contact us via the Help &amp; Support section."
+                android:text="Developer Information &amp; Contact"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="If you have any questions about this Privacy Policy or Terms, wish to exercise your data rights, or need assistance, please contact us:"
                 android:textColor="@color/black"
                 android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Developer: Nikhil Kumar
+Email: nikhilabc860@gmail.com
+App Name: Associate
+Package: com.example.associate
+Country: India"
+                android:textColor="@color/black"
+                android:lineSpacingExtra="6dp"
                 android:layout_marginBottom="32dp"/>
 
         </LinearLayout>

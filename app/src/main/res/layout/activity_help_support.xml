@@ -24,7 +24,7 @@
             android:layout_marginStart="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/back"
-            android:tint="@color/green"
+            android:tint="@color/black"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -35,7 +35,7 @@
             android:layout_marginStart="16dp"
             android:fontFamily="@font/archivo_black"
             android:text="Help &amp; Support"
-            android:textColor="@color/green"
+            android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"

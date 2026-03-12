@@ -242,12 +242,29 @@ class OtpScreenActivity : AppCompatActivity() {
                     // Check if user exists in Firestore
                     checkUserExists { exists ->
                         DialogUtils.hideLoadingDialog()
-                        if (exists) {
-                            // User exists - go to MainActivity
-                            handleExistingUser()
-                        } else {
-                            // New user - go to PersonalScreenActivity or wherever new users should go
-                            handleNewUser()
+                        when (exists) {
+                            true -> {
+                                // Existing user - navigate directly to MainActivity
+                                navigateToMainActivity()
+                            }
+                            false -> {
+                                // New user - navigate directly to profile setup
+                                navigateToProfileSetup()
+                            }
+                            null -> {
+                                // Firestore error - show error, do NOT silently treat as new user
+                                DialogUtils.showStatusDialog(
+                                    this,
+                                    false,
+                                    title = "Connection Error",
+                                    message = "Unable to verify account status. Please check your internet connection and try again.",
+                                    buttonText = "Retry",
+                                    action = {
+                                        clearOtpFields()
+                                        otpFields[0].requestFocus()
+                                    }
+                                )
+                            }
                         }
                     }
                 } else {
@@ -275,7 +292,7 @@ class OtpScreenActivity : AppCompatActivity() {
             }
     }
 
-    private fun checkUserExists(callback: (Boolean) -> Unit) {
+    private fun checkUserExists(callback: (Boolean?) -> Unit) {
         val currentUser = auth.currentUser
         if (currentUser != null) {
             FirebaseFirestore.getInstance().collection("users")
@@ -286,37 +303,14 @@ class OtpScreenActivity : AppCompatActivity() {
                 }
                 .addOnFailureListener { exception ->
                     Log.e(TAG, "Error checking user existence", exception)
-                    // If we can't check Firestore, assume user doesn't exist to be safe
-                    callback(false)
+                    // null signals a network/Firestore error - don't treat as new user
+                    callback(null)
                 }
         } else {
-            callback(false)
+            callback(null)
         }
     }
 
-    private fun handleExistingUser() {
-        DialogUtils.showStatusDialog(
-            this,
-            true,
-            title = "Success",
-            message = "Login successful",
-            action = {
-                navigateToMainActivity()
-            }
-        )
-    }
-
-    private fun handleNewUser() {
-        DialogUtils.showStatusDialog(
-            this,
-            true,
-            title = "Welcome",
-            message = "Please complete your profile",
-            action = {
-                navigateToProfileSetup()
-            }
-        )
-    }
 
     private fun navigateToMainActivity() {
         startActivity(Intent(this, MainActivity::class.java).apply {
