@@ -157,6 +157,9 @@ class PersonalScreenActivity : AppCompatActivity() {
                         // Send welcome notification
                         sendWelcomeNotification(user.name, userId)
 
+                        // Trigger Webhook for welcome email
+                        com.example.associate.Utils.WebhookUtils.triggerWelcomeEmail(user.name, user.email)
+
                         withContext(Dispatchers.Main) {
                             Toast.makeText(
                                 this@PersonalScreenActivity,

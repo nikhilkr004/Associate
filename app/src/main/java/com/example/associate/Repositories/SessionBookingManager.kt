@@ -96,6 +96,36 @@ class SessionBookingManager(private val context: Context) {
                 // ✅ SEND NOTIFICATION TO ADVISOR
                 sendBookingNotificationToAdvisor(advisorId, studentName, bookingId, advisorName)
 
+                // 📧 SEND EMAIL VIA WEBHOOK (Refined)
+                Log.d("DEBUG", "Fetching user data for webhook: $studentId")
+                db.collection("users").document(studentId).get().addOnSuccessListener { userDoc ->
+                    val userEmail = userDoc.getString("email") ?: auth.currentUser?.email ?: ""
+                    val fullName = userDoc.getString("name") ?: studentName
+                    Log.d("DEBUG", "User data fetched: $fullName, $userEmail")
+                    
+                    Log.d("DEBUG", "Fetching advisor data for webhook: $advisorId")
+                    db.collection("advisors").document(advisorId).get().addOnSuccessListener { advisorDoc ->
+                        val availabilityInfo = advisorDoc.get("availabilityInfo") as? Map<*, *>
+                        val durationInMinutes = (availabilityInfo?.get("appointmentDuration") as? Number)?.toInt() ?: 15
+                        Log.d("DEBUG", "Advisor data fetched, duration: $durationInMinutes")
+                        
+                        val meetingDate = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                        val meetingTime = java.text.SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date())
+                        
+                        com.example.associate.Utils.WebhookUtils.triggerBookingEmail(
+                            fullName,
+                            userEmail,
+                            meetingDate,
+                            meetingTime,
+                            "$durationInMinutes minutes",
+                            "Instant",
+                            advisorName,
+                            bookingId,
+                            sessionAmount.toString()
+                        )
+                    }
+                }
+
                 onSuccess(bookingId)
                 startResponseTimer(bookingId)
             }
@@ -201,6 +231,34 @@ class SessionBookingManager(private val context: Context) {
         .addOnSuccessListener { bookingId ->
              Log.d("DEBUG", "Scheduled Booking & Payment successful: $bookingId")
              sendBookingNotificationToAdvisor(advisorId, studentName, bookingId as String, advisorName)
+
+             // 📧 SEND EMAIL VIA WEBHOOK (Refined)
+             Log.d("DEBUG", "Fetching user data for scheduled webhook: $studentId")
+             db.collection("users").document(studentId).get().addOnSuccessListener { userDoc ->
+                 val userEmail = userDoc.getString("email") ?: auth.currentUser?.email ?: ""
+                 val fullName = userDoc.getString("name") ?: studentName
+                 Log.d("DEBUG", "User data fetched: $fullName, $userEmail")
+
+                 Log.d("DEBUG", "Fetching advisor data for scheduled webhook: $advisorId")
+                 db.collection("advisors").document(advisorId).get().addOnSuccessListener { advisorDoc ->
+                     val availability = advisorDoc.get("availabilityInfo") as? Map<*, *>
+                     val durationInMinutes = (availability?.get("appointmentDuration") as? Number)?.toInt() ?: 30
+                     Log.d("DEBUG", "Advisor data fetched, duration: $durationInMinutes")
+                     
+                     com.example.associate.Utils.WebhookUtils.triggerBookingEmail(
+                         fullName,
+                         userEmail,
+                         bookingDate,
+                         bookingSlot,
+                         "$durationInMinutes minutes",
+                         "Scheduled",
+                         advisorName,
+                         bookingId as String,
+                         amount.toString()
+                     )
+                 }
+             }
+
              onSuccess("Booking Confirmed! Payment of ₹$amount deducted.")
         }
         .addOnFailureListener { e ->

@@ -15,8 +15,8 @@ android {
         applicationId = "com.example.associate"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0-Beta"
+        versionCode = 4
+        versionName = "1.1.2-Beta"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -133,6 +133,9 @@ dependencies {
 
     // Google ML Kit (Language Detection)
     implementation("com.google.mlkit:language-id:17.0.4")
+
+    // OkHttp for Webhooks
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
 
 // Updated for repository activity

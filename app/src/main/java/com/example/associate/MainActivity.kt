@@ -46,6 +46,9 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Apply dynamic icon to the "Recent Apps" OS overview screen
+        com.example.associate.Utils.AppIconLoader.applyTaskDescriptionIcon(this)
+
         setupBottomNavigation()
 
         // Load the default fragment

@@ -9,6 +9,7 @@
 
     <!-- Background Pattern/Image (Optional) -->
     <ImageView
+        android:id="@+id/ivBackgroundPattern"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/app_logo"

@@ -40,6 +40,13 @@ class IncomingCallActivity : AppCompatActivity() {
         binding = ActivityIncomingCallBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Dynamically load remote app icon (if configured) into the faint background pattern
+        val bgPatternView = findViewById<android.widget.ImageView>(R.id.ivBackgroundPattern)
+        if (bgPatternView != null) {
+            com.example.associate.Utils.AppIconLoader.loadIcon(this, bgPatternView)
+            bgPatternView.alpha = 0.1f // Keep the faint pattern look
+        }
+
         if (intent?.action == "ACTION_DECLINE") {
             stopService()
             finish()

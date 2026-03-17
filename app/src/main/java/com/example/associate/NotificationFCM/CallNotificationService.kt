@@ -184,11 +184,33 @@ class CallNotificationService : Service() {
             startForeground(123, notification)
         }
         
-        // Asynchronous Avatar Load - Update Custom View
-         if (advisorAvatar.isNotEmpty()) {
-            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        // Asynchronous Avatar & Icon Load - Update Custom View & Notification
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+            var updateNeeded = false
+            
+            // 1. Fetch Local App Icon (Dynamic App Logo)
+            val file = java.io.File(applicationContext.filesDir, "custom_app_logo.png")
+            if (file.exists()) {
                 try {
-                    val bitmap = com.bumptech.glide.Glide.with(applicationContext)
+                    val iconBitmap = com.bumptech.glide.Glide.with(applicationContext)
+                        .asBitmap()
+                        .load(file)
+                        .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                        .skipMemoryCache(true)
+                        .submit()
+                        .get()
+                    
+                    notificationBuilder.setLargeIcon(iconBitmap)
+                    updateNeeded = true
+                } catch (e: Exception) { 
+                    android.util.Log.e("CallNotification", "Failed to load local icon file for notification", e)
+                }
+            }
+
+            // 2. Fetch Advisor Avatar
+            if (advisorAvatar.isNotEmpty()) {
+                try {
+                    val avatarBitmap = com.bumptech.glide.Glide.with(applicationContext)
                         .asBitmap()
                         .load(advisorAvatar)
                         .circleCrop() // 🔥 Apply Circle Crop here since XML cannot use CircleImageView
@@ -196,12 +218,17 @@ class CallNotificationService : Service() {
                         .get()
                     
                     // Update RemoteViews
-                    customLayout.setImageViewBitmap(R.id.iv_advisor_avatar, bitmap)
-                    
-                    // Update Notification
-                    val manager = getSystemService(NotificationManager::class.java)
-                    manager.notify(123, notificationBuilder.build())
-                } catch (e: Exception) { }
+                    customLayout.setImageViewBitmap(R.id.iv_advisor_avatar, avatarBitmap)
+                    updateNeeded = true
+                } catch (e: Exception) { 
+                    android.util.Log.e("CallNotification", "Failed to load advisor avatar for notification", e)
+                }
+            }
+
+            // Update Notification if either image was fetched
+            if (updateNeeded) {
+                val manager = getSystemService(NotificationManager::class.java)
+                manager.notify(123, notificationBuilder.build())
             }
         }
     }
