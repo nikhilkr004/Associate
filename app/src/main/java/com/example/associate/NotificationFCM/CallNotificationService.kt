@@ -122,6 +122,7 @@ class CallNotificationService : Service() {
         // Accept Intent
         val acceptIntent = Intent(this, targetClass).apply {
             putExtra("CALL_ID", callId)
+            putExtra("CHANNEL_NAME", channelName)
             // putExtra("ROOM_ID", callId) // Removed implicit RoomID
             putExtra("BOOKING_ID", bookingId)
             putExtra("ADVISOR_NAME", callerName) 
@@ -151,7 +152,13 @@ class CallNotificationService : Service() {
         // Custom Notification Layout (RemoteViews)
         val customLayout = RemoteViews(packageName, R.layout.notification_call_custom)
         customLayout.setTextViewText(R.id.tv_advisor_name, callerName)
-        customLayout.setTextViewText(R.id.tv_call_status, "Incoming $callType Call")
+        
+        val statusText = when (callType) {
+            "CHAT" -> "Incoming Chat Request"
+            "AUDIO" -> "Incoming Audio Call"
+            else -> "Incoming Video Call"
+        }
+        customLayout.setTextViewText(R.id.tv_call_status, statusText)
         
         // Bind Actions to Custom Buttons
         customLayout.setOnClickPendingIntent(R.id.btn_accept_call, acceptPendingIntent)

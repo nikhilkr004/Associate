@@ -8,7 +8,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:47406421196:android:db3e28196d52a0bde01e69",
+        "mobilesdk_app_id": "1:47406421196:android:58bec278a25e731ce01e69",
         "android_client_info": {
           "package_name": "com.example.associate"
         }
@@ -56,6 +56,80 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.example.associateconnect",
+            "certificate_hash": "d8d99cd08a7f07aa3ff2ca3612f59c96ae07f335"
+          }
+        },
+        {
+          "client_id": "47406421196-ceg9g9uc504be7jqbbl4ok8qpo9qmtna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzY_tFk32M0ObO-lZZlrE4idkgL52VtWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "47406421196-ceg9g9uc504be7jqbbl4ok8qpo9qmtna.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:47406421196:android:ae06a330d7160208e01e69",
+        "android_client_info": {
+          "package_name": "com.studyai.smartclassroom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "47406421196-muhb8nt65aga346allbigmqg2kn57i31.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.studyai.smartclassroom",
+            "certificate_hash": "d8d99cd08a7f07aa3ff2ca3612f59c96ae07f335"
+          }
+        },
+        {
+          "client_id": "47406421196-ceg9g9uc504be7jqbbl4ok8qpo9qmtna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzY_tFk32M0ObO-lZZlrE4idkgL52VtWM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "47406421196-ceg9g9uc504be7jqbbl4ok8qpo9qmtna.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:47406421196:android:c2e5e1448efd8a84e01e69",
+        "android_client_info": {
+          "package_name": "com.tethered.tethered"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "47406421196-v0bduc9hs3fp1pithc4c2jqb8qrq1ect.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tethered.tethered",
             "certificate_hash": "d8d99cd08a7f07aa3ff2ca3612f59c96ae07f335"
           }
         },
